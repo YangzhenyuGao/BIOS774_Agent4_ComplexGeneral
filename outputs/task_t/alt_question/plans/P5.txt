@@ -1,0 +1,5 @@
+Decoupled Coarse-Lineage and Luminal-Specialist Hierarchical Multi-Head MIL
+
+We represent each patient's multi-slide H&E tile bag with unreduced, spherically normalised CONCH-Z and H-Optimus-1 embeddings, avoiding PCA variance truncation, and train a decoupled two-stage hierarchical multi-head attention classifier. Stage 1 separates coarse Luminal, Basal, and minority Her2 lineages; Stage 2 trains an independent Luminal specialist for focal LumA-versus-LumB separation, composing calibrated conditional probabilities. Using site-grouped inner tuning within repeated nested patient CV plus site-held-out CV, we determine whether H&E predictability is broad, partial, site-confounded, or insufficient.
+
+Rationale: Flat PCA classifiers confound minority Her2 with LumB and drop low-variance mitotic directions separating LumA from LumB. Decoupling coarse lineage separation from an unreduced-feature Luminal specialist isolates both signals under bottleneck regularisation. Site-grouped inner tuning penalises staining shortcuts without using site as an input.

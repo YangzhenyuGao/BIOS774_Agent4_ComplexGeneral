@@ -1,0 +1,99 @@
+{
+ "question": "From the H&E pathology images alone, how much of the PAM50 subtype information can be predicted?",
+ "task_family": "single_modality_classification",
+ "analysis_unit": "patient",
+ "estimand": "Patient-level out-of-fold macro-F1 and paired gain over chance (plus proportion of class-prior deviance explained) for predicting four-class PAM50 subtype from H&E image features alone.",
+ "target": "Four-class PAM50 intrinsic breast cancer subtype (LumA, LumB, Basal, Her2) per labelled patient.",
+ "allowed_inputs": [
+  "Patient-mean H&E foundation-model feature vectors (UNI2-h, CONCH-Z, Virchow2, MUSK, H-Optimus-1)",
+  "Tile-level H&E foundation-model feature vectors (up to 128 tiles per slide across the five encoders)",
+  "Patient and slide identifiers for patient-level aggregation and split grouping",
+  "Collection site identifier solely for defining site-held-out cross-validation splits (never as a predictor)",
+  "Unlabelled patients' H&E image features solely for fold-internal unsupervised representation fitting if used (never scored)"
+ ],
+ "forbidden_inputs": [
+  "er, pr, her2 (immunohistochemistry receptor statuses)",
+  "histological_type",
+  "age and stage",
+  "RNA expression or RNA-derived variables",
+  "site (as a model input feature)"
+ ],
+ "forbidden_reasons": {
+  "er, pr, her2 (immunohistochemistry receptor statuses)": "Receptor statuses are separate clinical measurements correlated with PAM50; including them creates a non-image clinical shortcut and invalidates H&E-only predictability.",
+  "histological_type": "Recorded histological type is a curated clinical-pathological variable rather than raw H&E image features, violating the restriction to H&E images alone.",
+  "age and stage": "Patient age and tumour stage are non-image clinical variables; using them estimates multimodal prediction rather than information present in H&E images alone.",
+  "RNA expression or RNA-derived variables": "PAM50 subtypes are defined directly from tumour RNA expression, so any RNA-derived feature leaks the target construction and invalidates image-based prediction.",
+  "site (as a model input feature)": "Collection site is non-image institutional metadata associated with PAM50 class (Cramer's V = 0.21); using it as a predictor exploits technical confounding."
+ },
+ "required_comparators": [
+  "Majority-class null classifier fit on training folds (guards against majority-subtype collapse under class imbalance)",
+  "Stratified class-prior null baseline fit on training folds (zero-information ruler for macro-F1, AUROC, and log-loss entropy)",
+  "Simple image-only reference: class-weighted regularised multinomial logistic regression on single-encoder patient-mean H&E features"
+ ],
+ "primary_metric": "Out-of-fold four-class macro-F1 (and paired macro-F1 difference above chance floors) across repeated nested patient-level cross-validation with 95% patient-level bootstrap confidence intervals",
+ "secondary_metrics": [
+  "Proportion of class-prior multi-class log-loss (Shannon entropy) explained out-of-fold with 95% patient-level bootstrap CI",
+  "Macro and per-class one-vs-rest AUROC with 95% patient-level bootstrap CIs",
+  "Per-class recall, precision, and F1 across LumA, LumB, Basal, and Her2 (highlighting minority Her2 and LumA-versus-LumB separation)",
+  "Paired out-of-fold macro-F1 difference versus the simple patient-mean logistic regression reference with 95% bootstrap CI",
+  "Site-held-out grouped cross-validation macro-F1 and paired gain over chance (19 collection sites) with 95% bootstrap CI"
+ ],
+ "acceptance_criteria": [
+  {
+   "id": "A1",
+   "statement": "Predictors use only H&E image features; clinical, immunohistochemistry receptor, RNA-derived, and site variables are excluded from model inputs.",
+   "check": "no_forbidden_inputs",
+   "rule": "Pass requires zero forbidden variables in any model input or preprocessing step; site is permitted only to define held-out validation splits."
+  },
+  {
+   "id": "A2",
+   "statement": "All slides and tiles of each patient stay on the same side of every split and bootstrap resample.",
+   "check": "correct_split_unit",
+   "rule": "Group all slide and tile records by patient ID so train and evaluation patient sets have zero overlap in every fold."
+  },
+  {
+   "id": "A3",
+   "statement": "Encoder choice, tile-versus-mean level, dimensionality reduction, class weights, and hyperparameters are selected strictly within inner training folds.",
+   "check": "selection_nested",
+   "rule": "Select the configuration maximising inner-fold macro-F1 without accessing outer-fold patient features or labels across repeated nested cross-validation."
+  },
+  {
+   "id": "A4",
+   "statement": "Out-of-fold H&E macro-F1 exceeds data-derived majority-class and training-prior chance baselines on the labelled cohort.",
+   "check": "beats_required_floors",
+   "rule": "Floor thresholds are derived directly as out-of-fold macro-F1 of majority-class and stratified class-prior predictors fit on identical training folds."
+  },
+  {
+   "id": "A5",
+   "statement": "Any complex tile-level or multi-encoder method is benchmarked directly against simple patient-mean class-weighted regularised logistic regression.",
+   "check": "beats_simple_reference",
+   "rule": "Reference score is out-of-fold macro-F1 of inner-tuned regularised multinomial logistic regression on patient-mean H&E features on identical splits."
+  },
+  {
+   "id": "A6",
+   "statement": "Iterative or neural H&E classifiers demonstrate stabilised training loss or inner validation metric before termination.",
+   "check": "training_converged",
+   "rule": "Convergence is verified when solver tolerance is met or trailing-epoch loss slope stops improving relative to earlier training epochs inside folds."
+  },
+  {
+   "id": "A7",
+   "statement": "All compared H&E models and null baselines are scored on the exact same labelled patients and fold assignments.",
+   "check": "both_arms_same_units",
+   "rule": "Require identical labelled patient IDs, identical outer fold indices, and identical exclusion of unlabelled patients from scoring across all arms."
+  },
+  {
+   "id": "A8",
+   "statement": "Primary macro-F1 and paired differences against comparators are reported with 95% patient-level bootstrap confidence intervals.",
+   "check": "interval_reported",
+   "rule": "Resample labelled patients with replacement across aggregated repeated outer-fold predictions to derive percentile 95% confidence bounds."
+  }
+ ],
+ "conclusion_options": [
+  "Broad predictability: H&E macro-F1 beats chance (95% CI) in both patient and site-held-out CV, with all four classes beating chance; report macro-F1 and entropy-explained 95% intervals.",
+  "Partial predictability: H&E macro-F1 beats chance (95% CI) in both patient and site-held-out CV, but at least one PAM50 class fails to beat chance at 95% confidence.",
+  "Site-confounded predictability: H&E macro-F1 beats chance (95% CI) in patient-level CV, but its paired 95% interval over chance in site-held-out CV includes or falls below zero.",
+  "Insufficient evidence of predictability: the paired 95% confidence interval for H&E-only macro-F1 over the chance floor in patient-level nested CV includes or falls below zero."
+ ],
+ "conclusion_scope": "Applies to standalone H&E subtype prediction in TCGA-BRCA patients using these five frozen encoders; does not establish incremental gain over clinical variables, biological mechanism, or external clinical utility.",
+ "notes": "Per D5, clinical and receptor variables are forbidden because the question asks what H&E alone predicts, overriding the incremental-value template; use fold-internal class weighting inside repeated nested patient CV."
+}

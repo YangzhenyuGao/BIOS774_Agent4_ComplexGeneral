@@ -1,0 +1,1 @@
+Using the paired RNA and ATAC measurements, learn the cross-modal relationship. For cells of the same donor that took no part in training and for which only ATAC is provided, for which genes can the variation in RNA expression be predicted reliably?

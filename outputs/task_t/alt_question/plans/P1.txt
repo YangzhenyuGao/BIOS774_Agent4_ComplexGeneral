@@ -1,0 +1,5 @@
+Nested Single-Encoder Patient-Mean Balanced Logistic Reference
+
+This simple reference estimates how much PAM50 subtype information is linearly recoverable from patient-mean H&E features alone, excluding all clinical, receptor, RNA, and site variables. Within repeated nested patient-level cross-validation, inner folds select a single foundation encoder, PCA rank, and L2 penalty for class-weighted multinomial logistic regression, benchmarked against majority-class and class-prior null baselines. Parallel site-held-out cross-validation across 19 sites audits institutional confounding, establishing the required linear benchmark and testing broad, partial, or site-confounded predictability.
+
+Rationale: With 802 labelled patients, 768 to 2560 features, and 65 Her2 cases, fold-internal PCA with balanced L2 logistic regression curbs overfitting and minority collapse. Nested encoder tuning prevents selection bias and provides the required A5 ruler for judging complex models.

@@ -1,0 +1,86 @@
+{
+ "plan_id": "P5",
+ "scale": "pilot",
+ "items": [
+  {
+   "id": "P5-E1",
+   "kind": "self_score",
+   "text": "Self-reported score: mean per-gene Pearson r = 0.1289 (SD 0.0039 over 2 splits), on 1500 genes; 1500 distinct validation cells enter the gene-level tests.",
+   "value": 0.12886700383031469
+  },
+  {
+   "id": "P5-E2",
+   "kind": "ruler",
+   "text": "Required comparators on the same training and validation cells, genes and scoring target: noise ceiling (RNA-to-RNA) 0.1709; cluster-mean baseline 0.1207, ridge 0.1360, partial least squares 0.1368, k-nearest neighbours 0.0667, gene activity 0.0339, depth only 0.0308. The plan reaches 75% of the ceiling.",
+   "value": {
+    "ceiling": 0.17087354543635525,
+    "cluster_mean": 0.12066109819618674,
+    "ridge": 0.13604964653402712,
+    "pls": 0.1367718835236455,
+    "knn": 0.06671757625253763,
+    "gene_activity": 0.03386671076282692,
+    "depth_only": 0.03077776277648541
+   }
+  },
+  {
+   "id": "P5-E3",
+   "kind": "ruler",
+   "text": "Margin over the cluster-mean baseline: mean per-gene difference in r = +0.0080 (95% interval +0.0063 to +0.0095, bootstrap over cells); margin over the best simple learner (ridge, PLS, k-NN) -0.0079.",
+   "value": 0.007954165634580465
+  },
+  {
+   "id": "P5-E4",
+   "kind": "self_score",
+   "text": "Three-way gene classification by the evaluator's rule, applied inside the development set: 313 genes cannot be judged (ceiling not above the permutation null), 1118 are not beyond the cell-type baseline, 69 are predicted beyond cell type (paired bootstrap against the cluster-mean baseline, FDR 5%; 5.8% of judgeable genes). Genes with r above the permutation null: 1033.",
+   "value": 69
+  },
+  {
+   "id": "P5-E5",
+   "kind": "convergence",
+   "text": "Training: fit 0: early_stopping after 29 epochs, converged=True (Early stopping fired after 29 epochs: the validation mean per-gene correlation had stopped improving.); fit 1: early_stopping after 29 epochs, converged=True (Early stopping fired after 29 epochs: the validation mean per-gene correlation had stopped improving.).",
+   "value": {
+    "all_converged": true
+   }
+  },
+  {
+   "id": "P5-E6",
+   "kind": "validation_design",
+   "text": "Validation design: split unit cell; 4-fold cross-validation; 2 seed(s); scored against an independent half of each validation cell's reads (unsmoothed, same as the evaluator). Early stopping used a separate split carved from the training cells.",
+   "value": {
+    "scheme": "kfold",
+    "k": 4,
+    "fraction": 0.2,
+    "target": "thinned_half",
+    "n_seeds": 2
+   }
+  },
+  {
+   "id": "P5-E7",
+   "kind": "validation_design",
+   "text": "Scale of this run: pilot; 2 of the 8 declared train/validation splits were run (3000 development cells, 1500 genes; the full problem has 7288 cells and 11282 genes).",
+   "value": null
+  },
+  {
+   "id": "P5-E8",
+   "kind": "cost",
+   "text": "Cost: 182 s of model fitting on 32 CPU cores (cpu); declared budget for the full run 75.0 min, needs GPU: False.",
+   "value": 181.6
+  },
+  {
+   "id": "P5-E9",
+   "kind": "compliance",
+   "text": "Compliance checks: inputs_from_view passed; no_label_inputs passed; scoring_target_allowed passed; correct_split_unit passed; no_forbidden_inputs passed; components_executable passed; within_budget passed.",
+   "value": true
+  },
+  {
+   "id": "P5-E10",
+   "kind": "note",
+   "text": "Fields of the plan the executor has no implementation for (its defaults were used; some of these are descriptive text rather than settings): ['training.convergence_check', 'training.internal_val_split', 'training.sample_weighting'].",
+   "value": null
+  }
+ ],
+ "raw_files": [
+  "self_validation.json",
+  "self_validation_per_gene.npz"
+ ]
+}

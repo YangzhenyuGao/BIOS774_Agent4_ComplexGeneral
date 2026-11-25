@@ -1,0 +1,78 @@
+{
+ "host": "sycamore-login1",
+ "finished": "2026-11-25T03:23:01-0500",
+ "calls": [
+  {
+   "provider": "gemini",
+   "model": "gemini-4-carbon",
+   "timeout": 120,
+   "thinking_level": null,
+   "started": "03:20:55",
+   "status": "timeout",
+   "seconds": 120.1,
+   "error": "ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Read timed out. (read timeout=120)\"))"
+  },
+  {
+   "provider": "gemini",
+   "model": "gemini-4-neon",
+   "timeout": 120,
+   "thinking_level": null,
+   "started": "03:22:55",
+   "status": 200,
+   "seconds": 2.2,
+   "reply": "READY",
+   "tokens": {
+    "promptTokenCount": 41,
+    "candidatesTokenCount": 2,
+    "thoughtsTokenCount": 71
+   }
+  },
+  {
+   "provider": "gemini",
+   "model": "gemini-3.8-flash",
+   "timeout": 120,
+   "thinking_level": null,
+   "started": "03:22:57",
+   "status": 200,
+   "seconds": 2.4,
+   "reply": "READY",
+   "tokens": {
+    "promptTokenCount": 8,
+    "candidatesTokenCount": 1,
+    "thoughtsTokenCount": 90
+   }
+  },
+  {
+   "provider": "hf-router",
+   "model": "Qwen/Qwen3.8-2.4T-A95B",
+   "timeout": 180,
+   "started": "03:22:59",
+   "status": 200,
+   "seconds": 1.6,
+   "reply": "READY",
+   "served_model": "qwen/qwen3.8-2.4t-a95b",
+   "returns_reasoning": true,
+   "tokens": {
+    "prompt_tokens": 59,
+    "completion_tokens": 34
+   },
+   "cost_usd": 0.000322
+  },
+  {
+   "provider": "hf-router",
+   "model": "deepseek-ai/DeepSeek-V4-Pro",
+   "timeout": 180,
+   "started": "03:23:01",
+   "status": 200,
+   "seconds": 0.6,
+   "reply": "READY",
+   "served_model": "deepseek/deepseek-v4-pro",
+   "returns_reasoning": true,
+   "tokens": {
+    "prompt_tokens": 91,
+    "completion_tokens": 35
+   },
+   "cost_usd": 0.000133612108
+  }
+ ]
+}

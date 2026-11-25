@@ -1,0 +1,84 @@
+{
+ "plan_id": "P1",
+ "scale": "pilot",
+ "finished": "2026-11-25T06:20:18-0500",
+ "validation": {
+  "k": 5,
+  "repeats": 3,
+  "selection": "nested",
+  "inner_k": 3,
+  "clinical_tuned": true,
+  "split_unit": "patient",
+  "repeats_run": 1
+ },
+ "n_patients": 802,
+ "n_patients_cohort": 802,
+ "n_folds_declared": 15,
+ "n_folds_run": 5,
+ "n_complete_repeats": 1,
+ "stopped_for_budget": false,
+ "macro_f1_plan": 0.6825612190404367,
+ "macro_f1_clinical": 0.6046702546797409,
+ "macro_f1_simple_reference": 0.6939168525970749,
+ "self_gain": 0.07789096436069576,
+ "self_ci": [
+  0.03572549705272041,
+  0.12493244938288386
+ ],
+ "self_se": 0.02243816972273284,
+ "self_conclusion": "improves",
+ "gain_over_simple_reference": -0.011355633556638267,
+ "gain_over_simple_reference_ci": [
+  -0.03950803768722961,
+  0.015986515554235782
+ ],
+ "simple_reference_gain": 0.08924659791733403,
+ "simple_reference_gain_ci": [
+  0.04670324865150087,
+  0.1351155140272733
+ ],
+ "recall_plan": {
+  "LumA": 0.751219512195122,
+  "LumB": 0.6052631578947368,
+  "Basal": 0.8467153284671532,
+  "Her2": 0.5846153846153846
+ },
+ "recall_clinical": {
+  "LumA": 0.7536585365853659,
+  "LumB": 0.33157894736842103,
+  "Basal": 0.8248175182481752,
+  "Her2": 0.5384615384615384
+ },
+ "recall_change": {
+  "LumA": -0.0024390243902439046,
+  "LumB": 0.2736842105263158,
+  "Basal": 0.021897810218978075,
+  "Her2": 0.04615384615384621
+ },
+ "n_configs_image_arm": 60,
+ "n_configs_clinical_arm": 17,
+ "chosen_configs": [
+  [
+   5,
+   33,
+   29,
+   53,
+   52
+  ]
+ ],
+ "n_fits": 905,
+ "plan_seconds": 344.1,
+ "cpus": 12,
+ "training": {
+  "n_fits_reported": 5,
+  "share_converged": 1.0,
+  "median_epochs": null,
+  "median_seconds_per_fit": 0.47,
+  "stopped_by": [
+   "None"
+  ],
+  "example_curve": null
+ },
+ "resolved_config": null,
+ "ignored_params": []
+}

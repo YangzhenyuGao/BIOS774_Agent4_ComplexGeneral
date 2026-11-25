@@ -1,0 +1,99 @@
+{
+ "question": "Given the clinical information already available (including ER, PR and HER2 status), does adding the H&E pathology images improve the four-class PAM50 prediction? How large is the gain, and how certain is the evidence?",
+ "task_family": "incremental_value_classification",
+ "analysis_unit": "patient",
+ "estimand": "Paired difference in out-of-fold four-class PAM50 macro-F1 between image-plus-clinical and clinical-only models across identical labelled patients, with a patient-level 95% bootstrap confidence interval.",
+ "target": "Four-class PAM50 intrinsic subtype (LumA, LumB, Basal, Her2) per labelled patient.",
+ "allowed_inputs": [
+  "Six clinical variables: age, stage, histological_type, and immunohistochemistry receptor statuses er, pr, her2",
+  "Patient mean-pooled H&E image features from five frozen encoders: UNI2-h, CONCH-Z, Virchow2, MUSK, H-Optimus-1",
+  "Tile-level H&E image features (up to 128 tiles per slide) from the five frozen encoders",
+  "Patient identifiers for pairing arms and keeping all slides and tiles of a patient within one split",
+  "Collection site column strictly for split grouping in the site-held-out sensitivity analysis, never as a predictor",
+  "Unlabelled patients' image and clinical features (n=259) strictly for fold-internal unsupervised representation learning, if used"
+ ],
+ "forbidden_inputs": [
+  "RNA expression or RNA-derived variables",
+  "Collection site as a predictive model input",
+  "H&E image features in the clinical-only baseline arm",
+  "External TCGA molecular, clinical, or pathology annotations outside the provided dataset",
+  "Evaluation-fold features or labels during preprocessing, missing-value handling, dimensionality reduction, or model selection"
+ ],
+ "forbidden_reasons": {
+  "RNA expression or RNA-derived variables": "PAM50 labels are computed from tumour RNA expression, so any RNA-derived input introduces direct target leakage and invalidates H&E evaluation.",
+  "Collection site as a predictive model input": "Site is a technical confounder correlated with subtype (Cramer's V = 0.21) and strongly encoded in slides, not biological morphology.",
+  "H&E image features in the clinical-only baseline arm": "Contaminating the baseline arm with image features destroys the clinical-only reference required to estimate incremental H&E value.",
+  "External TCGA molecular, clinical, or pathology annotations outside the provided dataset": "Adding unprovided clinical or molecular variables alters the conditioned baseline and violates cohort scope.",
+  "Evaluation-fold features or labels during preprocessing, missing-value handling, dimensionality reduction, or model selection": "Fitting transformations or selecting configurations across splits leaks held-out patients and inflates incremental gains in high dimensions."
+ },
+ "required_comparators": [
+  "floor_clinical: fully tuned clinical-only model using the six clinical variables on identical patients, folds, and missing-value handling",
+  "simple_reference: regularised logistic regression on clinical variables plus patient mean-pooled image features on identical folds",
+  "Site-held-out clinical-only versus image-plus-clinical comparison across the 19 collection sites to assess site confounding"
+ ],
+ "primary_metric": "Paired out-of-fold macro-F1 difference (image-plus-clinical minus clinical-only) across repeated nested cross-validation, with a patient-level 95% bootstrap confidence interval",
+ "secondary_metrics": [
+  "Paired out-of-fold multiclass log-loss difference (image-plus-clinical minus clinical-only)",
+  "Paired out-of-fold macro one-vs-rest AUROC difference (image-plus-clinical minus clinical-only)",
+  "Per-class recall differences for LumA, LumB, Basal, and Her2 (highlighting LumA, LumB, and minority Her2)",
+  "Site-held-out paired macro-F1 difference (image-plus-clinical minus clinical-only) across the 19 collection sites",
+  "Paired out-of-fold macro-F1 difference against simple_reference on identical folds"
+ ],
+ "acceptance_criteria": [
+  {
+   "id": "A1",
+   "statement": "Models use only allowed clinical and frozen H&E inputs, excluding RNA-derived variables and collection-site predictors.",
+   "check": "no_forbidden_inputs",
+   "rule": "Feature sets contain no forbidden inputs; the clinical-only arm uses only the six clinical variables while the multimodal arm adds only frozen H&E features."
+  },
+  {
+   "id": "A2",
+   "statement": "Cross-validation splits partition strictly at the patient level, keeping all slides and tiles of each patient together.",
+   "check": "correct_split_unit",
+   "rule": "Patient identifier sets across training and evaluation partitions are strictly disjoint in every outer fold, inner fold, and site-held-out split."
+  },
+  {
+   "id": "A3",
+   "statement": "Clinical-only and image-plus-clinical arms evaluate identical labelled patients, folds, and fold-internal missing-value handling.",
+   "check": "both_arms_same_units",
+   "rule": "Out-of-fold predictions cover identical labelled patients and fold assignments, using identical explicit missing-level encoding and imputation fitted inside each training fold."
+  },
+  {
+   "id": "A4",
+   "statement": "All encoder, fusion, dimensionality reduction, class-weighting, and hyperparameter choices occur strictly inside inner training folds.",
+   "check": "selection_nested",
+   "rule": "Selection across encoders, tile versus mean levels, regularisation, and class weights uses inner-fold validation macro-F1 only, without accessing outer-fold evaluation patients."
+  },
+  {
+   "id": "A5",
+   "statement": "Complex multimodal models are benchmarked directly against simple_reference on identical folds to guard against high-dimensional overfitting.",
+   "check": "beats_simple_reference",
+   "rule": "Complex tile-level or multi-encoder models are adopted over simple_reference only when their inner-fold macro-F1 exceeds the fold-matched simple_reference macro-F1."
+  },
+  {
+   "id": "A6",
+   "statement": "Iterative optimisation for fitted models demonstrates stable training convergence within each cross-validation fold.",
+   "check": "training_converged",
+   "rule": "Logged per-fold training curves reach a stable trailing plateau where terminal loss updates are negligible relative to total fold loss reduction."
+  },
+  {
+   "id": "A7",
+   "statement": "Primary paired macro-F1 difference is reported with a patient-level bootstrap confidence interval at the 95% level.",
+   "check": "interval_reported",
+   "rule": "Resample labelled patients with replacement from paired out-of-fold predictions to compute the 95% confidence interval and compare bounds against zero difference."
+  },
+  {
+   "id": "A8",
+   "statement": "Deliverables contain finite out-of-fold predictions for both arms, interval estimate, three-way conclusion, per-class changes, and site sensitivity.",
+   "check": "deliverable_complete",
+   "rule": "All required outputs exist with finite values matching labelled cohort dimensions, valid class probabilities per patient, per-class recall changes, and site-held-out estimates."
+  }
+ ],
+ "conclusion_options": [
+  "improves: Adding H&E images improves four-class PAM50 prediction over clinical variables (patient-level 95% bootstrap interval for paired macro-F1 difference lies strictly above zero).",
+  "insufficient evidence: Evidence is insufficient to establish a macro-F1 change from adding H&E images (patient-level 95% bootstrap interval contains zero).",
+  "worse: Adding H&E images worsens four-class PAM50 prediction relative to clinical variables alone (patient-level 95% bootstrap interval lies strictly below zero)."
+ ],
+ "conclusion_scope": "Applies to incremental patient-level PAM50 prediction in this labelled TCGA-BRCA cohort; does not establish independent biological mechanisms, standalone H&E predictive value, or generalisability to external clinical cohorts.",
+ "notes": "IHC receptors belong in both arms. Use repeated nested CV (5 folds, 3 repeats), class weighting for minority Her2, and fold-fitted missingness levels. Historical 0.723 single-split score is not ground truth."
+}

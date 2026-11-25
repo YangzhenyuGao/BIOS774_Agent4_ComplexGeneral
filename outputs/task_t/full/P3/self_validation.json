@@ -1,0 +1,245 @@
+{
+ "plan_id": "P3",
+ "scale": "full",
+ "finished": "2026-11-25T07:32:50-0500",
+ "validation": {
+  "k": 5,
+  "repeats": 3,
+  "selection": "nested",
+  "inner_k": 3,
+  "clinical_tuned": true,
+  "split_unit": "patient",
+  "repeats_run": 3
+ },
+ "n_patients": 802,
+ "n_patients_cohort": 802,
+ "n_folds_declared": 15,
+ "n_folds_run": 15,
+ "n_complete_repeats": 3,
+ "stopped_for_budget": false,
+ "macro_f1_plan": 0.6987776433646697,
+ "macro_f1_clinical": 0.5985892859087124,
+ "macro_f1_simple_reference": 0.683980520812595,
+ "self_gain": 0.10018835745595733,
+ "self_ci": [
+  0.06807877004528505,
+  0.13437926077984438
+ ],
+ "self_se": 0.01747204526348286,
+ "self_conclusion": "improves",
+ "gain_over_simple_reference": 0.014797122552074696,
+ "gain_over_simple_reference_ci": [
+  -0.004841936105094831,
+  0.03522588032831477
+ ],
+ "simple_reference_gain": 0.08539123490388263,
+ "simple_reference_gain_ci": [
+  0.04892690547175356,
+  0.12297623114342052
+ ],
+ "recall_plan": {
+  "LumA": 0.7780487804878048,
+  "LumB": 0.6192982456140351,
+  "Basal": 0.8661800486618004,
+  "Her2": 0.5692307692307691
+ },
+ "recall_clinical": {
+  "LumA": 0.7154471544715447,
+  "LumB": 0.36666666666666664,
+  "Basal": 0.8102189781021898,
+  "Her2": 0.5282051282051281
+ },
+ "recall_change": {
+  "LumA": 0.06260162601626007,
+  "LumB": 0.2526315789473685,
+  "Basal": 0.05596107055961064,
+  "Her2": 0.04102564102564099
+ },
+ "n_configs_image_arm": 4,
+ "n_configs_clinical_arm": 17,
+ "chosen_configs": [
+  [
+   0,
+   3,
+   3,
+   2,
+   1
+  ],
+  [
+   3,
+   0,
+   0,
+   2,
+   0
+  ],
+  [
+   1,
+   2,
+   3,
+   2,
+   3
+  ]
+ ],
+ "n_fits": 195,
+ "plan_seconds": 1224.8,
+ "cpus": 12,
+ "training": {
+  "n_fits_reported": 15,
+  "share_converged": 1.0,
+  "median_epochs": 37.0,
+  "median_seconds_per_fit": 6.96,
+  "stopped_by": [
+   "early_stopping"
+  ],
+  "example_curve": {
+   "train_loss": [
+    1.46726,
+    1.33009,
+    1.25058,
+    1.12893,
+    1.05178,
+    0.97713,
+    0.87514,
+    0.88225,
+    0.83018,
+    0.80317,
+    0.65863,
+    0.72811,
+    0.68191,
+    0.66519,
+    0.58518,
+    0.60709,
+    0.59127,
+    0.51226,
+    0.56136,
+    0.45988,
+    0.36181,
+    0.43419,
+    0.33388,
+    0.34353,
+    0.35086,
+    0.35363,
+    0.49518,
+    0.28505,
+    0.34379,
+    0.28506,
+    0.42924,
+    0.24677,
+    0.38533,
+    0.39768
+   ],
+   "val_loss": [
+    1.35524,
+    1.2599,
+    1.18803,
+    1.11312,
+    1.03874,
+    0.96898,
+    0.90559,
+    0.85397,
+    0.81163,
+    0.7819,
+    0.75825,
+    0.737,
+    0.7159,
+    0.70146,
+    0.69753,
+    0.69315,
+    0.68885,
+    0.68203,
+    0.6781,
+    0.67979,
+    0.69724,
+    0.70584,
+    0.71737,
+    0.73351,
+    0.7287,
+    0.74079,
+    0.74234,
+    0.74697,
+    0.76513,
+    0.78187,
+    0.78153,
+    0.81326,
+    0.80052,
+    0.79442
+   ]
+  }
+ },
+ "resolved_config": {
+  "component": "multi_encoder_fusion",
+  "encoders": [
+   "UNI2-h",
+   "CONCH-Z",
+   "Virchow2",
+   "MUSK",
+   "H-Optimus-1"
+  ],
+  "level": "patient",
+  "reduce_type": "pca",
+  "reduce_dim": 64,
+  "max_tiles": 256,
+  "clinical_use": true,
+  "clinical_variables": [
+   "age",
+   "stage",
+   "histological_type",
+   "er",
+   "pr",
+   "her2"
+  ],
+  "fusion": "film",
+  "aggregator": "gated_attention",
+  "encoder_fusion": "gated",
+  "embed_dim": 64,
+  "clin_dim": 32,
+  "dropout": 0.35,
+  "heads": 4,
+  "layers": 1,
+  "head": "hierarchical",
+  "groups": [
+   [
+    0,
+    1
+   ],
+   [
+    2
+   ],
+   [
+    3
+   ]
+  ],
+  "fine_inputs": "image+clinical",
+  "init_zero": true,
+  "clinical_C": 1.0,
+  "pretrain_epochs": 0,
+  "uses_unlabelled": true,
+  "temperature": 0.2,
+  "n_prototypes": 32,
+  "classifier": "logreg",
+  "proto_pca": 32,
+  "C": 1.0,
+  "n_pca": 16,
+  "max_iter": 100,
+  "learning_rate": 0.05,
+  "max_depth": 3,
+  "members": [],
+  "inner_k": 3,
+  "meta_C": 1.0,
+  "max_epochs": 80,
+  "patience": 15,
+  "lr": 0.001,
+  "weight_decay": 0.01,
+  "class_weighting": "balanced",
+  "batch_size": 64,
+  "tile_resample": 128,
+  "mixup_alpha": 0.2,
+  "tile_dropout": 0.0,
+  "n_seeds_ensemble": 3,
+  "val_fraction": 0.15,
+  "notes": []
+ },
+ "ignored_params": [
+  "training.convergence_check"
+ ]
+}

@@ -1,0 +1,138 @@
+{
+ "n_candidates": {
+  "value": "6",
+  "meaning": "number of candidate plans in the frozen pool"
+ },
+ "n_ambitious": {
+  "value": "5",
+  "meaning": "candidates classed as ambitious"
+ },
+ "selected_plan": {
+  "value": "P1",
+  "meaning": "id of the plan the agent selected and reported"
+ },
+ "selected_name": {
+  "value": "Nested PCA-Reduced Patient-Mean Logistic Fusion",
+  "meaning": "name of the selected plan"
+ },
+ "tournament_champion": {
+  "value": "P1",
+  "meaning": "plan ranked first by the tournament"
+ },
+ "order_consistency": {
+  "value": "100%",
+  "meaning": "share of plan pairs judged the same way in both presentation orders"
+ },
+ "n_matches": {
+  "value": "30",
+  "meaning": "number of judged matches"
+ },
+ "selected_true_rank": {
+  "value": "2",
+  "meaning": "rank of the selected plan among all candidates under the evaluator's unified score (1 = best)"
+ },
+ "best_true_plan": {
+  "value": "P3",
+  "meaning": "plan with the best unified score"
+ },
+ "selection_gap": {
+  "value": "0.0005",
+  "meaning": "unified score of the best candidate minus that of the selected plan"
+ },
+ "audit_outcome": {
+  "value": "answer_reported",
+  "meaning": "outcome of the audit"
+ },
+ "n_patients": {
+  "value": "802",
+  "meaning": "labelled patients"
+ },
+ "clinical_f1": {
+  "value": "0.601",
+  "meaning": "macro-F1 of the evaluator's tuned clinical-only model"
+ },
+ "selected_f1": {
+  "value": "0.698",
+  "meaning": "macro-F1 of the selected plan under the unified protocol"
+ },
+ "true_gain": {
+  "value": "+0.097",
+  "meaning": "unified gain of the selected plan over clinical only"
+ },
+ "true_ci_low": {
+  "value": "+0.063",
+  "meaning": "lower bound of the 95% interval of the unified gain"
+ },
+ "true_ci_high": {
+  "value": "+0.132",
+  "meaning": "upper bound of the 95% interval of the unified gain"
+ },
+ "true_conclusion": {
+  "value": "improves",
+  "meaning": "evaluator's three-way conclusion for the selected plan"
+ },
+ "self_gain": {
+  "value": "+0.090",
+  "meaning": "gain the selected plan reported for itself"
+ },
+ "self_ci_low": {
+  "value": "+0.057",
+  "meaning": "lower bound of the plan's own interval"
+ },
+ "self_ci_high": {
+  "value": "+0.126",
+  "meaning": "upper bound of the plan's own interval"
+ },
+ "self_conclusion": {
+  "value": "improves",
+  "meaning": "conclusion the agent drew from the plan's own validation"
+ },
+ "conclusions_agree": {
+  "value": "yes",
+  "meaning": "whether the agent's and the evaluator's conclusions agree"
+ },
+ "selected_inflation": {
+  "value": "-0.007",
+  "meaning": "self-reported minus unified gain of the selected plan"
+ },
+ "mean_inflation": {
+  "value": "+0.002",
+  "meaning": "mean of self-reported minus unified gain over candidates"
+ },
+ "n_positive": {
+  "value": "5",
+  "meaning": "candidates with a positive unified gain"
+ },
+ "n_ci_above_zero": {
+  "value": "5",
+  "meaning": "candidates whose unified 95% interval lies above zero"
+ },
+ "reference_gain": {
+  "value": "+0.094",
+  "meaning": "unified gain of the simple reference (clinical plus mean-pooled image features, logistic regression)"
+ },
+ "n_beating_reference": {
+  "value": "2",
+  "meaning": "candidates with a larger unified gain than the simple reference"
+ },
+ "recall_change_LumA": {
+  "value": "+0.038",
+  "meaning": "change in recall for LumA with images, unified protocol"
+ },
+ "recall_change_LumB": {
+  "value": "+0.254",
+  "meaning": "change in recall for LumB with images, unified protocol"
+ },
+ "recall_change_Basal": {
+  "value": "+0.027",
+  "meaning": "change in recall for Basal with images, unified protocol"
+ },
+ "recall_change_Her2": {
+  "value": "+0.092",
+  "meaning": "change in recall for Her2 with images, unified protocol"
+ },
+ "site_gain": {
+  "value": "+0.094",
+  "meaning": "gain of the selected plan when whole collection sites are held out"
+ }
+}

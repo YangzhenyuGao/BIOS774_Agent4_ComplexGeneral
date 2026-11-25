@@ -1,0 +1,80 @@
+{
+ "plan_id": "P4",
+ "scale": "pilot",
+ "items": [
+  {
+   "id": "P4-E1",
+   "kind": "self_score",
+   "text": "Self-reported score: mean per-gene Pearson r = 0.1229 (SD 0.0004 over 2 splits), on 1500 genes; 900 distinct validation cells enter the gene-level tests.",
+   "value": 0.12291054446338495
+  },
+  {
+   "id": "P4-E2",
+   "kind": "ruler",
+   "text": "Required comparators on the same training and validation cells, genes and scoring target: noise ceiling (RNA-to-RNA) 0.1675; cluster-mean baseline 0.1217, ridge 0.1365, partial least squares 0.1376, k-nearest neighbours 0.0687, gene activity 0.0348, depth only 0.0315. The plan reaches 73% of the ceiling.",
+   "value": {
+    "ceiling": 0.16745266578574167,
+    "cluster_mean": 0.12169405451000212,
+    "ridge": 0.13649065636910357,
+    "pls": 0.13757208502646068,
+    "knn": 0.0687053325081753,
+    "gene_activity": 0.03482198556970026,
+    "depth_only": 0.031487473347166936
+   }
+  },
+  {
+   "id": "P4-E3",
+   "kind": "ruler",
+   "text": "Margin over the cluster-mean baseline: mean per-gene difference in r = +0.0015 (95% interval +0.0010 to +0.0020, bootstrap over cells); margin over the best simple learner (ridge, PLS, k-NN) -0.0147.",
+   "value": 0.0014728114277760091
+  },
+  {
+   "id": "P4-E4",
+   "kind": "self_score",
+   "text": "Three-way gene classification by the evaluator's rule, applied inside the development set: 389 genes cannot be judged (ceiling not above the permutation null), 1070 are not beyond the cell-type baseline, 41 are predicted beyond cell type (paired bootstrap against the cluster-mean baseline, FDR 5%; 3.7% of judgeable genes). Genes with r above the permutation null: 898.",
+   "value": 41
+  },
+  {
+   "id": "P4-E5",
+   "kind": "convergence",
+   "text": "Training: fit 0: early_stopping after 17 epochs, converged=True (Base: cluster mean (k 20). One boosted model per gene on the residual, early stopping on an internal 12% split; 99.8% of 1500 fitted genes stopped before the cap of 150 iterations (median 17 iterations).); fit 1: early_stopping after 17 epochs, converged=True (Base: cluster mean (k 20). One boosted model per gene on the residual, early stopping on an internal 12% split; 100.0% of 1500 fitted genes stopped before the cap of 150 iterations (median 17 iterations).).",
+   "value": {
+    "all_converged": true
+   }
+  },
+  {
+   "id": "P4-E6",
+   "kind": "validation_design",
+   "text": "Validation design: split unit cell; a single hold-out of 30%; 3 seed(s); scored against an independent half of each validation cell's reads (unsmoothed, same as the evaluator). Early stopping used a separate split carved from the training cells.",
+   "value": {
+    "scheme": "holdout",
+    "k": 3,
+    "fraction": 0.3,
+    "target": "thinned_half",
+    "n_seeds": 3
+   }
+  },
+  {
+   "id": "P4-E7",
+   "kind": "validation_design",
+   "text": "Scale of this run: pilot; 2 of the 3 declared train/validation splits were run (3000 development cells, 1500 genes; the full problem has 7288 cells and 11282 genes).",
+   "value": null
+  },
+  {
+   "id": "P4-E8",
+   "kind": "cost",
+   "text": "Cost: 40 s of model fitting on 32 CPU cores (cpu); declared budget for the full run 85.0 min, needs GPU: False.",
+   "value": 39.8
+  },
+  {
+   "id": "P4-E9",
+   "kind": "compliance",
+   "text": "Compliance checks: inputs_from_view passed; no_label_inputs passed; scoring_target_allowed passed; correct_split_unit passed; no_forbidden_inputs passed; components_executable passed; within_budget passed.",
+   "value": true
+  }
+ ],
+ "raw_files": [
+  "self_validation.json",
+  "self_validation_per_gene.npz"
+ ]
+}

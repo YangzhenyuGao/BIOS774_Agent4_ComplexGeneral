@@ -1,0 +1,108 @@
+{
+ "plan_id": "P5",
+ "name": "Chromosomal Syntenic Multi-Vector Transformer with Thinning Distillation and Training-CSLS Retrieval",
+ "summary": "Using gene start coordinates and peak annotations, we partition the genome into 64 contiguous chromosomal tokens pairing RNA expression with promoter, distal, and cis-peak accessibility. Twin depth-orthogonalized transformers model trans-chromosomal context while outputting 64 precision-gated vectors per cell, trained via inner-split thinning distillation and cluster hard negatives. Nested 3-fold evaluation scores each unsmoothed query independently using training-anchor CSLS late interaction against all floors, linear CCA, and the split-half ceiling. This establishes whether locus-resolved alignment identifies individual cells beyond cell type.",
+ "complexity": "ambitious",
+ "analysis_unit": "Individual cell (single nucleus with co-measured RNA and ATAC in development splits)",
+ "inputs": {
+  "cis_peaks": {
+   "window_kb": 100,
+   "max_peaks_per_gene": 15
+  },
+  "gene_activity": {
+   "mode": "promoter_and_distal"
+  },
+  "depth": {}
+ },
+ "preprocessing": [
+  "Assert zero cell-ID overlap across outer 3-fold and inner 85/15 train/val splits and verify WNN cell-type annotations are excluded from all model, weighting, clustering, and tuning pipelines",
+  "Order the 11,282 in-scope genes by chromosome and gene start coordinate and partition them into 64 contiguous syntenic chromosomal blocks (~176 genes per block)",
+  "Within each inner-training split, compute per-cell library-size log1p RNA normalization and feature-wise standardization per chromosomal block alongside per-block gene detection rates",
+  "Within each inner-training split, split peak-to-gene annotations into separate log1p depth-normalized promoter and TSS-distance-weighted distal enhancer channels per gene, plus inner-train-fitted TF-IDF over cis_peaks (100kb window, up to 15 peaks per gene) grouped into the same 64 chromosomal blocks",
+  "Standardize log total RNA UMIs and log total ATAC fragments strictly using inner-train mean and SD for per-block depth conditioning and orthogonal projection",
+  "Fit unsupervised kNN local density weights (clipped to [0.5, 8.0] in joint inner-train PCA+LSI space) for rare-state loss balancing, unsupervised k=20 clusters for within-cluster hard-negative mining, and inner-train-only knn_pool(12) graphs strictly for teacher distillation targets"
+ ],
+ "model": {
+  "component": "chromosomal_multivector_late_interaction",
+  "params": {
+   "n_loci": 64,
+   "d_model": 64,
+   "d_proj": 24,
+   "n_heads": 4,
+   "n_layers": 3,
+   "dropout": 0.15,
+   "temperature_init": 0.07,
+   "within_cluster_hard_neg_weight": 0.5,
+   "distill_weight": 0.35,
+   "depth_orth_penalty": 0.2,
+   "csls_k": 15
+  }
+ },
+ "fusion": null,
+ "training": {
+  "max_epochs": 120,
+  "early_stopping_patience": 18,
+  "lr": 0.0008,
+  "batch_size": 256,
+  "weight_decay": 0.01,
+  "target_denoising": "knn_pool(12)",
+  "student_binomial_thinning_p": 0.5,
+  "n_seeds_per_fold": 2,
+  "hard_negative_mining": "50% unsupervised inner-train k=20 same-cluster cells and 50% log-depth-matched cells",
+  "sample_weighting": "unsupervised inner-train inverse-local-density cell weights without WNN labels",
+  "convergence_audit": "Log per-epoch inner-train and unsmoothed inner-val contrastive, distillation, and depth-correlation losses plus inner-val MRR; enforce early stopping on unsmoothed inner-val MRR and emit loss-curve plots and convergence verification before test scoring"
+ },
+ "validation": {
+  "scheme": "kfold",
+  "n_splits": 3,
+  "inner_val_fraction": 0.15,
+  "split_unit": "cell",
+  "candidate_pool_size": 2429,
+  "expanded_distractor_pool_size": 5553,
+  "metrics": [
+   "MRR",
+   "recall@1",
+   "recall@5",
+   "recall@10",
+   "FOSCTTM"
+  ],
+  "scoring_protocol": "Each unseen outer-fold query cell's unsmoothed RNA profile is scored independently against unsmoothed outer-fold candidate ATAC profiles (both primary paired 2,429-cell pool and secondary 5,553-cell pool adding 3,124 unseen ATAC-only distractors) via precision-gated multi-vector dot product minus per-candidate Training-Anchor CSLS hubness computed strictly against frozen inner-train RNA embeddings, using deterministic mid-ranks for ties",
+  "comparator_sanity_checks": "Verify all 6 required comparators (Floor 0 permutation, Floor 1 log-depth match, Floor 2 unlearned promoter+proximal gene activity cosine, Floor 3 inner-train k=20 cluster centroid match, Simple 64-dim RNA-PCA/ATAC-LSI linear CCA reference, and Binomial-thinning split-half self-retrieval ceiling) pass identity/null sanity checks on inner-train data and evaluate on identical outer-fold query and candidate cell IDs",
+  "uncertainty_and_tie_rule": "2,000 paired nonparametric bootstrap resamples over all 7,288 out-of-sample query cells for 95% CIs of metrics and comparator differences; treat margins inside cross-seed variance as ties"
+ },
+ "metrics": [
+  "Primary: Out-of-sample Mean Reciprocal Rank (MRR) with deterministic mid-ranks for ties and 95% paired-bootstrap CI",
+  "Exact top-1 retrieval rate (Recall@1), Recall@5, Recall@10, and 1 - FOSCTTM across identical unseen query cells",
+  "Ratio of cross-modal retrieval MRR to the binomial-thinning unimodal split-half self-retrieval noise ceiling on the exact same query cells",
+  "Secondary distractor-robustness MRR and Recall@1 on the expanded 5,553-cell candidate pool including 3,124 unseen held-out ATAC-only cells",
+  "Post-hoc WNN-stratified within-population and macro-averaged MRR and Recall@1 across all 19 cell populations with 95% paired-bootstrap CIs and Benjamini-Hochberg FDR control at 5%"
+ ],
+ "allowed_conclusions": "Conclude single-cell resolution retrieval only if top-1 recovery is frequent and paired-bootstrap 95% CIs for MRR gain strictly exceed zero against Floor 0, Floor 1, Floor 2, Floor 3, and the linear CCA reference while approaching the split-half noise ceiling; conclude sub-cluster neighborhood retrieval if MRR significantly beats all four floors (and linear CCA if claiming architectural gain) while top-1 recovery remains limited by single-cell sparsity; conclude cell-type resolution only if MRR beats Floor 0 and Floor 1 but not Floor 3; otherwise conclude no biological retrieval. Scope is strictly restricted to unseen granulocyte-depleted PBMCs from this single healthy donor at this sequencing depth and candidate-pool size.",
+ "budget": {
+  "needs_gpu": false,
+  "pilot_minutes": 8.0,
+  "full_minutes": 48.0,
+  "cpus": 32
+ },
+ "diversity": {
+  "data": "chromosomal_syntenic_locus_tokens_from_gene_coordinates_promoter_distal_and_cis_peaks",
+  "model": "twin_chromosomal_transformer_with_precision_gated_multivector_late_interaction",
+  "method": "nested_3fold_thinning_teacher_distillation_with_training_csls_late_interaction"
+ },
+ "rationale": "Single-vector embeddings collapse onto major cell types (D6, D2) and depth (D5), while individual genes suffer dropout (D1). Syntenic chromosomal tokens with precision-gated multi-vector matching, thinning distillation, inverse-density weighting, depth orthogonalization, and training-anchor CSLS isolate within-cluster regulatory variation without smoothing evaluation cells.",
+ "difficulties_addressed": [
+  "D1",
+  "D2",
+  "D3",
+  "D4",
+  "D5",
+  "D6",
+  "D7"
+ ],
+ "new_components": [
+  {
+   "name": "chromosomal_multivector_late_interaction",
+   "description": "Twin chromosomal locus-token transformers for cross-modal single-cell retrieval. Inputs: 64 contiguous syntenic genomic blocks per cell containing block-wise normalized RNA counts (for queries) or promoter activity, TSS-distance-weighted distal enhancer activity, and TF-IDF cis_peaks (for ATAC candidates), plus standardized log cell depth. Architecture: block-sparse linear stems with depth-conditioned residual subtraction map each locus to d_model=64 tokens; 3-layer 4-head self-attention transformers model trans-chromosomal co-regulation and project each locus to L2-normalized d_proj=24 vectors orthogonalized against the inner-train depth direction, alongside coverage-based locus precision gates normalized per cell. Outputs: 64 precision-scaled locus vectors per cell; independent query-candidate similarity equals the gated multi-locus inner product minus a per-candidate Training-Anchor CSLS hubness offset computed strictly against frozen inner-train RNA embeddings. Training: symmetric InfoNCE with inverse-density cell weights, unsupervised same-cluster and depth-matched hard negatives, depth-decorrelation penalty, and KL/cosine self-distillation from an EMA teacher receiving inner-train knn_pool(12) profiles to a student receiving raw and binomially thinned (p=0.5) single-cell counts."
+  }
+ ]
+}

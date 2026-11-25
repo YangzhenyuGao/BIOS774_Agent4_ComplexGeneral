@@ -1,0 +1,5 @@
+Denoised-Target Per-Gene Gradient Boosted Residuals over ATAC Cluster Means
+
+We decompose per-gene expression into the nested ATAC cluster mean plus a boosted-tree residual predicted from filtered LSI coordinates and log depth. Inner-fit targets pool eight nearest training neighbours, while per-gene trees weight rare ATAC clusters and early-stop on unsmoothed inner residuals. Three nested 70/30 cell holdouts score predictions against unsmoothed binomial-thinned RNA alongside all required comparators. This tests which genes exhibit predictable chromatin-state variation beyond discrete cell identity at 5% FDR.
+
+Rationale: Joint models expend capacity relearning dominant cluster means (D6); fitting per-gene boosted residuals defaults noisy genes safely to Floor 1. Training kNN pooling mitigates 85% UMI sparsity (D1), inverse-sqrt cluster weights protect rare states (D2) without WNN leakage (D4), and depth controls confounding (D5).

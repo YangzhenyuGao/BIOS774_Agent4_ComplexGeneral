@@ -1,0 +1,147 @@
+{
+ "plan_id": "P2",
+ "name": "Tile-Aligned Five-Encoder Gated-Attention MIL",
+ "summary": "Each patient's slides form a spatially aligned tile bag across all five frozen H&E encoders, excluding all clinical and receptor variables. Within nested training folds, per-encoder tile features are standardized and PCA-compressed before a neural network performs per-tile encoder fusion and gated-attention pooling to predict class-weighted PAM50 subtypes. Evaluation uses repeated nested patient-level and site-held-out cross-validation against null baselines and the patient-mean logistic reference. Patient-level, per-class, and site-held-out bootstrap confidence intervals determine whether H&E morphology yields broad, partial, site-confounded, or insufficient PAM50 predictability.",
+ "complexity": "ambitious",
+ "analysis_unit": "patient",
+ "inputs": {
+  "image": {
+   "encoders": [
+    "UNI2-h",
+    "CONCH-Z",
+    "Virchow2",
+    "MUSK",
+    "H-Optimus-1"
+   ],
+   "level": "tile",
+   "reduce": {
+    "type": "pca",
+    "dim": 128
+   }
+  },
+  "clinical": {
+   "variables": [],
+   "use": false
+  }
+ },
+ "preprocessing": [
+  "Assert zero clinical, immunohistochemistry receptor (er, pr, her2), histological_type, age, stage, RNA-derived, or site variables enter any feature tensor; exclude the 259 unlabelled patients from supervised fitting and all scoring.",
+  "Aggregate all slides per labelled patient (802 patients, 1132 slides) into a single patient-level tile bag while preserving exact spatial tile-index alignment across UNI2-h, CONCH-Z, Virchow2, MUSK, and H-Optimus-1.",
+  "Strictly inside each training fold, apply L2 normalization and z-score standardization per encoder, then fit a 128-component randomized PCA per encoder on training-fold tiles only to equalize native dimensions (768 to 2560) before projecting validation/test tiles.",
+  "Compute inverse-prevalence class weights for LumA, LumB, Basal, and Her2 strictly from each training fold's labelled patient counts."
+ ],
+ "model": {
+  "component": "multi_encoder_fusion",
+  "params": {
+   "level": "tile",
+   "encoder_fusion": "gated",
+   "aggregator": "gated_attention",
+   "embed_dim": 128,
+   "dropout": 0.35,
+   "head": "flat"
+  }
+ },
+ "fusion": "none",
+ "training": {
+  "max_epochs": 50,
+  "early_stopping_patience": 10,
+  "lr": 0.0005,
+  "weight_decay": 0.001,
+  "class_weighting": "balanced",
+  "augmentation": {
+   "tile_resample": 64,
+   "mixup_alpha": 0.2,
+   "tile_dropout": 0.2
+  },
+  "n_seeds_ensemble": 3,
+  "inference_bag_mode": "full_patient_bag_no_dropout",
+  "convergence_check": "Log epoch training loss and inner-validation macro-F1/loss curves; require early-stopping trigger or non-improving trailing-5-epoch loss slope before outer-fold scoring.",
+  "tuning": {
+   "selection_metric": "macro_f1",
+   "tie_rule": "within_1_inner_se_prefer_flat_stronger_regularisation",
+   "grid": [
+    {
+     "encoder_fusion": "gated",
+     "head": "flat",
+     "dropout": 0.35,
+     "weight_decay": 0.001
+    },
+    {
+     "encoder_fusion": "attention",
+     "head": "flat",
+     "dropout": 0.4,
+     "weight_decay": 0.002
+    },
+    {
+     "encoder_fusion": "gated",
+     "head": "hierarchical",
+     "dropout": 0.35,
+     "weight_decay": 0.001
+    },
+    {
+     "encoder_fusion": "gated",
+     "head": "flat",
+     "dropout": 0.5,
+     "weight_decay": 0.005
+    }
+   ]
+  }
+ },
+ "validation": {
+  "scheme": "repeated_kfold",
+  "k": 5,
+  "repeats": 3,
+  "split_unit": "patient",
+  "selection": "nested",
+  "inner_k": 3,
+  "clinical_comparator": {
+   "tuned": false
+  },
+  "interval": "bootstrap",
+  "bootstrap_resamples": 2000,
+  "required_comparators": [
+   "Majority-class null classifier fit on identical outer training folds",
+   "Stratified class-prior null classifier fit on identical outer training folds",
+   "Inner-tuned class-weighted patient_mean_logreg single-encoder H&E reference evaluated on identical 802 labelled patients and outer fold assignments"
+  ],
+  "sensitivity_site_cv": {
+   "scheme": "stratified_group_kfold",
+   "group_by": "site",
+   "n_groups": 19,
+   "k": 5,
+   "selection": "nested",
+   "inner_k": 3
+  }
+ },
+ "metrics": [
+  "Out-of-fold four-class macro-F1 and paired macro-F1 gain over majority-class and stratified class-prior chance baselines with 95% patient-level bootstrap CIs",
+  "Paired out-of-fold macro-F1 difference versus inner-tuned single-encoder patient_mean_logreg reference with 95% patient-level bootstrap CI",
+  "Proportion of class-prior multi-class log-loss (Shannon entropy) explained out-of-fold with 95% patient-level bootstrap CI",
+  "Macro and per-class one-vs-rest AUROC plus per-class precision, recall, and F1 across LumA, LumB, Basal, and Her2 with 95% patient-level bootstrap CIs",
+  "Site-held-out grouped CV macro-F1 and paired macro-F1 gain over chance across the 19 collection sites with 95% patient-level bootstrap CI",
+  "Fold-wise training convergence verification rate and trailing-epoch loss slope summary"
+ ],
+ "allowed_conclusions": "Select exactly one of the four objective conclusions—Broad predictability (95% CIs above chance in both patient and site-held-out CV and for all four classes), Partial predictability (overall 95% CIs above chance in both CVs but at least one class fails), Site-confounded predictability (beats chance in patient CV but site-held-out paired 95% CI includes or falls below zero), or Insufficient evidence (patient-level paired 95% CI over chance includes or falls below zero)—and additionally state whether tile-aligned multi-encoder MIL outperforms the patient-mean logistic reference; scoped strictly to standalone frozen-encoder H&E prediction in TCGA-BRCA without claiming clinical incremental value or biological mechanism.",
+ "budget": {
+  "needs_gpu": false,
+  "pilot_minutes": 8.0,
+  "full_minutes": 75.0,
+  "cpus": 16
+ },
+ "diversity": {
+  "data": "five_encoder_aligned_tile_bags_pca128",
+  "model": "gated_multi_encoder_attention_mil",
+  "method": "tile_level_early_gated_fusion_seed_ensemble"
+ },
+ "rationale": "Mean pooling dilutes focal tumour cues with stroma, while single encoders capture incomplete morphology. Tile-aligned gating across five encoders with attention MIL isolates diagnostic regions. Fold-internal PCA, balanced class weighting, tile dropout, and seed ensembling counteract high dimensionality, minority Her2 imbalance, and technical site confounding.",
+ "difficulties_addressed": [
+  "D1",
+  "D3",
+  "D4",
+  "D5",
+  "D6",
+  "D8",
+  "D9"
+ ],
+ "new_components": []
+}

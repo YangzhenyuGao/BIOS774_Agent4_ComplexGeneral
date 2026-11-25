@@ -1,0 +1,109 @@
+{
+ "plan_id": "P6",
+ "scale": "pilot",
+ "items": [
+  {
+   "id": "P6-E1",
+   "kind": "self_score",
+   "text": "Self-reported gain in macro-F1 over the plan's own clinical-only arm: +0.0597 (95% bootstrap interval +0.0088 to +0.1113); macro-F1 0.6679 with images versus 0.6083 clinical only, 802 patients in both arms.",
+   "value": 0.05967795527738595
+  },
+  {
+   "id": "P6-E2",
+   "kind": "ruler",
+   "text": "Against the simple reference (clinical variables plus mean-pooled image features, logistic regression) on the same folds: plan minus reference = -0.0186 (interval -0.0570 to +0.0221); the reference itself gains +0.0782 over clinical only.",
+   "value": -0.01857156333900023
+  },
+  {
+   "id": "P6-E3",
+   "kind": "self_score",
+   "text": "Change in recall by class (with images minus clinical only): LumA +0.093, LumB +0.126, Basal +0.015, Her2 +0.046.",
+   "value": {
+    "LumA": 0.09268292682926826,
+    "LumB": 0.12631578947368421,
+    "Basal": 0.014598540145985384,
+    "Her2": 0.04615384615384621
+   }
+  },
+  {
+   "id": "P6-E4",
+   "kind": "convergence",
+   "text": "Training: 5 reported fits, 100% converged, stopped by ['early_stopping'], median 30.0 epochs, median 28.41 s per fit.",
+   "value": 1.0
+  },
+  {
+   "id": "P6-E5",
+   "kind": "validation_design",
+   "text": "Validation design: split unit patient; 5-fold cross-validation, 1 repeat(s) run (the plan declares 3); image-arm configuration chosen by inner cross-validation inside each training fold; 2 candidate configuration(s) for the image arm versus 17 for the clinical arm (tuned); both arms use the same patients, folds and in-fold missing-value handling.",
+   "value": {
+    "k": 5,
+    "repeats": 3,
+    "selection": "nested",
+    "inner_k": 2,
+    "clinical_tuned": true,
+    "split_unit": "patient",
+    "repeats_run": 1
+   }
+  },
+  {
+   "id": "P6-E6",
+   "kind": "validation_design",
+   "text": "Scale of this run: pilot; 5 of the 15 declared outer folds were run, 802 of 802 patients scored.",
+   "value": null
+  },
+  {
+   "id": "P6-E7",
+   "kind": "cost",
+   "text": "Cost: 572 s for the image arm on 12 CPU cores; declared budget for a full run 90.0 min, needs GPU: False.",
+   "value": 571.8
+  },
+  {
+   "id": "P6-E8",
+   "kind": "compliance",
+   "text": "Compliance checks: inputs_from_view passed (input blocks ['clinical', 'image']; unknown blocks []; unknown encoders []); clinical_variables_allowed passed (declared clinical variables ['age', 'er', 'her2', 'histological_type', 'pr', 'stage']; outside the six covariates: []); clinical_block_matches_question passed (the question conditions on clinical variables; the plan uses them); correct_split_unit passed (declared split unit: patient; the analysis unit is the patient); no_forbidden_inputs passed (all input rules passed; each forbidden input of the objective is covered as follows: [RNA expression or RNA-derived variables] -> rule inputs_from_view: the view offers no such variable for the units to be predicted | [Collection site as a predictive model input] -> rule clinical_variables_allowed: site is a grouping column, not an allowed covariate | [H&E image features in the clinical-only baseline arm] -> enforced by the executor: the clinical-only arm is built from clinical variables alone | [External TCGA molecular, clinical, or pathology annotations outside the provided dataset] -> rule inputs_from_view: the executor can read nothing but the task view | [Evaluation-fold features or labels during preprocessing, missing-value handling, dimensionality reduction, or model selection] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted); components_executable passed (all components registered); within_budget passed (declared full run 90.0 min; limit 120 min).",
+   "value": true
+  },
+  {
+   "id": "P6-E9",
+   "kind": "note",
+   "text": "Configuration the executor actually ran (first configuration; alternatives come from the plan's tuning grid): {'component': 'ssl_preadapted_mil', 'encoders': ['Virchow2', 'H-Optimus-1'], 'level': 'tile', 'reduce_type': 'pca', 'reduce_dim': 128, 'aggregator': 'multihead_attention', 'encoder_fusion': 'gated', 'fusion': 'early_concat', 'head': 'flat', 'embed_dim': 128, 'dropout': 0.3, 'max_epochs': 45, 'patience': 10, 'lr': 0.0005, 'weight_decay': 0.01, 'class_weighting': 'balanced', 'tile_resample': 64, 'mixup_alpha': 0.2, 'tile_dropout': 0.25, 'n_seeds_ensemble': 1, 'self_supervised_pretrain_epochs': 25, 'pretraining_uses_unlabelled_patients': True}.",
+   "value": {
+    "component": "ssl_preadapted_mil",
+    "encoders": [
+     "Virchow2",
+     "H-Optimus-1"
+    ],
+    "level": "tile",
+    "reduce_type": "pca",
+    "reduce_dim": 128,
+    "aggregator": "multihead_attention",
+    "encoder_fusion": "gated",
+    "fusion": "early_concat",
+    "head": "flat",
+    "embed_dim": 128,
+    "dropout": 0.3,
+    "max_epochs": 45,
+    "patience": 10,
+    "lr": 0.0005,
+    "weight_decay": 0.01,
+    "class_weighting": "balanced",
+    "tile_resample": 64,
+    "mixup_alpha": 0.2,
+    "tile_dropout": 0.25,
+    "n_seeds_ensemble": 1,
+    "self_supervised_pretrain_epochs": 25,
+    "pretraining_uses_unlabelled_patients": true
+   }
+  },
+  {
+   "id": "P6-E10",
+   "kind": "note",
+   "text": "Plan fields not used by the executor - free-text fields that describe intent and contain nothing to execute: ['training.convergence_criterion', 'training.ssl_split_cache'] (this does not mean the corresponding step was skipped; see the configuration above).",
+   "value": null
+  }
+ ],
+ "raw_files": [
+  "self_validation.json",
+  "self_validation_oof.npz"
+ ]
+}

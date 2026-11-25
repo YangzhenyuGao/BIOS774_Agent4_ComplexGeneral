@@ -1,0 +1,5 @@
+Semi-Supervised Split-Bag Pre-Adapted Gigapixel Tile MIL
+
+We represent each patient by six clinical variables (with explicit missing levels) and Virchow2 plus H-Optimus-1 tile bags. Inside every fold, we apply PCA and pretrain a multihead attention aggregator via self-supervised split-bag agreement across training and 259 unlabelled patients before balanced multimodal fine-tuning. Repeated nested patient cross-validation, inner benchmarking against simple_reference, and a 19-site audit control overfitting and confounding. The paired 95% bootstrap macro-F1 interval determines whether H&E improves PAM50 prediction.
+
+Rationale: Supervised tile attention on high-dimensional ViTs easily overfits 65 Her2 cases and outlier tiles (D1, D3, D6). Split-bag self-supervision across training and 259 unlabelled patients learns reproducible tumour morphology without labels. Joint concatenation with missing-explicit receptors compensates when HER2 immunohistochemistry is equivocal (D2, D7).

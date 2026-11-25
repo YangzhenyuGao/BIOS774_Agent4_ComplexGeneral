@@ -1,0 +1,154 @@
+{
+ "plan_id": "P3",
+ "name": "Unlabelled-Pre-Adapted Vision-Language Transformer MIL",
+ "summary": "Patient tile bags from aligned vision-language pathology encoders (CONCH-Z and MUSK) are mapped via a learned linear projection into a multi-head Transformer aggregator. Strictly inside each training fold, the aggregator is pre-adapted using patient sub-bag consistency across training-fold and 259 unlabelled patients before balanced supervised fine-tuning with inner-selected flat or hierarchical subtype heads. Performance is evaluated via 3x5 repeated nested patient-level cross-validation and 5-fold site-held-out cross-validation against null and patient-mean logistic baselines. This determines standalone H&E PAM50 predictability, site robustness, and gain over simple mean pooling.",
+ "complexity": "ambitious",
+ "analysis_unit": "patient",
+ "inputs": {
+  "image": {
+   "encoders": [
+    "CONCH-Z",
+    "MUSK"
+   ],
+   "level": "tile",
+   "reduce": {
+    "type": "linear_projection",
+    "dim": 256
+   }
+  },
+  "clinical": {
+   "variables": [],
+   "use": false
+  }
+ },
+ "preprocessing": [
+  "Exclude all clinical, immunohistochemistry receptor (er, pr, her2), histological_type, age, stage, RNA-derived, and site features from model inputs; retain site solely to define site-held-out CV splits",
+  "Pool all slides and aligned tiles per patient (1,132 slides into 1,061 patient bags: 802 labelled, 259 unlabelled) so every patient stays strictly on one side of all CV and bootstrap splits",
+  "Inside each training fold only, concatenate aligned CONCH-Z (768-d) and MUSK (1024-d) tile vectors (1,792-d) and fit per-feature z-score scaling on training-fold labelled plus 259 unlabelled tiles, applying frozen parameters to held-out fold tiles",
+  "Verify majority-class null, stratified class-prior null, and inner-tuned single-encoder patient-mean balanced logistic reference on identical 802 labelled patients and outer fold assignments while excluding all 259 unlabelled patients from scoring"
+ ],
+ "model": {
+  "component": "ssl_preadapted_mil",
+  "params": {
+   "pretrain_epochs": 25,
+   "uses_unlabelled": true,
+   "encoder_fusion": "concat",
+   "aggregator": "transformer",
+   "heads": 4,
+   "layers": 2,
+   "embed_dim": 256,
+   "dropout": 0.25,
+   "head": "hierarchical"
+  }
+ },
+ "fusion": "none",
+ "training": {
+  "max_epochs": 50,
+  "early_stopping_patience": 10,
+  "lr": 0.0003,
+  "weight_decay": 0.01,
+  "class_weighting": "balanced",
+  "augmentation": {
+   "tile_resample": 64,
+   "mixup_alpha": 0.2,
+   "tile_dropout": 0.2
+  },
+  "n_seeds_ensemble": 2,
+  "convergence_rule": "Verify non-increasing trailing-5-epoch SSL sub-bag loss slope and stabilised supervised training loss / inner-fold validation macro-F1 before termination in every fold",
+  "tie_break_rule": "If inner-fold macro-F1 candidates lie within one inner-fold standard error, select the lower-capacity 1-layer 128-dim flat-head setting",
+  "tuning": {
+   "grid": [
+    {
+     "head": "hierarchical",
+     "layers": 2,
+     "embed_dim": 256,
+     "lr": 0.0003,
+     "weight_decay": 0.01
+    },
+    {
+     "head": "flat",
+     "layers": 2,
+     "embed_dim": 256,
+     "lr": 0.0003,
+     "weight_decay": 0.01
+    },
+    {
+     "head": "hierarchical",
+     "layers": 1,
+     "embed_dim": 128,
+     "lr": 0.0005,
+     "weight_decay": 0.03
+    },
+    {
+     "head": "flat",
+     "layers": 1,
+     "embed_dim": 128,
+     "lr": 0.0005,
+     "weight_decay": 0.03
+    }
+   ]
+  }
+ },
+ "validation": {
+  "scheme": "repeated_kfold",
+  "k": 5,
+  "repeats": 3,
+  "split_unit": "patient",
+  "stratified": true,
+  "selection": "nested",
+  "inner_k": 3,
+  "clinical_comparator": {
+   "tuned": false
+  },
+  "interval": "bootstrap",
+  "bootstrap_resamples": 2000,
+  "required_comparators": [
+   "majority_class_null",
+   "stratified_class_prior_null",
+   "patient_mean_logreg_simple_reference"
+  ],
+  "site_sensitivity_cv": {
+   "scheme": "grouped_kfold",
+   "group_column": "site",
+   "n_groups": 19,
+   "k": 5,
+   "selection": "nested",
+   "inner_k": 3,
+   "interval": "bootstrap"
+  },
+  "unlabelled_policy": "fold_internal_ssl_only_never_scored"
+ },
+ "metrics": [
+  "Out-of-fold four-class macro-F1 with 95% patient-level bootstrap CI",
+  "Paired out-of-fold macro-F1 difference above majority-class and stratified class-prior null floors with 95% patient-level bootstrap CIs",
+  "Paired out-of-fold macro-F1 difference versus inner-tuned single-encoder patient-mean balanced logistic regression reference with 95% patient-level bootstrap CI",
+  "Proportion of class-prior multi-class log-loss (Shannon entropy) explained out-of-fold with 95% patient-level bootstrap CI",
+  "Macro and per-class one-vs-rest AUROC across LumA, LumB, Basal, and Her2 with 95% patient-level bootstrap CIs",
+  "Per-class recall, precision, and F1 across LumA, LumB, Basal, and Her2 with 95% patient-level bootstrap CIs",
+  "Site-held-out 5-fold grouped cross-validation macro-F1 and paired gain over chance across 19 collection sites with 95% patient-level bootstrap CIs",
+  "Per-fold SSL sub-bag consistency loss and supervised training loss / inner-validation macro-F1 convergence trajectories"
+ ],
+ "allowed_conclusions": "Select strictly among the four pre-specified predictability conclusions (Broad, Partial, Site-confounded, or Insufficient evidence) from the 95% patient-level bootstrap CIs over chance in repeated nested patient CV, per-class F1, and 19-site grouped CV; claim an advantage for semi-supervised Transformer MIL over simple mean pooling only if its paired macro-F1 95% CI vs patient_mean_logreg lies strictly above zero, scoped strictly to standalone H&E prediction in TCGA-BRCA.",
+ "budget": {
+  "needs_gpu": true,
+  "pilot_minutes": 8.0,
+  "full_minutes": 75.0,
+  "cpus": 16
+ },
+ "diversity": {
+  "data": "vision_language_tiles_plus_unlabelled_linear_proj",
+  "model": "ssl_preadapted_transformer_mil_hierarchical_head",
+  "method": "fold_internal_subbag_ssl_then_balanced_finetuning"
+ },
+ "rationale": "Sub-bag self-supervision across training and 259 unlabelled patients regularises high-capacity Transformer tile interaction against small-n/large-p overfitting (D3) and variable multi-slide bag sizes (D6). Learned vision-language projection, balanced weighting, and inner-tuned hierarchical heads preserve minority Her2 and LumA-versus-LumB signals (D1, D9), while site-held-out CV audits confounding (D4).",
+ "difficulties_addressed": [
+  "D1",
+  "D3",
+  "D4",
+  "D5",
+  "D6",
+  "D8",
+  "D9"
+ ],
+ "new_components": []
+}

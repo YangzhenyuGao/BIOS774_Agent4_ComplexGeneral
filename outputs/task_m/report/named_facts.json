@@ -1,0 +1,130 @@
+{
+ "n_candidates": {
+  "value": "6",
+  "meaning": "number of candidate plans in the frozen pool"
+ },
+ "n_ambitious": {
+  "value": "5",
+  "meaning": "candidates classed as ambitious"
+ },
+ "selected_plan": {
+  "value": "P1",
+  "meaning": "id of the plan the agent selected and reported"
+ },
+ "selected_name": {
+  "value": "Nested LSI Multi-Output Ridge Reference",
+  "meaning": "name of the selected plan"
+ },
+ "tournament_champion": {
+  "value": "P1",
+  "meaning": "plan ranked first by the tournament"
+ },
+ "order_consistency": {
+  "value": "100%",
+  "meaning": "share of plan pairs judged the same way in both presentation orders"
+ },
+ "n_matches": {
+  "value": "30",
+  "meaning": "number of judged matches"
+ },
+ "selected_true_rank": {
+  "value": "2",
+  "meaning": "rank of the selected plan among all candidates under the evaluator's unified score (1 = best)"
+ },
+ "best_true_plan": {
+  "value": "P6",
+  "meaning": "plan with the best unified score"
+ },
+ "selection_gap": {
+  "value": "0.0031",
+  "meaning": "unified score of the best candidate minus that of the selected plan"
+ },
+ "audit_outcome": {
+  "value": "answer_reported",
+  "meaning": "outcome of the audit"
+ },
+ "n_genes_in_scope": {
+  "value": "11282",
+  "meaning": "genes in scope"
+ },
+ "n_genes_judgeable": {
+  "value": "10741",
+  "meaning": "in-scope genes whose ceiling is above the permutation null on held-out cells"
+ },
+ "ceiling_r": {
+  "value": "0.193",
+  "meaning": "mean per-gene r of the RNA-to-RNA ceiling"
+ },
+ "cluster_mean_r": {
+  "value": "0.134",
+  "meaning": "mean per-gene r of the cell-type (cluster-mean) baseline"
+ },
+ "ridge_r": {
+  "value": "0.147",
+  "meaning": "mean per-gene r of ridge regression on the ATAC latent space"
+ },
+ "gene_activity_r": {
+  "value": "0.036",
+  "meaning": "mean per-gene r of the gene-activity score"
+ },
+ "depth_r": {
+  "value": "0.032",
+  "meaning": "mean per-gene r from ATAC depth alone"
+ },
+ "selected_true_r": {
+  "value": "0.147",
+  "meaning": "unified score of the selected plan: mean per-gene r on held-out cells"
+ },
+ "selected_self_r": {
+  "value": "0.145",
+  "meaning": "score the selected plan reported for itself in its full run"
+ },
+ "selected_inflation": {
+  "value": "-0.002",
+  "meaning": "self-reported minus unified score of the selected plan"
+ },
+ "mean_inflation": {
+  "value": "-0.003",
+  "meaning": "mean of self-reported minus unified score over candidates"
+ },
+ "selected_fraction_of_ceiling": {
+  "value": "76%",
+  "meaning": "unified score of the selected plan as a share of the ceiling"
+ },
+ "selected_delta_vs_cluster": {
+  "value": "+0.0133",
+  "meaning": "mean per-gene r of the selected plan minus the cluster-mean baseline on held-out cells"
+ },
+ "n_beyond": {
+  "value": "2570",
+  "meaning": "genes the selected plan predicts beyond cell type on held-out cells (FDR 5%)"
+ },
+ "n_not_beyond": {
+  "value": "8171",
+  "meaning": "judgeable genes not beyond the cell-type baseline"
+ },
+ "n_cannot_judge": {
+  "value": "541",
+  "meaning": "genes that cannot be judged"
+ },
+ "share_beyond": {
+  "value": "23.9%",
+  "meaning": "genes predicted beyond cell type as a share of judgeable genes"
+ },
+ "n_claimed": {
+  "value": "4536",
+  "meaning": "genes the plan itself claimed from development cells"
+ },
+ "replication_rate": {
+  "value": "39%",
+  "meaning": "share of the plan's claimed genes confirmed on held-out cells"
+ },
+ "within_cluster_r": {
+  "value": "0.057",
+  "meaning": "mean per-gene r of the selected plan inside clusters"
+ },
+ "max_beyond_any_plan": {
+  "value": "4080",
+  "meaning": "largest number of genes beyond cell type achieved by any candidate"
+ }
+}

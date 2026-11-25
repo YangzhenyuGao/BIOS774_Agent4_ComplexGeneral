@@ -1,0 +1,5 @@
+Cluster-Balanced Hyperspherical Contrastive Alignment with Multi-Scale MLP Readout
+
+This plan separates cross-modal manifold learning from noisy per-gene regression using a two-stage contrastive architecture under nested four-fold cross-validation. On inner training splits, a CLIP objective aligns depth-free chromatin views with whole-cell RNA embeddings on the unit sphere using ATAC cluster balancing. A regularized neural head then predicts all in-scope genes from the aligned chromatin embedding. Paired-bootstrap testing against binomial-thinned RNA identifies which genes beat the cell-type baseline in this donor.
+
+Rationale: Single-gene sparsity (D1) corrupts direct regression, whereas whole-cell InfoNCE alignment captures fine intra-cluster transcriptional state before readout (D6). Unit-sphere projection without depth curbs technical confounding (D5), and ATAC cluster reweighting preserves rare subtypes (D2) without joint-label leakage (D4).

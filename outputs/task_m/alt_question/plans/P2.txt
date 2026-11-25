@@ -1,0 +1,5 @@
+Hard-Negative Dual-View Contrastive Bi-Encoder with Depth Deconfounding
+
+We train paired residual neural encoders with symmetric InfoNCE contrastive loss to retrieve an unseen cell's unsmoothed ATAC profile from its RNA counts alone. The ATAC encoder combines sparse TF-IDF peaks and promoter-and-distal gene activity while penalizing sequencing-depth shortcuts. Training uses binomial thinning, unsupervised inverse-cluster weighting, and an intra-cluster hard-negative batch curriculum fitted strictly on inner-training cells. Benchmarking on held-out queries (and an expanded 4,946-cell distractor pool) against required floors, linear CCA, and split-half ceilings determines whether retrieval exceeds cluster resolution.
+
+Rationale: Linear SVD discards non-linear enhancer combinations and remains vulnerable to sequencing-depth shortcuts (D5). Pairing sparse peaks with cis-linked gene activity under binomial thinning counteracts extreme sparsity (D1). Unsupervised inverse-cluster weights and intra-cluster hard negatives address rare populations (D2) and sub-cluster retrieval beyond coarse centroids (D6).

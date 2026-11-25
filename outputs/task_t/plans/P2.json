@@ -1,0 +1,159 @@
+{
+ "plan_id": "P2",
+ "name": "Residual Logit-Offset Dual-Encoder Tile Attention MIL",
+ "summary": "Each patient is represented by six clinical covariates and a multi-slide bag of aligned UNI2-h and CONCH-Z tile embeddings compressed via fold-internal PCA. A tuned, class-balanced clinical baseline provides frozen log-odds offsets, and a zero-initialised gated-attention MIL network learns strictly the residual PAM50 signal from H&E tiles. Repeated nested patient-level cross-validation pairs predictions against clinical-only and simple-reference comparators, accompanied by leave-one-site-out sensitivity analysis. The 95% patient-bootstrap interval on paired macro-F1 difference determines whether H&E images improve, leave uncertain, or worsen cohort PAM50 prediction.",
+ "complexity": "ambitious",
+ "analysis_unit": "patient",
+ "inputs": {
+  "clinical": {
+   "use": true,
+   "variables": [
+    "age",
+    "stage",
+    "histological_type",
+    "er",
+    "pr",
+    "her2"
+   ]
+  },
+  "image": {
+   "encoders": [
+    "UNI2-h",
+    "CONCH-Z"
+   ],
+   "level": "tile",
+   "reduce": {
+    "type": "pca",
+    "dim": 128
+   }
+  }
+ },
+ "preprocessing": [
+  "Pool all diagnostic slides and tiles of each patient into a single patient-level bag and verify strictly disjoint patient IDs across all outer, inner, and site-held-out splits ( excluding RNA variables and never using site as a predictor).",
+  "Inside each training fold, encode stage, histological_type, er, pr, and her2 via one-hot encoding with an explicit missing/indeterminate category, and median-impute plus z-score age using training-fold statistics identically across clinical-only, simple-reference, and residual-offset arms.",
+  "Inside each training fold, fit the tuned class-balanced clinical_only comparator (floor_clinical); generate internal out-of-fold clinical log-odds on training patients as de-overfitted training offsets, and use the fold-refitted floor_clinical log-odds on held-out patients, verifying epoch-0 zero-initialised predictions exactly match floor_clinical.",
+  "Inside each training fold, L2-normalise and z-score UNI2-h (1536d) and CONCH-Z (768d) tile features separately using training-fold tile statistics, concatenate aligned per-tile vectors (2304d), and fit 128-component randomised PCA on training-fold tiles only before projecting patient bags."
+ ],
+ "model": {
+  "component": "incremental_offset",
+  "params": {
+   "image_branch": {
+    "level": "tile",
+    "aggregator": "gated_attention",
+    "embed_dim": 128
+   },
+   "init_zero": true,
+   "aggregator": "gated_attention",
+   "encoder_fusion": "concat",
+   "embed_dim": 128,
+   "dropout": 0.35,
+   "head": "flat"
+  }
+ },
+ "fusion": "offset",
+ "training": {
+  "optimizer": "adamw",
+  "lr_schedule": "cosine",
+  "max_epochs": 80,
+  "min_epochs": 20,
+  "early_stopping_patience": 15,
+  "lr": 0.0005,
+  "weight_decay": 0.01,
+  "class_weighting": "balanced",
+  "augmentation": {
+   "tile_resample": 96,
+   "mixup_alpha": 0.0,
+   "tile_dropout": 0.2
+  },
+  "n_seeds_ensemble": 3,
+  "convergence_check": "Log per-epoch training and inner-validation weighted cross-entropy loss per fold; confirm trailing 5-epoch absolute loss change prior to checkpoint is under 1% of total loss reduction (or gradient norm plateaued near zero when residual signal is negligible).",
+  "selection_tie_breaker": "Measure inner-fold macro-F1 spread across resamples; treat grid differences within one standard error as ties and select the higher-regularisation configuration; adopt over fold-matched simple_reference only when inner-fold macro-F1 exceeds simple_reference (A5).",
+  "tuning": {
+   "metric": "macro_f1",
+   "grid": [
+    {
+     "aggregator": "gated_attention",
+     "embed_dim": 128,
+     "dropout": 0.35,
+     "weight_decay": 0.01
+    },
+    {
+     "aggregator": "gated_attention",
+     "embed_dim": 64,
+     "dropout": 0.5,
+     "weight_decay": 0.05
+    },
+    {
+     "aggregator": "multihead_attention",
+     "heads": 4,
+     "layers": 1,
+     "embed_dim": 128,
+     "dropout": 0.35,
+     "weight_decay": 0.02
+    }
+   ]
+  }
+ },
+ "validation": {
+  "scheme": "repeated_kfold",
+  "k": 5,
+  "repeats": 3,
+  "split_unit": "patient",
+  "stratify_by": "PAM50",
+  "selection": "nested",
+  "inner_k": 3,
+  "clinical_comparator": {
+   "component": "clinical_only",
+   "tuned": true
+  },
+  "simple_reference_comparator": {
+   "component": "patient_mean_logreg",
+   "same_folds": true,
+   "enforce_a5_check": true
+  },
+  "site_sensitivity": {
+   "scheme": "leave_one_site_out",
+   "group_by": "site",
+   "n_groups": 19,
+   "split_unit": "patient",
+   "nested_inner_k": 2,
+   "pooled_oof_evaluation": true
+  },
+  "interval": "bootstrap",
+  "n_bootstrap": 10000,
+  "bootstrap_unit": "patient"
+ },
+ "metrics": [
+  "Paired out-of-fold macro-F1 difference (image-plus-clinical minus clinical-only) across 5x3 repeated nested CV with 95% patient-level bootstrap CI",
+  "Paired out-of-fold multiclass log-loss difference (image-plus-clinical minus clinical-only)",
+  "Paired out-of-fold macro one-vs-rest AUROC difference (image-plus-clinical minus clinical-only)",
+  "Per-class out-of-fold recall differences for LumA, LumB, Basal, and Her2",
+  "Site-held-out pooled out-of-fold paired macro-F1 difference (image-plus-clinical minus clinical-only) across the 19 collection sites",
+  "Paired out-of-fold macro-F1 difference against simple_reference on identical folds"
+ ],
+ "allowed_conclusions": "Conclude 'improves' if the 95% patient-level bootstrap CI for paired macro-F1 difference (image-plus-clinical minus floor_clinical) lies strictly above 0, 'worse' if strictly below 0, and 'insufficient evidence' if it spans 0; interpret alongside site-held-out sensitivity and restrict scope strictly to incremental patient-level PAM50 prediction in this TCGA-BRCA cohort.",
+ "budget": {
+  "needs_gpu": false,
+  "pilot_minutes": 8.0,
+  "full_minutes": 75.0,
+  "cpus": 16
+ },
+ "diversity": {
+  "data": "clinical + aligned dual-encoder (UNI2-h, CONCH-Z) tile bags with fold-PCA",
+  "model": "zero-initialised gated-attention MIL residual network on frozen clinical logits",
+  "method": "two-stage residual logit-offset learning with out-of-fold clinical offsets and nested CV"
+ },
+ "rationale": "Freezing out-of-fold clinical logits with a zero-initialised residual head protects the strong clinical baseline (D7) against high-dimensional overfitting (D3), focusing image capacity on LumA/LumB separation and missing-HER2 cases (D2). Tile attention across patient slides (D6) captures focal proliferative and minority Her2 morphology (D1).",
+ "difficulties_addressed": [
+  "D1",
+  "D2",
+  "D3",
+  "D4",
+  "D5",
+  "D6",
+  "D7",
+  "D8",
+  "D9"
+ ],
+ "new_components": []
+}

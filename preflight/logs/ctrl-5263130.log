@@ -1,0 +1,7 @@
+host=nep15080203 job=5263130 start=2026-11-25T03:13:42-05:00
+claude binary: /nas/sycamore/home/gaoyang/.vscode-server/extensions/anthropic.claude-code-2.1.331-linux-x64/resources/native-binary/claude
+CLAUDE_FROM_COMPUTE_NODE PASS | api_ms 868 | cost_usd 0.005124 | result {"ok": true, "word": "READY"}
+LLM_FROM_COMPUTE_NODE PASS gemini-4-neon 200 2.2 READY
+LLM_FROM_COMPUTE_NODE PASS deepseek-ai/DeepSeek-V4-Pro 200 0.6 READY
+SBATCH_FROM_COMPUTE_NODE PASS | sbatch: Job 5263131 to start at 2026-11-25T05:31:49 using 8 processors on nodes nep15080301 in partition small
+end=2026-11-25T03:13:49-05:00

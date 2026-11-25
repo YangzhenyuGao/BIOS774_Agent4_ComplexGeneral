@@ -1,0 +1,253 @@
+{
+ "plan_id": "P4",
+ "name": "Multi-Scale Pure-Vision Prototype and Boosted-Tree Stacking Ensemble",
+ "summary": "Each patient's slides are represented across Virchow2, UNI2-h, and H-Optimus-1 as discrete tile-prototype proportions and PCA patient-mean vectors. Inside each training fold, a balanced logistic meta-learner stacks out-of-fold probabilities from multi-scale prototype classifiers and boosted trees using H&E features alone. Repeated nested patient and site-grouped cross-validation benchmarks this stack against chance baselines and the simple logistic reference. Bootstrap intervals establish whether H&E subtype predictability is broad, partial, site-confounded, or insufficient.",
+ "complexity": "ambitious",
+ "analysis_unit": "patient",
+ "inputs": {
+  "image": {
+   "encoders": [
+    "UNI2-h",
+    "Virchow2",
+    "H-Optimus-1"
+   ],
+   "level": "tile",
+   "reduce": {
+    "type": "pca",
+    "dim": 128
+   }
+  },
+  "clinical": {
+   "variables": [],
+   "use": false
+  }
+ },
+ "preprocessing": [
+  "Pool all diagnostic slides of each patient into one patient-level tile bag (up to 128 tiles per slide) and enforce strict patient-ID split grouping across all 802 labelled patients while excluding the 259 unlabelled patients from supervised fitting and scoring.",
+  "Exclude all forbidden clinical, immunohistochemistry receptor (er, pr, her2), histological_type, age, stage, RNA, and site variables from model inputs and preprocessing.",
+  "Inside each training fold only, apply per-tile L2 unit-norm scaling followed by training-fold standardisation and PCA reduction (128 dimensions per pure-vision encoder at tile level; 64 dimensions across concatenated pure-vision patient-mean vectors).",
+  "Fit K-means morphological centroids strictly on training-fold tiles (drawing up to 96 tiles per patient during centroid fitting so multi-slide patients do not dominate cluster geometry), then map all tiles of each patient to L1-normalised prototype share histograms with 1e-4 additive smoothing.",
+  "Compute inverse-prevalence class weights strictly from training-fold PAM50 counts and pass them to every base classifier and the logistic meta-learner."
+ ],
+ "model": {
+  "component": "stacking_ensemble",
+  "params": {
+   "members": [
+    {
+     "component": "morphology_prototypes",
+     "params": {
+      "n_prototypes": 48,
+      "encoder": "Virchow2",
+      "classifier": "gbm"
+     },
+     "inputs": {
+      "image": {
+       "encoders": [
+        "Virchow2"
+       ],
+       "level": "tile",
+       "reduce": {
+        "type": "pca",
+        "dim": 128
+       }
+      },
+      "clinical": {
+       "variables": [],
+       "use": false
+      }
+     },
+     "fusion": "none"
+    },
+    {
+     "component": "morphology_prototypes",
+     "params": {
+      "n_prototypes": 16,
+      "encoder": "UNI2-h",
+      "classifier": "logreg"
+     },
+     "inputs": {
+      "image": {
+       "encoders": [
+        "UNI2-h"
+       ],
+       "level": "tile",
+       "reduce": {
+        "type": "pca",
+        "dim": 128
+       }
+      },
+      "clinical": {
+       "variables": [],
+       "use": false
+      }
+     },
+     "fusion": "none"
+    },
+    {
+     "component": "morphology_prototypes",
+     "params": {
+      "n_prototypes": 32,
+      "encoder": "H-Optimus-1",
+      "classifier": "gbm"
+     },
+     "inputs": {
+      "image": {
+       "encoders": [
+        "H-Optimus-1"
+       ],
+       "level": "tile",
+       "reduce": {
+        "type": "pca",
+        "dim": 128
+       }
+      },
+      "clinical": {
+       "variables": [],
+       "use": false
+      }
+     },
+     "fusion": "none"
+    },
+    {
+     "component": "gradient_boosting",
+     "params": {
+      "n_pca": 64,
+      "max_iter": 200,
+      "learning_rate": 0.05
+     },
+     "inputs": {
+      "image": {
+       "encoders": [
+        "UNI2-h",
+        "Virchow2",
+        "H-Optimus-1"
+       ],
+       "level": "patient",
+       "reduce": {
+        "type": "pca",
+        "dim": 64
+       }
+      },
+      "clinical": {
+       "variables": [],
+       "use": false
+      }
+     },
+     "fusion": "none"
+    }
+   ],
+   "meta": "logreg"
+  }
+ },
+ "fusion": "none",
+ "training": {
+  "max_epochs": 200,
+  "early_stopping_patience": 20,
+  "lr": 0.05,
+  "weight_decay": 0.1,
+  "class_weighting": "balanced",
+  "augmentation": {
+   "tile_resample": 96,
+   "mixup_alpha": 0.0,
+   "tile_dropout": 0.0
+  },
+  "n_seeds_ensemble": 2,
+  "convergence_check": "Record K-means inertia convergence (tol 1e-4), per-iteration training and validation weighted multi-class log-loss curves for all boosting members verifying trailing-stage slope stabilisation, and L-BFGS gradient convergence (tol 1e-4) for base and meta logistic models.",
+  "tuning": {
+   "selection_metric": "inner_fold_macro_f1",
+   "tie_breaker": "prefer_lowest_prototype_count_within_one_seed_sd",
+   "grid": [
+    {
+     "prototype_counts": [
+      48,
+      16,
+      32
+     ],
+     "learning_rate": 0.05,
+     "patient_n_pca": 64,
+     "weight_decay": 0.1
+    },
+    {
+     "prototype_counts": [
+      24,
+      12,
+      16
+     ],
+     "learning_rate": 0.03,
+     "patient_n_pca": 32,
+     "weight_decay": 0.5
+    },
+    {
+     "prototype_counts": [
+      64,
+      24,
+      48
+     ],
+     "learning_rate": 0.08,
+     "patient_n_pca": 96,
+     "weight_decay": 0.05
+    }
+   ]
+  }
+ },
+ "validation": {
+  "scheme": "repeated_kfold",
+  "k": 5,
+  "repeats": 3,
+  "split_unit": "patient",
+  "stratified": true,
+  "selection": "nested",
+  "inner_k": 3,
+  "clinical_comparator": {
+   "tuned": false
+  },
+  "comparators": [
+   "majority_class_null_on_identical_outer_folds",
+   "stratified_class_prior_null_on_identical_outer_folds",
+   "nested_single_encoder_patient_mean_logreg_reference_on_identical_outer_folds"
+  ],
+  "site_held_out_sensitivity": {
+   "scheme": "grouped_cv_by_site",
+   "group_column": "site",
+   "n_groups": 19,
+   "selection": "nested",
+   "inner_k": 3,
+   "site_excluded_from_predictors": true
+  },
+  "interval": "bootstrap",
+  "n_bootstrap": 10000
+ },
+ "metrics": [
+  "Out-of-fold four-class macro-F1 with 95% patient-level bootstrap CI",
+  "Paired out-of-fold macro-F1 difference versus majority-class null and stratified class-prior null baselines with 95% patient-level bootstrap CIs",
+  "Paired out-of-fold macro-F1 difference versus simple patient-mean regularised logistic regression reference with 95% patient-level bootstrap CI",
+  "Proportion of class-prior multi-class log-loss (Shannon entropy) explained out-of-fold with 95% patient-level bootstrap CI",
+  "Macro and per-class one-vs-rest AUROC (LumA, LumB, Basal, Her2) with 95% patient-level bootstrap CIs",
+  "Per-class precision, recall, and F1 across LumA, LumB, Basal, and Her2 (highlighting Her2 recall and LumA-versus-LumB confusion)",
+  "Site-held-out grouped CV (19 collection sites) macro-F1 and paired gain over chance baselines with 95% patient-level bootstrap CI",
+  "Fold-wise boosting deviance curves, K-means inertia stabilisation, and logistic solver convergence rates"
+ ],
+ "allowed_conclusions": "Selects exactly one objective conclusion from 95% patient-level bootstrap CIs on identical 802-patient splits: Broad predictability (macro-F1 beats chance in both patient and 19-site CV and all four classes beat chance), Partial predictability (overall macro-F1 beats chance in both CVs but at least one class 95% CI includes or falls below chance), Site-confounded predictability (patient CV beats chance but site-held-out paired 95% CI includes or falls below zero), or Insufficient evidence (patient CV paired 95% CI over chance includes or falls below zero), plus whether multi-scale prototype-and-tree stacking improves over the simple linear reference; strictly scoped to standalone TCGA-BRCA H&E features without claiming incremental clinical utility or biological mechanism.",
+ "budget": {
+  "needs_gpu": false,
+  "pilot_minutes": 8.0,
+  "full_minutes": 75.0,
+  "cpus": 16
+ },
+ "diversity": {
+  "data": "pure_vision_multiscale_tile_prototypes_plus_patient_pca",
+  "model": "kmeans_prototype_histograms_and_gbdt_meta_stack",
+  "method": "multiscale_compositional_and_global_oof_probability_stacking"
+ },
+ "rationale": "Quantising variable-length tile bags (D6) into compact prototype proportions curbs high-dimensional overfitting (D3) and dampens continuous site stain shifts (D4) while preserving focal phenotypes lost in patient averages. Balanced boosted trees and meta-stacking capture non-linear interactions for minority Her2 and LumA/LumB separation (D1).",
+ "difficulties_addressed": [
+  "D1",
+  "D3",
+  "D4",
+  "D5",
+  "D6",
+  "D8",
+  "D9"
+ ],
+ "new_components": []
+}

@@ -1,0 +1,222 @@
+[
+ {
+  "plan_id": "R0B7C1",
+  "name": "Inductive Cluster-Balanced Coupled Variational Autoencoder (MultiVI)",
+  "reason": "pool is full",
+  "plan": {
+   "plan_id": "R0B7C1",
+   "name": "Inductive Cluster-Balanced Coupled Variational Autoencoder (MultiVI)",
+   "summary": "We train an inductive paired-modality variational autoencoder (MultiVI) strictly on training cells' raw RNA counts and 25,000 ATAC peaks, aligning modality-specific posteriors while separating sequencing depth from biological state. For unseen ATAC-only cells, posterior-predictive decoding imputes library-normalised log expression without test-set leakage or WNN labels. Across three nested 75/25 splits scored on binomial-thinned RNA half B, we compare against depth, gene-activity, linear, and 20-cluster baselines plus the noise ceiling. Paired bootstraps at 5% FDR identify genes predictable beyond cell identity.",
+   "complexity": "ambitious",
+   "analysis_unit": "single cell (individual nucleus from the single healthy PBMC donor)",
+   "inputs": {
+    "tfidf_peaks": {
+     "max_peaks": 25000
+    },
+    "depth": {}
+   },
+   "preprocessing": [
+    "Strictly inside each outer training split (and on the 7288 development cells alone for the final fit), select the top 25000 ATAC peaks detected in 0.5% to 85% of training cells, breaking ties toward peak-to-gene linked loci; extract binarised/fragment counts and log ATAC depth without touching outer-validation or held-out cells.",
+    "Retain training cells' raw paired RNA UMI counts across all 13536 measured genes for MultiVI Negative Binomial generative modelling so library-size proportions sum properly before slicing decoded predictions to the 11282 frozen in-scope genes.",
+    "Inside each outer training split only, compute depth-dropped 50-D LSI (over all 108377 peaks), k=20 ATAC clusters (frozen baseline count), and promoter-plus-distal gene activity solely to fit required baseline comparators and compute inverse-sqrt ATAC-cluster training weights plus stratified 90/10 inner early-stopping splits.",
+    "For unseen outer-validation cells only at scoring time, split raw RNA UMIs once per seed via independent Binomial(n, 0.5) thinning into halves A and B, normalise each half to 10000 total counts across measured genes, apply log1p, slice to the 11282 frozen in-scope genes, and reserve half B exclusively as the unsmoothed scoring target.",
+    "Never include outer-validation or held-out ATAC profiles during MultiVI training, peak filtering, or hyperparameter selection, and never use curated WNN cell-type labels as inputs, stratification variables, or evaluation truth."
+   ],
+   "model": {
+    "component": "joint_latent_multivi",
+    "params": {
+     "n_latent": 32,
+     "n_hidden": 256,
+     "max_epochs": 350,
+     "early_stopping_patience": 25,
+     "n_peaks": 25000
+    }
+   },
+   "fusion": null,
+   "training": {
+    "max_epochs": 350,
+    "early_stopping_patience": 25,
+    "lr": 0.0005,
+    "batch_size": 128,
+    "weight_decay": 0.0001,
+    "target_denoising": "none",
+    "internal_val_fraction": 0.1,
+    "kl_warmup_epochs": 50,
+    "sample_weighting": "inverse_sqrt_atac_cluster_size",
+    "mc_posterior_samples": 25,
+    "neutral_library_decoding_scale": 10000.0,
+    "log_loss_history": true
+   },
+   "validation": {
+    "scheme": "holdout",
+    "holdout_fraction": 0.25,
+    "split_unit": "cell",
+    "scoring_target": "thinned_half",
+    "n_seeds": 3,
+    "compare_with": [
+     "simple_reference",
+     "floor_1_cell_type",
+     "floor_2_gene_activity",
+     "floor_3_depth",
+     "floor_4_simple_learners",
+     "ceiling",
+     "permutation_null"
+    ],
+    "gene_claim_rule": "First audit full ELBO and symmetric-KL loss curves to confirm convergence on all 3 outer splits and verify comparator sanity checks. Place any in-scope gene whose RNA-to-RNA noise ceiling r fails to exceed the 95th percentile of 1000 cell-permutation nulls into Group 0 (unjudgeable). Across the remaining judgeable genes, run 2000 paired cell-bootstrap resamples on identical unseen outer-split cells (with identical zero-variance r=0 handling) comparing MultiVI log1p(1e4 * decoded_rate) against floor_1_cell_type (frozen k=20 ATAC cluster mean); assign genes to Group 2 (reliably predicted beyond cell type) iff one-sided paired-bootstrap Fisher-z test p-values pass Benjamini-Hochberg across all 11282 in-scope genes at 5% FDR and the empirical 95% paired-bootstrap CI lower bound on delta_r exceeds 0; assign all other judgeable genes to Group 1."
+   },
+   "metrics": [
+    "Per-gene Pearson correlation r against unsmoothed binomial-thinned half-B log-normalised RNA across unseen outer-split cells, plus mean and median r across all 11282 frozen in-scope genes",
+    "Per-gene correlation gain delta_r over floor_1_cell_type (frozen k=20) with empirical two-sided 95% paired-bootstrap confidence intervals for both r and delta_r",
+    "Counts and lists of in-scope genes partitioned into unjudgeable, not-beyond-cell-type, and reliably-predicted-beyond-cell-type groups at 5% BH-FDR",
+    "Ratio of MultiVI per-gene Pearson r to the RNA-to-RNA noise ceiling across judgeable in-scope genes",
+    "Within-cluster per-gene Pearson correlation across nested ATAC clusters and descriptive development WNN cell types alongside pooled correlation",
+    "Empirical width, cross-seed variance, and split-to-split coverage of 95% paired-bootstrap confidence intervals plus MultiVI training/validation ELBO and alignment-KL convergence curves"
+   ],
+   "allowed_conclusions": "Contingent on verified ELBO/KL convergence and passing comparator checks, conclude strictly one of the four compiled options: unjudgeable noise if no gene ceiling beats permutation; depth-confounded if MultiVI fails to beat floor_3_depth; no gene beyond cell identity if MultiVI beats depth and gene-activity floors yet zero judgeable genes beat floor_1_cell_type at 5% BH-FDR; or specific identified genes predicted beyond cell identity at 5% BH-FDR (adopting MultiVI over simple_reference only if mean gain exceeds cross-seed spread). Scope is strictly limited to unseen granulocyte-depleted PBMCs from this single healthy donor in this Multiome assay, implying nothing about other donors, tissues, diseases, granulocytes, or causal regulation.",
+   "budget": {
+    "needs_gpu": false,
+    "pilot_minutes": 18.0,
+    "full_minutes": 95.0,
+    "cpus": 32
+   },
+   "diversity": {
+    "data": "paired_raw_umi_and_25k_filtered_peak_counts_with_library_factors",
+    "model": "coupled_symmetric_kl_multivi_generative_vae",
+    "method": "inductive_variational_bayesian_mc_imputation_cluster_weighted_repeated_75_25_holdout"
+   },
+   "rationale": "Paired generative likelihoods over sparse peaks and UMIs address D1 by inferring denoised posteriors instead of fitting noisy targets directly. Explicit library-size factors decouple depth confounding (D5). Cluster-balanced weighting and continuous coupled latents preserve rare populations (D2) and intra-cluster variation beyond cluster means (D6).",
+   "difficulties_addressed": [
+    "D1",
+    "D2",
+    "D3",
+    "D4",
+    "D5",
+    "D6",
+    "D7"
+   ],
+   "new_components": []
+  }
+ },
+ {
+  "plan_id": "R0B8C1",
+  "name": "State-Gated Long-Range Cis-Enhancer Attention and Low-Rank Gene-Factor Network",
+  "reason": "pool is full",
+  "plan": {
+   "plan_id": "R0B8C1",
+   "name": "State-Gated Long-Range Cis-Enhancer Attention and Low-Rank Gene-Factor Network",
+   "summary": "We model chromatin-to-RNA regulation beyond cell identity using a state-gated cis-enhancer and low-rank gene-factor network. Global LSI state attends over eight distance-resolved cis-peak heads within 500 kb per gene and fuses them with shared gene embeddings above soft ATAC-cluster anchors and isolated depth offsets. Strictly nested 5-fold cross-validation trains with cluster-balanced residual loss and scores against unsmoothed thinned RNA. Paired bootstrap tests at 5% FDR identify genes predicted beyond cell identity in this donor.",
+   "complexity": "ambitious",
+   "analysis_unit": "single cell (individual nucleus from the single healthy PBMC donor)",
+   "inputs": {
+    "cis_peaks": {
+     "window_kb": 500,
+     "max_peaks_per_gene": 40
+    },
+    "gene_activity": {
+     "mode": "promoter"
+    },
+    "lsi": {
+     "n_components": 64,
+     "max_peaks": 108377
+    },
+    "depth": {}
+   },
+   "preprocessing": [
+    "Split development cells via unconditioned cell-level 5-fold partitions so zero global transformation, scaling, or clustering touches evaluation cells (A2)",
+    "Inside each outer training fold, fit binarised TF-IDF and 65-component truncated SVD across all 108,377 peaks, drop component 1 (depth-correlated), and z-score the remaining 64 LSI components; project validation/held-out ATAC strictly out-of-sample",
+    "Fit frozen-count k=20 k-means on inner-training 64D LSI to define Floor 1 hard clusters, soft Gaussian-kernel cluster responsibilities, and inverse-sqrt cluster cell weights (clipped at 5x median weight); never use curated WNN labels in fitting (A1, D4)",
+    "Standardize log1p total ATAC fragment depth on inner-training cells and compute within-cluster centered log-depth for orthogonalization diagnostics (D5)",
+    "Extract up to 40 annotated/proximal peaks within +/-500 kb of each of the 11,282 frozen in-scope gene TSS coordinates (ranked by TSS proximity and inner-training accessibility), build sparse peak-to-gene incidence indices with 8D static genomic link features (6 log-distance radial basis functions, upstream/downstream sign, promoter/distal flag), and log1p-depth-normalise peak and promoter-only gene-activity counts using inner-training scalers",
+    "On inner-training cells only, average 8 independent Binomial(UMI, 0.5) draws transformed by log1p(10000 * counts / library_size) to form single-cell variance-reduced targets calibrated to the exact half-depth evaluation scale without cross-cell smoothing (A3, A8)"
+   ],
+   "model": {
+    "component": "context_gated_cis_lowrank_net",
+    "params": {
+     "n_cis_heads": 8,
+     "gene_embed_dim": 48,
+     "lowrank_dim": 48,
+     "trans_hidden": [
+      128,
+      128
+     ],
+     "attn_dim": 16,
+     "genomic_edge_hidden": 32,
+     "soft_cluster_k": "frozen",
+     "soft_cluster_temp": 0.5,
+     "dropout": 0.15
+    }
+   },
+   "fusion": null,
+   "training": {
+    "max_epochs": 120,
+    "early_stopping_patience": 15,
+    "lr": 0.0015,
+    "batch_size": 512,
+    "weight_decay": 0.0001,
+    "target_denoising": "none",
+    "optimizer": "adamw_cosine_warmup",
+    "inner_val_fraction": 0.15,
+    "batch_sampling": "atac_k20_cluster_stratified",
+    "loss_weights": {
+     "cluster_weighted_mse": 1.0,
+     "within_state_residual_cosine": 0.35,
+     "within_cluster_depth_orthogonality": 0.1
+    },
+    "convergence_audit": "Log per-epoch train/inner-val loss components and unsmoothed thinned-half residual r; require finite monotonic-trend inner-val stabilization before scoring (K3, K4)"
+   },
+   "validation": {
+    "scheme": "kfold",
+    "k": 5,
+    "split_unit": "cell",
+    "scoring_target": "thinned_half",
+    "n_seeds": 2,
+    "compare_with": [
+     "simple_reference",
+     "floor_1_cell_type",
+     "floor_2_gene_activity",
+     "floor_3_depth",
+     "floor_4_simple_learners",
+     "ceiling",
+     "permutation_null"
+    ],
+    "comparator_sanity_checks": "Verify permutation_null centers near 0, floor_3_depth uses 1 covariate, floor_1_cell_type is piecewise constant over k=20 ATAC clusters, and ceiling maps training half A to half B before scoring unseen half A against unseen half B on identical cells and zero-variance rules (A4, K8)",
+    "gene_claim_rule": "Across 1,000 fold-stratified paired cell-bootstrap resamples of unseen outer-fold predictions (pooled over 5 folds and averaged across 2 seeds, checking seed spread per K1), compute empirical two-sided 95% CIs for r_g and delta_r_g = r_g(model) - r_g(floor_1_cell_type). Assign genes whose ceiling fails to beat permutation_null at 5% BH-FDR to Group 0 (unjudgeable); test remaining genes via one-sided paired-bootstrap p-values for delta_r_g > 0 with Benjamini-Hochberg across all 11,282 in-scope genes at 5% FDR to assign Group 2 (reliably_predicted_beyond_cell_type) vs Group 1 (not_beyond_cell_type) (A6, A7)"
+   },
+   "metrics": [
+    "Primary: Mean per-gene Pearson r against unsmoothed binomial-thinned log-normalised RNA (half B) and paired-bootstrap delta_r gain over floor_1_cell_type with 95% CIs across all 11,282 frozen in-scope genes",
+    "Secondary: Gene counts and identities in Group 0 (unjudgeable), Group 1 (not_beyond_cell_type), and Group 2 (reliably_predicted_beyond_cell_type) at 5% BH-FDR",
+    "Secondary: Ratio of achieved per-gene Pearson r to the RNA-to-RNA noise ceiling across judgeable in-scope genes",
+    "Secondary: Within-cluster per-gene Pearson r across all 20 ATAC clusters and post-hoc descriptive WNN cell types (including rare n=15 Plasma cells) alongside pooled r on development splits (D2, K7)",
+    "Secondary: Empirical width and cross-fold calibration of paired-bootstrap 95% CIs, learned cis-vs-trans gate summaries, and automated A1-A8 acceptance check pass/fail audit (K5)"
+   ],
+   "allowed_conclusions": "Map results strictly to the four objective conclusion options: (1) unjudgeable if no gene's ceiling beats permutation_null; (2) confounded by depth if judgeable genes exist but aggregate mean r fails to beat floor_3_depth (or floor_2_gene_activity for biological claims); (3) no gene predicted beyond cell identity if technical floors are beaten (and complexity over simple_reference/floor_4_simple_learners exceeds seed/bootstrap spread) yet zero judgeable genes beat floor_1_cell_type at 5% BH-FDR; (4) specific genes predicted beyond cell identity for the exact 5%-FDR Group 2 gene set, accompanied by the refitted 3,124 x 11,282 finite log-normalised held-out prediction matrix. Scope applies strictly to unseen granulocyte-depleted PBMCs from this single healthy donor under this Multiome assay, with no claims about other donors, tissues, diseases, granulocytes, or causal regulation.",
+   "budget": {
+    "needs_gpu": false,
+    "pilot_minutes": 6.0,
+    "full_minutes": 42.0,
+    "cpus": 32
+   },
+   "diversity": {
+    "data": "long_range_500kb_cis_peaks_with_tss_geometry_promoter_activity_64d_lsi_and_depth",
+    "model": "state_gated_multihead_cis_attention_and_bilinear_lowrank_gene_factor_net",
+    "method": "soft_cluster_anchored_depth_orthogonalized_residual_correlation_learning_nested_5fold_cv"
+   },
+   "rationale": "Distal enhancers within 500 kb drive within-lineage expression conditionally on trans-chromatin state, motivating state-gated cis attention over static masks (D6). Low-rank gene embeddings counter 85% RNA sparsity (D1), while cluster-balanced residual training protects rare populations (D2) and depth orthogonalization prevents technical confounding (D5).",
+   "difficulties_addressed": [
+    "D1",
+    "D2",
+    "D3",
+    "D4",
+    "D5",
+    "D6",
+    "D7"
+   ],
+   "new_components": [
+    {
+     "name": "context_gated_cis_lowrank_net",
+     "description": "Computes single-cell log-normalised expression predictions for all G=11,282 in-scope genes by adding a state-gated cis-enhancer and bilinear low-rank trans-factor residual to a soft ATAC-cluster baseline and isolated depth offset. Inputs: 64D LSI vector z_i, standardized log-depth d_i, centered promoter activity p_i (G), and sparse cis-peak accessibility links (<=40 peaks within +/-500 kb per gene) with 8D static TSS-distance/orientation/promoter-distal features. Forward pass: (1) soft-cluster kernel responsibilities over k=20 inner-training LSI centroids multiply training cluster means to give anchor b_{i,g}, plus ridge-penalized depth term beta_g * d_i; (2) a genomic-edge MLP maps link metadata and learned gene embeddings E (G x 48) to H=8 normalized regulatory-head weights per gene, aggregating cell peak counts via sparse scatter/spmm into S_{i,g,h} (B x G x 8); (3) a 2-layer LayerNorm-GELU trans MLP maps z_i to H scaled-dot-product attention queries Q_{i,h} (interacting with gene keys K_{g,h} to gate S_{i,g,h} + w_g * p_{i,g} into cis signal c_{i,g}) and to 48D trans factors u_i (dot-multiplied with gene-embedding projections V_g into low-rank module signal t_{i,g}); (4) per-gene learned gate gamma_g combines s_g * (gamma_g * c_{i,g} + (1 - gamma_g) * t_{i,g}) with b_{i,g} + beta_g * d_i. Outputs: finite (B x 11,282) log-normalised expression matrix. Training: AdamW with cosine warmup, early stopping on inner 15% split, optimizing inverse-sqrt ATAC-cluster-weighted MSE plus batchwise residual cosine loss and within-cluster depth-orthogonality penalty against inner-training half-depth expected log1p RNA."
+    }
+   ]
+  }
+ }
+]

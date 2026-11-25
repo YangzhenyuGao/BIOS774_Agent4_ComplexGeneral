@@ -1,0 +1,20 @@
+{
+ "subtype": "success",
+ "is_error": false,
+ "duration_ms": 1571,
+ "duration_api_ms": 1497,
+ "num_turns": 1,
+ "total_cost_usd": 0.008216000000000001,
+ "stop_reason": "end_turn",
+ "result": "{\"winner\":\"A\",\"cited_evidence\":[\"A1\",\"A2\",\"B1\",\"B2\"],\"reason\":\"A uses equal tuning and patient-level splits. B's gain is confounded by a 200-vs-1 tuning imbalance and leakage, with 66 patients having slides in both train and test.\"}",
+ "tokens": {
+  "input": 2,
+  "cache_write": 781,
+  "cache_read": 0,
+  "output": 98,
+  "thinking": 0
+ },
+ "model": [
+  "claude-opus-5-5"
+ ]
+}

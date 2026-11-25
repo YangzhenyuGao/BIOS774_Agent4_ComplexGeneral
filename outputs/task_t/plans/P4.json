@@ -1,0 +1,259 @@
+{
+ "plan_id": "P4",
+ "name": "Multi-Scale Morphological-Prototype and Boosted-Tree Super-Learner",
+ "summary": "Each patient's slides are summarised by compositional tile-prototype histograms (Virchow2, H-Optimus-1) and PCA-compressed global embeddings (H-Optimus-1, MUSK, CONCH-Z), integrated with clinical covariates via nested probability stacking. Within each training fold, a regularised logistic meta-learner blends out-of-fold probabilities from a clinical-only anchor, linear and boosted-tree prototype classifiers, and multi-encoder gradient boosting, benchmarked against the simple reference. Paired macro-F1 differences across repeated patient-level cross-validation and site-held-out splits with a 95% bootstrap interval determine whether H&E images improve PAM50 prediction.",
+ "complexity": "ambitious",
+ "analysis_unit": "patient",
+ "inputs": {
+  "clinical": {
+   "use": true,
+   "variables": [
+    "age",
+    "stage",
+    "histological_type",
+    "er",
+    "pr",
+    "her2"
+   ]
+  },
+  "image": {
+   "encoders": [
+    "Virchow2",
+    "H-Optimus-1",
+    "MUSK",
+    "CONCH-Z"
+   ],
+   "level": "tile",
+   "reduce": {
+    "type": "pca",
+    "dim": 64
+   }
+  }
+ },
+ "preprocessing": [
+  "Pool all slides and tiles per patient_id (handling 46 multi-slide patients and bag sizes of 6-471 tiles) into one patient bag before splitting; verify disjoint patient_id sets across all outer, inner, and site splits, excluding site and any RNA-derived variables from predictors.",
+  "Inside each training fold, apply identical clinical preprocessing to floor_clinical, simple_reference, and multimodal arms: median-impute and z-score age on labelled training patients, and one-hot encode stage, histological_type, er, pr, and her2 with explicit missing/indefinite levels.",
+  "Using training-fold labelled patients plus the 259 unlabelled patients (never evaluation-fold patients), L2-normalise embeddings, fit 64-dim tile PCA on Virchow2 and H-Optimus-1 before k-means clustering to compute bag-size-invariant prototype-share histograms summing to 1, and fit concatenated patient-mean PCA across H-Optimus-1, MUSK, and CONCH-Z.",
+  "Compute inverse-prevalence balanced sample weights strictly from training-fold PAM50 class counts and log iterative convergence curves (k-means centroid shift, per-iteration boosting deviance, and L-BFGS meta-learner loss) until terminal updates plateau below 1% of total fold loss reduction."
+ ],
+ "model": {
+  "component": "stacking_ensemble",
+  "params": {
+   "meta": "logreg",
+   "members": [
+    {
+     "component": "clinical_only",
+     "params": {
+      "tune": true
+     },
+     "inputs": {
+      "clinical": {
+       "use": true,
+       "variables": [
+        "age",
+        "stage",
+        "histological_type",
+        "er",
+        "pr",
+        "her2"
+       ]
+      },
+      "image": {
+       "encoders": [],
+       "level": "patient",
+       "reduce": {
+        "type": "none",
+        "dim": 0
+       }
+      }
+     },
+     "fusion": "none"
+    },
+    {
+     "component": "morphology_prototypes",
+     "params": {
+      "encoder": "Virchow2",
+      "n_prototypes": 32,
+      "classifier": "gbm"
+     },
+     "inputs": {
+      "clinical": {
+       "use": true,
+       "variables": [
+        "age",
+        "stage",
+        "histological_type",
+        "er",
+        "pr",
+        "her2"
+       ]
+      },
+      "image": {
+       "encoders": [
+        "Virchow2"
+       ],
+       "level": "tile",
+       "reduce": {
+        "type": "pca",
+        "dim": 64
+       }
+      }
+     },
+     "fusion": "early_concat"
+    },
+    {
+     "component": "morphology_prototypes",
+     "params": {
+      "encoder": "H-Optimus-1",
+      "n_prototypes": 32,
+      "classifier": "logreg"
+     },
+     "inputs": {
+      "clinical": {
+       "use": true,
+       "variables": [
+        "age",
+        "stage",
+        "histological_type",
+        "er",
+        "pr",
+        "her2"
+       ]
+      },
+      "image": {
+       "encoders": [
+        "H-Optimus-1"
+       ],
+       "level": "tile",
+       "reduce": {
+        "type": "pca",
+        "dim": 64
+       }
+      }
+     },
+     "fusion": "early_concat"
+    },
+    {
+     "component": "gradient_boosting",
+     "params": {
+      "n_pca": 32,
+      "max_iter": 250,
+      "learning_rate": 0.03
+     },
+     "inputs": {
+      "clinical": {
+       "use": true,
+       "variables": [
+        "age",
+        "stage",
+        "histological_type",
+        "er",
+        "pr",
+        "her2"
+       ]
+      },
+      "image": {
+       "encoders": [
+        "H-Optimus-1",
+        "MUSK",
+        "CONCH-Z"
+       ],
+       "level": "patient",
+       "reduce": {
+        "type": "pca",
+        "dim": 32
+       }
+      }
+     },
+     "fusion": "early_concat"
+    }
+   ]
+  }
+ },
+ "fusion": "late_average",
+ "training": {
+  "max_epochs": 250,
+  "early_stopping_patience": 25,
+  "lr": 0.03,
+  "weight_decay": 1.0,
+  "class_weighting": "balanced",
+  "augmentation": {
+   "tile_resample": 128,
+   "mixup_alpha": 0.0,
+   "tile_dropout": 0.1
+  },
+  "n_seeds_ensemble": 2,
+  "tuning": {
+   "metric": "inner_oof_macro_f1",
+   "tie_rule": "Measure selection spread across inner folds and 2 seeds; break differences within spread (<0.005 macro-F1) toward smaller n_prototypes/n_pca and stronger meta weight_decay, and adopt over simple_reference only when inner-fold macro-F1 strictly exceeds fold-matched simple_reference (A5).",
+   "grid": [
+    {
+     "n_prototypes": 24,
+     "n_pca": 24,
+     "weight_decay": 2.0
+    },
+    {
+     "n_prototypes": 40,
+     "n_pca": 32,
+     "weight_decay": 0.5
+    }
+   ]
+  }
+ },
+ "validation": {
+  "scheme": "repeated_kfold",
+  "k": 5,
+  "repeats": 3,
+  "split_unit": "patient",
+  "stratify_by": "PAM50",
+  "selection": "nested",
+  "inner_k": 3,
+  "clinical_comparator": {
+   "tuned": true
+  },
+  "simple_reference_comparator": "patient_mean_logreg_on_identical_folds_with_A5_inner_gate_and_standalone_diff",
+  "site_sensitivity": {
+   "scheme": "leave_one_site_out_pooled_oof",
+   "group_column": "site",
+   "n_groups": 19,
+   "split_unit": "patient",
+   "selection": "nested"
+  },
+  "interval": "bootstrap",
+  "bootstrap_resamples": 10000,
+  "confidence_level": 0.95
+ },
+ "metrics": [
+  "Paired out-of-fold macro-F1 difference (image-plus-clinical minus floor_clinical) across 5x3 repeated nested CV with 10,000-resample patient-level 95% bootstrap CI",
+  "Paired out-of-fold multiclass log-loss difference (image-plus-clinical minus floor_clinical)",
+  "Paired out-of-fold macro one-vs-rest AUROC difference (image-plus-clinical minus floor_clinical)",
+  "Per-class out-of-fold recall differences for LumA, LumB, Basal, and minority Her2",
+  "Pooled leave-one-site-out paired macro-F1 difference across the 19 collection sites with patient-level 95% bootstrap CI",
+  "Paired out-of-fold macro-F1 difference against simple_reference on identical folds and per-fold convergence plateau diagnostics"
+ ],
+ "allowed_conclusions": "Entitled solely to conclude 'improves' (95% patient-level bootstrap CI strictly > 0), 'worse' (CI strictly < 0), or 'insufficient evidence' (CI contains 0) for incremental patient-level PAM50 prediction over the six clinical variables in this TCGA-BRCA cohort, contextualised by 19-site sensitivity; does not establish standalone H&E accuracy, causal tumour biology, or external cohort generalisability.",
+ "budget": {
+  "needs_gpu": false,
+  "pilot_minutes": 4.0,
+  "full_minutes": 75.0,
+  "cpus": 16
+ },
+ "diversity": {
+  "data": "compositional Virchow2/H-Optimus-1 tile-prototype histograms + multi-encoder patient-mean PCA + clinical",
+  "model": "non-neural heterogeneous stack of prototype classifiers, gradient-boosted trees, and clinical anchor",
+  "method": "multi-scale out-of-fold Super-Learner probability stacking with A5 inner-fold simplicity gating"
+ },
+ "rationale": "Quantising tiles into bag-size-invariant prototype proportions preserves focal LumA/LumB heterogeneity while compressing high-dimensional features and dampening continuous stain shifts (D3, D4, D6). Boosted trees model non-linear interactions with missing HER2 (D2), while clinical-anchored probability stacking down-weights overfitted image branches (D7, D9).",
+ "difficulties_addressed": [
+  "D1",
+  "D2",
+  "D3",
+  "D4",
+  "D5",
+  "D6",
+  "D7",
+  "D8",
+  "D9"
+ ],
+ "new_components": []
+}

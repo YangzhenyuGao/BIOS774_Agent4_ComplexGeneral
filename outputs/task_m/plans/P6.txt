@@ -1,0 +1,5 @@
+Gene-Adaptive Multi-Mechanism Chromatin Stacking Ensemble
+
+We combine four complementary models via nested out-of-fold per-gene ridge stacking: an ATAC cluster-mean anchor, a cluster-residual MLP, a proximal 100kb cis-peak masked network, and a low-rank gene-embedding multitask network. All representations, clusters, early-stopped neural fits, and meta-weights are learned strictly inside outer training folds and scored against binomial-thinned RNA across three 3-fold seeds. Paired-bootstrap comparisons against technical, ceiling, and cluster-mean rulers at 5% FDR determine which genes are predicted beyond cell identity.
+
+Rationale: No single inductive bias suits 11,282 genes facing 85% RNA zeros (D1) and strong cell-type baselines (D6). Per-gene out-of-fold ridge stacking lets noisy genes borrow low-rank module strength, dynamic genes combine proximal cis-peaks with rare-cluster-preserving residuals (D2), and static genes anchor on cluster means.

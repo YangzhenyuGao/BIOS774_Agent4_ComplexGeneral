@@ -1,0 +1,171 @@
+{
+ "plan_id": "P5",
+ "name": "Decoupled Coarse-Lineage and Luminal-Specialist Hierarchical Multi-Head MIL",
+ "summary": "We represent each patient's multi-slide H&E tile bag with unreduced, spherically normalised CONCH-Z and H-Optimus-1 embeddings, avoiding PCA variance truncation, and train a decoupled two-stage hierarchical multi-head attention classifier. Stage 1 separates coarse Luminal, Basal, and minority Her2 lineages; Stage 2 trains an independent Luminal specialist for focal LumA-versus-LumB separation, composing calibrated conditional probabilities. Using site-grouped inner tuning within repeated nested patient CV plus site-held-out CV, we determine whether H&E predictability is broad, partial, site-confounded, or insufficient.",
+ "complexity": "ambitious",
+ "analysis_unit": "patient",
+ "inputs": {
+  "image": {
+   "encoders": [
+    "CONCH-Z",
+    "H-Optimus-1"
+   ],
+   "level": "tile",
+   "reduce": {
+    "type": "none",
+    "dim": null
+   }
+  },
+  "clinical": {
+   "variables": [],
+   "use": false
+  }
+ },
+ "preprocessing": [
+  "Exclude all clinical, immunohistochemistry receptor (er, pr, her2), histological_type, age, stage, RNA-derived, and site variables from predictors and feature transforms; exclude the 259 unlabelled patients from all fitting and scoring.",
+  "Pool all slides and up to 128 aligned tiles per slide by patient_id into one patient-level tile bag across the 802 labelled patients so multi-slide patients never straddle any split or bootstrap resample.",
+  "Strictly inside each training fold, compute per-feature mean and standard deviation separately for CONCH-Z (768-d) and H-Optimus-1 (1536-d) across training tiles, Z-score standardise, apply per-tile per-encoder L2 unit-sphere normalisation to suppress multiplicative stain-intensity shifts and equalise encoder norm scales, and concatenate into 2304-d unreduced tile embeddings.",
+  "Derive stage-specific training targets strictly inside each training fold: a 3-class coarse lineage target (Luminal = LumA or LumB, Basal, Her2) on all training patients for Stage 1, and a conditional binary target (LumA versus LumB) restricted to training Luminal patients for Stage 2."
+ ],
+ "model": {
+  "component": "hierarchical",
+  "params": {
+   "groups": [
+    [
+     "LumA",
+     "LumB"
+    ],
+    [
+     "Basal"
+    ],
+    [
+     "Her2"
+    ]
+   ],
+   "fine_inputs": "image",
+   "encoder_fusion": "concat",
+   "aggregator": "multihead_attention",
+   "embed_dim": 128,
+   "dropout": 0.35,
+   "head": "hierarchical",
+   "image_branch": {
+    "level": "tile",
+    "stage1_coarse": {
+     "aggregator": "multihead_attention",
+     "heads": 4,
+     "layers": 1,
+     "embed_dim": 128,
+     "dropout": 0.35,
+     "targets": [
+      "Luminal",
+      "Basal",
+      "Her2"
+     ]
+    },
+    "stage2_luminal_fine": {
+     "aggregator": "multihead_attention",
+     "heads": 4,
+     "layers": 2,
+     "embed_dim": 128,
+     "dropout": 0.4,
+     "targets": [
+      "LumA",
+      "LumB"
+     ]
+    },
+    "probability_composition": "temperature_calibrated_chain_rule_with_inner_prior_tau"
+   }
+  }
+ },
+ "fusion": "none",
+ "training": {
+  "max_epochs": 50,
+  "early_stopping_patience": 8,
+  "lr": 0.0005,
+  "weight_decay": 0.01,
+  "class_weighting": "balanced",
+  "augmentation": {
+   "tile_resample": 64,
+   "mixup_alpha": 0.2,
+   "tile_dropout": 0.2
+  },
+  "n_seeds_ensemble": 2,
+  "calibration_and_thresholding": "Fit scalar temperature scaling separately on inner-validation logits of Stage 1 and Stage 2 before composing 4-class probabilities via P(LumA)=P(Luminal)P(LumA|Luminal) and P(LumB)=P(Luminal)P(LumB|Luminal) for log-loss and AUROC; select prior-adjustment exponent tau in {0.0, 0.25, 0.5} on inner-validation macro-F1 for discrete class assignment.",
+  "convergence_check": "Log per-epoch training loss and inner-validation macro-F1 curves separately for Stage 1 and Stage 2 in every fold; verify solver stabilisation via trailing-5-epoch loss slope magnitude below 1e-3 or validation plateau prior to max_epochs.",
+  "tie_breaking": "Compute inner-fold standard error across the 3 site-grouped inner folds; if candidate configurations lie within 1 SE of the best inner macro-F1, select the lower-capacity stronger-regularised setting.",
+  "tuning": {
+   "grid": [
+    {
+     "embed_dim": 96,
+     "dropout": 0.5,
+     "weight_decay": 0.03,
+     "lr": 0.0005
+    },
+    {
+     "embed_dim": 128,
+     "dropout": 0.35,
+     "weight_decay": 0.01,
+     "lr": 0.0005
+    },
+    {
+     "embed_dim": 128,
+     "dropout": 0.45,
+     "weight_decay": 0.02,
+     "lr": 0.0003
+    }
+   ]
+  }
+ },
+ "validation": {
+  "scheme": "repeated_kfold",
+  "k": 5,
+  "repeats": 3,
+  "split_unit": "patient",
+  "stratified": true,
+  "selection": "nested",
+  "inner_k": 3,
+  "inner_split_strategy": "StratifiedGroupKFold grouped by collection site strictly within each outer training fold (using site solely to define held-out inner validation folds so hyperparameter and calibration selection penalises site-specific staining shortcuts).",
+  "clinical_comparator": {
+   "tuned": false
+  },
+  "required_comparators_on_identical_folds": [
+   "Majority-class null classifier fit on identical outer training folds (verified via sanity check to output the training majority class with macro-F1 matching analytical single-class expectation)",
+   "Stratified class-prior null baseline fit on identical outer training folds (empirical training class probabilities for Shannon entropy and AUROC; deterministic seed-locked class-prior draws for macro-F1)",
+   "Inner-tuned class-weighted patient_mean_logreg simple H&E-only reference (grid over single encoder, PCA dim, and C with clinical.use=false) scored on the exact same 802 patients and outer fold indices"
+  ],
+  "site_held_out_validation": "5-fold StratifiedGroupKFold across the 19 collection sites (zero site overlap between train and test, nested inner selection) benchmarked against identical-fold chance floors and simple reference.",
+  "interval": "bootstrap",
+  "bootstrap_resamples": 10000
+ },
+ "metrics": [
+  "Out-of-fold four-class macro-F1 and paired macro-F1 gain over majority-class and stratified class-prior chance floors across 5x3 repeated nested patient CV with 95% patient-level bootstrap CIs",
+  "Paired out-of-fold macro-F1 difference versus the inner-tuned patient_mean_logreg simple image-only reference on identical outer folds with 95% patient-level bootstrap CI",
+  "Proportion of class-prior multi-class log-loss (Shannon entropy) explained out-of-fold with 95% patient-level bootstrap CI",
+  "Macro and per-class one-vs-rest AUROC across LumA, LumB, Basal, and Her2 with 95% patient-level bootstrap CIs",
+  "Per-class recall, precision, and F1 for LumA, LumB, Basal, and Her2 (specifically auditing minority Her2 recall and LumA-versus-LumB confusion)",
+  "Site-held-out grouped CV four-class macro-F1 and paired macro-F1 gain over chance across the 19 collection sites with 95% patient-level bootstrap CI"
+ ],
+ "allowed_conclusions": "Select strictly one of the four pre-specified conclusions from the 95% patient-level bootstrap intervals: (1) Broad predictability if macro-F1 beats chance in both patient-level and 19-site grouped CV and all four per-class F1 intervals beat chance; (2) Partial predictability if macro-F1 beats chance in both patient-level and site-held-out CV but at least one class fails to beat chance; (3) Site-confounded predictability if patient-level macro-F1 beats chance but the site-held-out paired gain 95% CI includes or falls below zero; (4) Insufficient evidence if the patient-level paired gain 95% CI over chance includes or falls below zero. Scope is restricted to standalone H&E prediction in TCGA-BRCA with frozen foundation encoders, claiming neither incremental gain over clinical receptors nor biological mechanism.",
+ "budget": {
+  "needs_gpu": false,
+  "pilot_minutes": 8.0,
+  "full_minutes": 88.0,
+  "cpus": 16
+ },
+ "diversity": {
+  "data": "unreduced_spherical_conchz_hoptimus1_tile_bags",
+  "model": "decoupled_two_stage_hierarchical_multihead_mil",
+  "method": "coarse_lineage_then_luminal_specialist_with_site_grouped_inner_tuning"
+ },
+ "rationale": "Flat PCA classifiers confound minority Her2 with LumB and drop low-variance mitotic directions separating LumA from LumB. Decoupling coarse lineage separation from an unreduced-feature Luminal specialist isolates both signals under bottleneck regularisation. Site-grouped inner tuning penalises staining shortcuts without using site as an input.",
+ "difficulties_addressed": [
+  "D1",
+  "D3",
+  "D4",
+  "D5",
+  "D6",
+  "D8",
+  "D9"
+ ],
+ "new_components": []
+}

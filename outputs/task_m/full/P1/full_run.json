@@ -1,0 +1,63 @@
+{
+ "plan_id": "P1",
+ "finished": "2026-11-25T06:32:26-0500",
+ "self_score_mean_r": 0.14505523096551143,
+ "self_score_sd": 0.001281459735920269,
+ "rulers_mean_r": {
+  "ceiling": 0.19028908141677234,
+  "cluster_mean": 0.1325011928807199,
+  "ridge": 0.14451442065383485,
+  "pls": 0.14466679500810103,
+  "knn": 0.08854347101886272,
+  "gene_activity": 0.035340117035011644,
+  "depth_only": 0.03106338696353148
+ },
+ "fraction_of_ceiling": 0.7622887760323492,
+ "margin_over_cluster_mean": 0.012155160956780703,
+ "margin_ci": [
+  0.011558324401266872,
+  0.012865657266229392
+ ],
+ "n_genes_in_scope": 11282,
+ "n_cannot_judge": 309,
+ "n_judgeable": 10973,
+ "n_not_beyond_cell_type": 6437,
+ "n_genes_claimed_beyond_cell_type": 4536,
+ "share_claimed": 0.41337829217169414,
+ "n_genes_above_zero": 10601,
+ "permutation_null_r_q95": 0.01922019198536873,
+ "validation": {
+  "scheme": "kfold",
+  "k": 5,
+  "fraction": 0.2,
+  "target": "thinned_half",
+  "n_seeds": 3
+ },
+ "n_splits_declared": 15,
+ "n_splits_run": 15,
+ "n_cells_in_gene_tests": 7288,
+ "final_fit": {
+  "seconds": 30.71,
+  "device": "cpu",
+  "epochs": 0,
+  "stopped_by": "closed_form",
+  "converged": true,
+  "convergence_note": "Closed-form or non-iterative fit; nothing to converge.",
+  "n_parameters": 0
+ },
+ "final_fit_curves": {},
+ "validation_all_converged": true,
+ "deliverable": {
+  "file": "pred_hidden.npy",
+  "shape": [
+   3124,
+   11282
+  ],
+  "finite": true,
+  "gene_claims": "gene_claims.json"
+ },
+ "seconds_total": 956.2,
+ "cpus": 32,
+ "conclusion": "specific genes predicted beyond cell identity",
+ "scope": "unseen cells of the same donor; development-set estimate, the evaluator scores the held-out cells separately"
+}

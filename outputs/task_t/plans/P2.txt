@@ -1,0 +1,5 @@
+Residual Logit-Offset Dual-Encoder Tile Attention MIL
+
+Each patient is represented by six clinical covariates and a multi-slide bag of aligned UNI2-h and CONCH-Z tile embeddings compressed via fold-internal PCA. A tuned, class-balanced clinical baseline provides frozen log-odds offsets, and a zero-initialised gated-attention MIL network learns strictly the residual PAM50 signal from H&E tiles. Repeated nested patient-level cross-validation pairs predictions against clinical-only and simple-reference comparators, accompanied by leave-one-site-out sensitivity analysis. The 95% patient-bootstrap interval on paired macro-F1 difference determines whether H&E images improve, leave uncertain, or worsen cohort PAM50 prediction.
+
+Rationale: Freezing out-of-fold clinical logits with a zero-initialised residual head protects the strong clinical baseline (D7) against high-dimensional overfitting (D3), focusing image capacity on LumA/LumB separation and missing-HER2 cases (D2). Tile attention across patient slides (D6) captures focal proliferative and minority Her2 morphology (D1).

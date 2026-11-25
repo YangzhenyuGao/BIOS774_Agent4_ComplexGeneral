@@ -1,0 +1,1 @@
+Given the clinical information already available (including ER, PR and HER2 status), does adding the H&E pathology images improve the four-class PAM50 prediction? How large is the gain, and how certain is the evidence?

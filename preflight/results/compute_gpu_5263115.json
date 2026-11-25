@@ -1,0 +1,301 @@
+{
+ "host": "g15070304",
+ "job": "5263115",
+ "partition": "h100_priority",
+ "gpu_requested": true,
+ "finished": "2026-11-25T07:12:26-0500",
+ "passed": 8,
+ "failed": 0,
+ "checks": [
+  {
+   "check": "imports",
+   "status": "PASS",
+   "seconds": 34.3,
+   "detail": {
+    "numpy": "2.3.5",
+    "scipy": "1.17.1",
+    "pandas": "2.3.3",
+    "scikit-learn": "1.9.1",
+    "statsmodels": "0.15.0",
+    "scanpy": "1.11.5",
+    "anndata": "0.12.19",
+    "muon": "0.1.9",
+    "mudata": "0.3.10",
+    "scvi-tools": "1.4.2",
+    "torch": "2.8.0+cu128",
+    "lightning": "2.6.6",
+    "lifelines": "0.30.3",
+    "h5py": "3.16.0",
+    "pyarrow": "26.0.0",
+    "matplotlib": "3.11.2",
+    "seaborn": "0.13.2",
+    "weasyprint": "70.0",
+    "jinja2": "3.1.6",
+    "pydantic": "2.14.2",
+    "requests": "2.34.2",
+    "pyyaml": "6.0.3",
+    "pypdf": "6.21.4",
+    "umap-learn": "0.5.12",
+    "leidenalg": "0.12.0",
+    "networkx": "3.6.1"
+   }
+  },
+  {
+   "check": "pbmc_load",
+   "status": "PASS",
+   "seconds": 128.8,
+   "detail": {
+    "cells": 11909,
+    "genes": 36601,
+    "peaks": 108377,
+    "labelled": 10412,
+    "cell_types": 19,
+    "smallest_type": 18,
+    "peak_annotation_rows": 108377,
+    "peaks_in_annotation": 1.0,
+    "peak_types": {
+     "distal": 66195,
+     "distal;distal": 23121,
+     "promoter": 11198,
+     "promoter;promoter": 3322,
+     "distal;promoter": 1340,
+     "promoter;distal": 968,
+     "distal;distal;distal": 827,
+     "intergenic": 480,
+     "promoter;promoter;promoter": 224,
+     "distal;promoter;promoter": 131,
+     "promoter;distal;promoter": 124,
+     "promoter;promoter;distal": 96,
+     "distal;distal;promoter": 79,
+     "distal;promoter;distal": 53,
+     "promoter;distal;distal": 41,
+     "promoter;promoter;promoter;promoter": 23,
+     "promoter;distal;promoter;promoter": 18,
+     "distal;distal;distal;distal": 18,
+     "promoter;promoter;distal;promoter": 14,
+     "distal;promoter;promoter;promoter": 14,
+     "distal;distal;promoter;promoter": 9,
+     "promoter;promoter;promoter;distal": 9,
+     "distal;promoter;distal;promoter": 4,
+     "promoter;promoter;promoter;promoter;promoter": 4,
+     "promoter;promoter;promoter;promoter;distal": 4,
+     "promoter;promoter;promoter;promoter;promoter;promoter": 3,
+     "promoter;promoter;promoter;distal;promoter": 3,
+     "distal;distal;distal;promoter": 3,
+     "promoter;distal;distal;promoter": 3,
+     "distal;promoter;promoter;promoter;promoter": 3,
+     "promoter;distal;promoter;promoter;promoter": 3,
+     "promoter;promoter;promoter;promoter;promoter;promoter;promoter": 2,
+     "promoter;promoter;distal;promoter;promoter": 2,
+     "distal;promoter;promoter;distal;promoter": 2,
+     "distal;promoter;distal;promoter;promoter;promoter": 2,
+     "promoter;promoter;promoter;distal;promoter;promoter;promoter": 2,
+     "distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal": 2,
+     "promoter;promoter;distal;promoter;distal;promoter;promoter": 1,
+     "promoter;distal;distal;promoter;distal": 1,
+     "promoter;promoter;promoter;promoter;promoter;promoter;promoter;promoter;promoter;promoter": 1,
+     "distal;distal;promoter;promoter;promoter": 1,
+     "promoter;distal;distal;promoter;promoter;promoter": 1,
+     "distal;promoter;promoter;distal;promoter;promoter;promoter": 1,
+     "promoter;promoter;distal;promoter;promoter;promoter": 1,
+     "promoter;promoter;promoter;distal;promoter;promoter": 1,
+     "distal;promoter;promoter;distal;promoter;promoter;promoter;promoter;promoter;promoter": 1,
+     "distal;distal;promoter;distal": 1,
+     "distal;promoter;distal;promoter;promoter;promoter;promoter;promoter": 1,
+     "promoter;promoter;promoter;promoter;promoter;distal": 1,
+     "promoter;promoter;distal;distal;distal": 1,
+     "distal;distal;distal;distal;distal;distal": 1,
+     "distal;promoter;promoter;promoter;promoter;promoter;promoter": 1,
+     "distal;distal;promoter;promoter;promoter;promoter;promoter": 1,
+     "promoter;promoter;promoter;distal;distal;promoter": 1,
+     "distal;distal;promoter;distal;distal;distal": 1,
+     "distal;promoter;promoter;distal": 1,
+     "distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;promoter": 1,
+     "distal;distal;promoter;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal": 1,
+     "distal;distal;distal;distal;distal;distal;distal;promoter;distal;distal;distal;distal;distal;distal;distal;distal": 1,
+     "distal;distal;distal;distal;distal;distal;promoter;distal": 1,
+     "distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;promoter;distal;distal;distal;distal;distal;distal": 1,
+     "distal;distal;distal;distal;distal;distal;distal;distal;promoter;distal;distal;distal;distal;distal;distal;distal;distal;distal": 1,
+     "distal;distal;promoter;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal": 1,
+     "distal;distal;promoter;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal": 1,
+     "distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal;distal": 1,
+     "promoter;promoter;distal;distal": 1,
+     "promoter;promoter;promoter;promoter;promoter;promoter;promoter;promoter;promoter;promoter;promoter;promoter;promoter;promoter;promoter;promoter;promoter;promoter": 1,
+     "distal;promoter;promoter;promoter;promoter;promoter": 1
+    }
+   }
+  },
+  {
+   "check": "pbmc_tools",
+   "status": "PASS",
+   "seconds": 6.8,
+   "detail": {
+    "note": "setup check on 3,000 cells and 500 genes; not a result",
+    "median_r": {
+     "upper_identity_A_to_B": 0.2607,
+     "ridge_lsi": 0.2721,
+     "knn_lsi": 0.2717,
+     "pls_lsi": 0.2976,
+     "cluster_mean": 0.2761,
+     "depth_only": 0.0314,
+     "gene_activity": 0.0369
+    },
+    "genes_with_annotated_peaks": 487,
+    "peak_gene_links": 7295,
+    "ridge_genes_passing_fdr5": 475,
+    "null_r_95th": 0.0555
+   }
+  },
+  {
+   "check": "tcga_load",
+   "status": "PASS",
+   "seconds": 0.6,
+   "detail": {
+    "patients_with_slides": 1061,
+    "cohort": 802,
+    "classes": {
+     "LumA": 410,
+     "LumB": 190,
+     "Basal": 137,
+     "Her2": 65
+    },
+    "sites_all": 39,
+    "sites_cohort": 19,
+    "her2_values": {
+     "negative": 420,
+     "positive": 127,
+     "equivocal": 125,
+     "missing": 123,
+     "indeterminate": 7
+    },
+    "multi_slide_patients": 66,
+    "dims": {
+     "UNI2-h": 1536,
+     "CONCH-Z": 768,
+     "Virchow2": 2560,
+     "MUSK": 1024,
+     "H-Optimus-1": 1536
+    },
+    "example_tile_shapes": {
+     "UNI2-h": [
+      125,
+      1536
+     ],
+     "CONCH-Z": [
+      125,
+      768
+     ],
+     "Virchow2": [
+      125,
+      2560
+     ],
+     "MUSK": [
+      125,
+      1024
+     ],
+     "H-Optimus-1": [
+      125,
+      1536
+     ]
+    },
+    "feature_files": 5660
+   }
+  },
+  {
+   "check": "tcga_tools",
+   "status": "PASS",
+   "seconds": 13.0,
+   "detail": {
+    "note": "setup check: one 5-fold split, fixed settings, no tuning; not a result",
+    "clinical_only": 0.5938,
+    "UNI2-h": {
+     "image_only": 0.5824,
+     "late_fusion": 0.6513
+    },
+    "CONCH-Z": {
+     "image_only": 0.5418,
+     "late_fusion": 0.647
+    },
+    "Virchow2": {
+     "image_only": 0.612,
+     "late_fusion": 0.6783
+    },
+    "MUSK": {
+     "image_only": 0.5352,
+     "late_fusion": 0.6146
+    },
+    "H-Optimus-1": {
+     "image_only": 0.6243,
+     "late_fusion": 0.6787
+    },
+    "gradient_boosting_clinical": 0.5419,
+    "clinical_only_site_held_out": 0.5739
+   }
+  },
+  {
+   "check": "pdf_report_toolchain",
+   "status": "PASS",
+   "seconds": 0.7,
+   "detail": {
+    "pages": 1,
+    "bytes": 35132,
+    "images": 1
+   }
+  },
+  {
+   "check": "torch_gpu_attention_mil",
+   "status": "PASS",
+   "seconds": 2.4,
+   "detail": {
+    "gpu": "NVIDIA H100 80GB HBM3",
+    "torch": "2.8.0+cu128",
+    "cuda": "12.8",
+    "total_mem_gb": 79.2,
+    "peak_mem_gb": 0.164,
+    "loss_first": 1.3948,
+    "loss_last": 0.0004
+   }
+  },
+  {
+   "check": "scvi_multivi_gpu",
+   "status": "PASS",
+   "seconds": 5.1,
+   "detail": {
+    "note": "5 epochs on 2,000 cells to prove the code path; far from converged, not a result",
+    "scvi": "1.4.2",
+    "pred_shape": [
+     200,
+     2000
+    ],
+    "latent_shape": [
+     200,
+     16
+    ],
+    "history": {
+     "elbo_validation": [
+      20849.39,
+      17716.55,
+      16117.38,
+      14992.06,
+      14173.36
+     ],
+     "reconstruction_loss_validation": [
+      20840.01,
+      17706.66,
+      16107.06,
+      14980.57,
+      14161.09
+     ],
+     "reconstruction_loss_train": [
+      24334.2,
+      19384.86,
+      17099.17,
+      15695.78,
+      14716.9
+     ]
+    },
+    "median_r_after_5_epochs": 0.0036
+   }
+  }
+ ]
+}

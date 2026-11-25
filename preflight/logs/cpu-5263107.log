@@ -1,0 +1,38 @@
+host=nep15080202 job=5263107 start=2026-11-25T03:04:26-05:00
+NET nep15080202 https://generativelanguage.googleapis.com/ http=404
+NET nep15080202 https://router.huggingface.co/ http=404
+NET nep15080202 https://api.anthropic.com/ http=404
+NET nep15080202 https://pypi.org/simple/ http=200
+/vast/som/yunligrp/users/ygao/conda/envs/agent3/lib/python3.11/site-packages/muon/_core/preproc.py:32: FutureWarning: `__version__` is deprecated, use `importlib.metadata.version('scanpy')` instead
+  if Version(scanpy.__version__) < Version("1.10"):
+[PASS] imports (51.1s) {"numpy": "2.3.5", "scipy": "1.17.1", "pandas": "2.3.3", "scikit-learn": "1.9.1", "statsmodels": "0.15.0", "scanpy": "1.11.5", "anndata": "0.12.19", "muon": "0.1.9", "mudata": "0.3.10", "scvi-tools": "1.4.2", "torch": "2.8.0+cu128", "lightning": "2.6.6", "lifelines": "0.30.3", "h5py": "3.16.0", "pyarrow": "26.0.0", "matplotlib": "3.11.2", "seaborn": "0.13.2", "weasyprint": "70.0", "jinja2": "3.1.6", "pydantic": "2.14.2", "requests": "2.34.2", "pyyaml": "6.0.3", "pypdf": "6.21.4", "umap-learn": "0.5.12", "leidenalg": "0.12.0", "networkx": "3.6.1"}
+[PASS] pbmc_load (101.6s) {"cells": 11909, "genes": 36601, "peaks": 108377, "labelled": 10412, "cell_types": 19, "smallest_type": 18, "peak_annotation_rows": 108377, "peaks_in_annotation": 1.0, "peak_types": {"distal": 66195, "distal;distal": 23121, "promoter": 11198, "promoter;promoter": 3322, "distal;promoter": 1340, "promoter;distal": 968, "distal;distal;distal": 827, "intergenic": 480, "promoter;promoter;promoter": 224, "distal;promoter;promoter": 131, "promoter;distal;promoter": 124, "promoter;promoter;distal": 96, "distal;distal;promoter": 79, "distal;promoter;distal": 53, "promoter;distal;distal": 41, "promoter;promoter;promoter;promoter": 23, "promoter;distal;promoter;promoter": 18, "distal;distal;distal;distal": 18, "promoter;promoter;distal;promoter": 14, "distal;promoter;promoter;promoter": 14, "distal;distal;promoter;promoter": 9, "promoter;promoter;promoter;distal": 9, "distal;promoter;distal;promote
+[PASS] pbmc_tools (5.9s) {"note": "setup check on 3,000 cells and 500 genes; not a result", "median_r": {"upper_identity_A_to_B": 0.2607, "ridge_lsi": 0.2721, "knn_lsi": 0.2717, "pls_lsi": 0.2976, "cluster_mean": 0.2761, "depth_only": 0.0314, "gene_activity": 0.0369}, "genes_with_annotated_peaks": 487, "peak_gene_links": 7295, "ridge_genes_passing_fdr5": 475, "null_r_95th": 0.0555}
+[PASS] tcga_load (0.7s) {"patients_with_slides": 1061, "cohort": 802, "classes": {"LumA": 410, "LumB": 190, "Basal": 137, "Her2": 65}, "sites_all": 39, "sites_cohort": 19, "her2_values": {"negative": 420, "positive": 127, "equivocal": 125, "missing": 123, "indeterminate": 7}, "multi_slide_patients": 66, "dims": {"UNI2-h": 1536, "CONCH-Z": 768, "Virchow2": 2560, "MUSK": 1024, "H-Optimus-1": 1536}, "example_tile_shapes": {"UNI2-h": [125, 1536], "CONCH-Z": [125, 768], "Virchow2": [125, 2560], "MUSK": [125, 1024], "H-Optimus-1": [125, 1536]}, "feature_files": 5660}
+[PASS] tcga_tools (35.9s) {"note": "setup check: one 5-fold split, fixed settings, no tuning; not a result", "clinical_only": 0.5938, "UNI2-h": {"image_only": 0.5824, "late_fusion": 0.6513}, "CONCH-Z": {"image_only": 0.5418, "late_fusion": 0.647}, "Virchow2": {"image_only": 0.612, "late_fusion": 0.6783}, "MUSK": {"image_only": 0.5352, "late_fusion": 0.6146}, "H-Optimus-1": {"image_only": 0.6243, "late_fusion": 0.6787}, "gradient_boosting_clinical": 0.5419, "clinical_only_site_held_out": 0.5739}
+[PASS] pdf_report_toolchain (0.7s) {"pages": 1, "bytes": 35132, "images": 1}
+SUMMARY passed=6 failed=0 -> /vast/som/yunligrp/users/ygao/BIOS774Agent/Agent4_ComplexGeneral/preflight/results/compute_cpu_5263107.json
+=== R ===
+R 4.6.0 
+libPaths: /nas/sycamore/home/gaoyang/R/x86_64-pc-linux-gnu-library/4.6 | /nas/sycamore/apps/r/4.6.0/lib64/R/library 
+RPKG Seurat                 5.5.0
+RPKG Signac                 1.17.1
+RPKG SeuratObject           5.4.0
+RPKG Matrix                 1.7.5
+RPKG glmnet                 5.0
+RPKG ranger                 MISSING
+RPKG survival               3.8.6
+RPKG data.table             1.18.4
+RPKG ggplot2                4.0.3
+RPKG BradleyTerry2          MISSING
+RPKG pROC                   1.19.1
+RPKG boot                   1.3.32
+RPKG irlba                  2.3.7
+RPKG uwot                   0.2.4
+RPKG hdf5r                  1.3.16
+RPKG GenomicRanges          1.64.0
+RPKG EnsDb.Hsapiens.v86     2.99.0
+RPKG rmarkdown              2.31
+RPKG knitr                  1.51
+R_LINALG_OK TRUE 
+end=2026-11-25T03:07:48-05:00

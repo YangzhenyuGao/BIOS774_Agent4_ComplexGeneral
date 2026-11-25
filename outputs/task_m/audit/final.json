@@ -1,0 +1,15 @@
+{
+ "decided": "2026-11-25T06:32:57-0500",
+ "accepted_plan": "P1",
+ "tournament_rank": 1,
+ "trail": [
+  {
+   "plan_id": "P1",
+   "rank": 1,
+   "passed": true,
+   "blocking_failures": [],
+   "reviewer_decision": "accept"
+  }
+ ],
+ "outcome": "answer_reported"
+}

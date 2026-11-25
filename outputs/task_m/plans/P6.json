@@ -1,0 +1,177 @@
+{
+ "plan_id": "P6",
+ "name": "Gene-Adaptive Multi-Mechanism Chromatin Stacking Ensemble",
+ "summary": "We combine four complementary models via nested out-of-fold per-gene ridge stacking: an ATAC cluster-mean anchor, a cluster-residual MLP, a proximal 100kb cis-peak masked network, and a low-rank gene-embedding multitask network. All representations, clusters, early-stopped neural fits, and meta-weights are learned strictly inside outer training folds and scored against binomial-thinned RNA across three 3-fold seeds. Paired-bootstrap comparisons against technical, ceiling, and cluster-mean rulers at 5% FDR determine which genes are predicted beyond cell identity.",
+ "complexity": "ambitious",
+ "analysis_unit": "single cell (individual nucleus from the single healthy PBMC donor)",
+ "inputs": {
+  "lsi": {
+   "n_components": 100,
+   "max_peaks": 80000
+  },
+  "tfidf_peaks": {
+   "max_peaks": 25000
+  },
+  "cis_peaks": {
+   "window_kb": 100,
+   "max_peaks_per_gene": 15
+  },
+  "gene_activity": {
+   "mode": "promoter_and_distal"
+  },
+  "depth": {}
+ },
+ "preprocessing": [
+  "Strictly inside each outer training split (and on all 7,288 development cells alone for the final refit), select top 80,000 and top 25,000 peaks by binary accessibility frequency, compute TF-IDF weights on binarised peaks, and fit 101-component truncated SVD dropping component 1 to retain 100 depth-orthogonal LSI components.",
+  "Fit k=20 ATAC baseline clusters (frozen development k) on outer-training LSI coordinates only and assign unseen inner, outer-validation, and held-out cells to nearest training centroids without refitting.",
+  "Compute depth-normalised promoter-and-distal gene activity across the 11,282 frozen in-scope genes, extract up to 15 proximal peaks within +/-100 kb of each gene start site from peak-to-gene annotations, and z-score log1p ATAC fragment depth using outer-training statistics.",
+  "Normalise outer-training raw RNA UMI counts via 10,000-count library scaling and log1p transformation with no smoothing; split each unseen outer-validation cell's raw UMIs via independent binomial thinning (p=0.5) per seed into log1p-normalised halves A (ceiling input) and B (scoring target), excluding held-out cells from all fitting and WNN labels from all model inputs and truth."
+ ],
+ "model": {
+  "component": "stacking_ensemble",
+  "params": {
+   "oof_folds": 3,
+   "meta": "per_gene_ridge",
+   "members": [
+    {
+     "component": "cluster_mean",
+     "params": {
+      "k": "frozen"
+     },
+     "inputs": {
+      "lsi": {
+       "n_components": 100,
+       "max_peaks": 80000
+      }
+     }
+    },
+    {
+     "component": "residual_over_cluster_mean",
+     "params": {
+      "learner": "mlp",
+      "hidden": [
+       256,
+       128
+      ],
+      "dropout": 0.3,
+      "cluster_k": "frozen"
+     },
+     "inputs": {
+      "lsi": {
+       "n_components": 100,
+       "max_peaks": 80000
+      },
+      "depth": {}
+     }
+    },
+    {
+     "component": "cis_regulatory",
+     "params": {
+      "learner": "masked_nn",
+      "window_kb": 100,
+      "max_peaks_per_gene": 15,
+      "global_state_dim": 100,
+      "hidden": [
+       64
+      ]
+     },
+     "inputs": {
+      "cis_peaks": {
+       "window_kb": 100,
+       "max_peaks_per_gene": 15
+      },
+      "lsi": {
+       "n_components": 100,
+       "max_peaks": 80000
+      }
+     }
+    },
+    {
+     "component": "multitask_lowrank",
+     "params": {
+      "rank": 64,
+      "trunk_hidden": [
+       512,
+       256
+      ],
+      "gene_embedding_dim": 64
+     },
+     "inputs": {
+      "tfidf_peaks": {
+       "max_peaks": 25000
+      },
+      "gene_activity": {
+       "mode": "promoter_and_distal"
+      }
+     }
+    }
+   ]
+  }
+ },
+ "fusion": null,
+ "training": {
+  "max_epochs": 80,
+  "early_stopping_patience": 12,
+  "lr": 0.001,
+  "batch_size": 256,
+  "weight_decay": 0.0001,
+  "target_denoising": "none",
+  "inner_val_fraction": 0.1,
+  "meta_ridge_alphas": [
+   0.1,
+   1.0,
+   10.0,
+   100.0,
+   1000.0
+  ],
+  "convergence_audit": "Log epoch-wise training and 10% inner-validation MSE curves for all three neural members across OOF and full-split refits, confirm validation loss convergence before max_epochs, fit GCV-tuned per-gene ridge weights on unsmoothed OOF predictions, and refit all four members on 100% of outer-training cells."
+ },
+ "validation": {
+  "scheme": "kfold",
+  "k": 3,
+  "split_unit": "cell",
+  "scoring_target": "thinned_half",
+  "n_seeds": 3,
+  "compare_with": [
+   "simple_reference",
+   "floor_1_cell_type",
+   "floor_2_gene_activity",
+   "floor_3_depth",
+   "floor_4_simple_learners",
+   "ceiling",
+   "permutation_null"
+  ],
+  "gene_claim_rule": "Verify all comparators on known-answer checks first, then evaluate candidate, constituent members, ceiling, null, and floors on identical unseen outer-fold cells, identical thinned RNA half B, all 11,282 frozen genes, and identical zero-variance handling (r=0). Place genes whose ceiling fails the 95th percentile of the 1,000-shuffle cell-permutation null into Group 0 (unjudgeable). Require mean r to exceed floor_3_depth and floor_2_gene_activity and measure seed/fold spread against simple_reference. Among judgeable genes, test r(ensemble) > r(floor_1_cell_type) via 1,000 paired cell-bootstrap resamples, apply Benjamini-Hochberg across all 11,282 in-scope genes at 5% FDR to call Group 2 (reliably predicted beyond cell type), and place remaining judgeable genes in Group 1."
+ },
+ "metrics": [
+  "Per-gene Pearson correlation r against unsmoothed binomial-thinned log-normalised RNA (half B) and paired-bootstrap gain delta_r over floor_1_cell_type with two-sided empirical 95% confidence intervals for all 11,282 in-scope genes",
+  "Mean and median per-gene Pearson r plus across-seed and across-fold spread (mean +/- SD over 3 seeds x 3 folds) compared against simple_reference, single-member ablations, and floors 1-4",
+  "Counts and identities of genes assigned to unjudgeable, not-beyond-cell-type, and reliably-predicted-beyond-cell-type decision groups at 5% BH FDR",
+  "Ratio of achieved per-gene Pearson r to the RNA-to-RNA half-A-to-half-B noise ceiling across judgeable in-scope genes",
+  "Within-cluster Pearson r per gene across nested k=20 ATAC clusters and development-only descriptive WNN cell types (down to the 15-cell Plasma cluster) alongside pooled r",
+  "Empirical coverage and width of paired-bootstrap 95% confidence intervals across validation folds, plus learned per-gene ridge meta-weights across the four regulatory members"
+ ],
+ "allowed_conclusions": "Select strictly one of the four pre-specified conclusion options (unjudgeable due to noise, confounded by sequencing depth, no gene predicted beyond cell identity, or specific identified genes predicted beyond cell identity at 5% BH FDR accompanied by a finite 3124x11282 log-normalised held-out prediction matrix and 95% intervals), scoped exclusively to unseen granulocyte-depleted PBMCs from this single healthy donor under the same Multiome assay with no generalisation to other donors, tissues, conditions, granulocytes, or causal regulation.",
+ "budget": {
+  "needs_gpu": false,
+  "pilot_minutes": 18.0,
+  "full_minutes": 85.0,
+  "cpus": 32
+ },
+ "diversity": {
+  "data": "view_partitioned_100kb_cis_peaks_25k_tfidf_gene_activity_100d_lsi_and_depth",
+  "model": "per_gene_ridge_meta_ensemble_of_cluster_anchor_residual_mlp_cis_masked_nn_and_lowrank_net",
+  "method": "heterogeneous_mechanism_oof_stacking_nested_repeated_3fold_cv"
+ },
+ "rationale": "No single inductive bias suits 11,282 genes facing 85% RNA zeros (D1) and strong cell-type baselines (D6). Per-gene out-of-fold ridge stacking lets noisy genes borrow low-rank module strength, dynamic genes combine proximal cis-peaks with rare-cluster-preserving residuals (D2), and static genes anchor on cluster means.",
+ "difficulties_addressed": [
+  "D1",
+  "D2",
+  "D3",
+  "D4",
+  "D5",
+  "D6",
+  "D7"
+ ],
+ "new_components": []
+}

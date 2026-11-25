@@ -1,0 +1,191 @@
+{
+ "finished": "2026-11-25T06:15:50-0500",
+ "plans": [
+  "P1",
+  "P2",
+  "P3",
+  "P4",
+  "P5",
+  "P6"
+ ],
+ "ranking": [
+  "P1",
+  "P6",
+  "P5",
+  "P3",
+  "P4",
+  "P2"
+ ],
+ "champion": "P1",
+ "bradley_terry_strength": {
+  "P1": 4.5965348103094525,
+  "P2": 0.21755518911676244,
+  "P3": 0.7571680137613721,
+  "P4": 0.4241238398173783,
+  "P5": 1.3207108354521455,
+  "P6": 2.357801911016149
+ },
+ "points": {
+  "P1": 10.0,
+  "P2": 0.0,
+  "P3": 4.0,
+  "P4": 2.0,
+  "P5": 6.0,
+  "P6": 8.0
+ },
+ "wins_matrix": {
+  "rows": [
+   "P1",
+   "P2",
+   "P3",
+   "P4",
+   "P5",
+   "P6"
+  ],
+  "values": [
+   [
+    0.0,
+    2.0,
+    2.0,
+    2.0,
+    2.0,
+    2.0
+   ],
+   [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    2.0,
+    0.0,
+    2.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    2.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    2.0,
+    2.0,
+    2.0,
+    0.0,
+    0.0
+   ],
+   [
+    0.0,
+    2.0,
+    2.0,
+    2.0,
+    2.0,
+    0.0
+   ]
+  ]
+ },
+ "n_matches": 30,
+ "order_consistency": 1.0,
+ "pair_outcomes": {
+  "P1|P2": {
+   "order_ab": "P1",
+   "order_ba": "P1",
+   "consistent": true
+  },
+  "P1|P3": {
+   "order_ab": "P1",
+   "order_ba": "P1",
+   "consistent": true
+  },
+  "P1|P4": {
+   "order_ab": "P1",
+   "order_ba": "P1",
+   "consistent": true
+  },
+  "P1|P5": {
+   "order_ab": "P1",
+   "order_ba": "P1",
+   "consistent": true
+  },
+  "P1|P6": {
+   "order_ab": "P1",
+   "order_ba": "P1",
+   "consistent": true
+  },
+  "P2|P3": {
+   "order_ab": "P3",
+   "order_ba": "P3",
+   "consistent": true
+  },
+  "P2|P4": {
+   "order_ab": "P4",
+   "order_ba": "P4",
+   "consistent": true
+  },
+  "P2|P5": {
+   "order_ab": "P5",
+   "order_ba": "P5",
+   "consistent": true
+  },
+  "P2|P6": {
+   "order_ab": "P6",
+   "order_ba": "P6",
+   "consistent": true
+  },
+  "P3|P4": {
+   "order_ab": "P3",
+   "order_ba": "P3",
+   "consistent": true
+  },
+  "P3|P5": {
+   "order_ab": "P5",
+   "order_ba": "P5",
+   "consistent": true
+  },
+  "P3|P6": {
+   "order_ab": "P6",
+   "order_ba": "P6",
+   "consistent": true
+  },
+  "P4|P5": {
+   "order_ab": "P5",
+   "order_ba": "P5",
+   "consistent": true
+  },
+  "P4|P6": {
+   "order_ab": "P6",
+   "order_ba": "P6",
+   "consistent": true
+  },
+  "P5|P6": {
+   "order_ab": "P6",
+   "order_ba": "P6",
+   "consistent": true
+  }
+ },
+ "position_bias": {
+  "first_wins": 15,
+  "second_wins": 15,
+  "ties": 0
+ },
+ "judge_models": [
+  "claude-opus-5-5"
+ ],
+ "cost": {
+  "calls": 30,
+  "input_tokens": 362695,
+  "output_tokens": 27458,
+  "list_price_usd": 3.2829360000000003,
+  "seconds": 291.6
+ },
+ "unknown_citations": 0
+}

@@ -1,0 +1,95 @@
+{
+ "plan_id": "P1",
+ "audited": "2026-11-25T06:32:57-0500",
+ "passed": true,
+ "checks": [
+  {
+   "id": "A1",
+   "check": "no_forbidden_inputs",
+   "statement": "Training, selection, and prediction use no held-out RNA, no held-out ATAC in fitting, and no WNN labels.",
+   "passed": true,
+   "detail": "all input rules passed; each forbidden input of the objective is covered as follows: [Held-out cells' RNA counts (full or thinned halves) during training, tuning, or prediction] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [Held-out cells' ATAC counts during model training, preprocessing, latent-space fitting, clustering, or hyperparameter selection] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [Curated WNN cell-type annotations as model inputs for unseen cells or as evaluation ground truth] -> rule no_label_inputs | [Smoothed, imputed, denoised, or unthinned full-depth RNA expression as the validation scoring target] -> rule scoring_target_allowed | [Validation-split cells' RNA or ATAC during training, feature transformation, baseline clustering, or model selection] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [External donor datasets, atlases, or pretrained model weights outside the provided paired Multiome measurements] -> rule inputs_from_view: the executor can read nothing but the task view"
+  },
+  {
+   "id": "A2",
+   "check": "selection_nested",
+   "statement": "Preprocessing, ATAC latent embeddings, baseline clustering, and model selection are strictly nested without evaluation cells.",
+   "passed": true,
+   "detail": "not applicable to this task family (single arm, no configuration search on scored cells)"
+  },
+  {
+   "id": "A3",
+   "check": "scored_on_unsmoothed_truth",
+   "statement": "Validation correlations are computed against unsmoothed, binomial-thinned half-count log-normalised RNA of unseen cells.",
+   "passed": true,
+   "detail": "scoring target: thinned_half"
+  },
+  {
+   "id": "A4",
+   "check": "both_arms_same_units",
+   "statement": "Candidate model, noise ceiling, permutation null, and all floor baselines are scored on identical unseen cells.",
+   "passed": true,
+   "detail": "not applicable to this task family (single arm, no configuration search on scored cells)"
+  },
+  {
+   "id": "A5",
+   "check": "beats_required_floors",
+   "statement": "Biological claims require beating technical depth and gene-activity floors; reliable-gene claims require beating the cell-type floor.",
+   "passed": true,
+   "detail": "plan 0.1451 vs cluster-mean 0.1325, gene activity 0.0353, depth only 0.0311; simple learners ridge 0.1445, PLS 0.1447, k-NN 0.0885; noise ceiling 0.19028908141677234 (same cells, genes and target)"
+  },
+  {
+   "id": "A6",
+   "check": "multiplicity_controlled",
+   "statement": "Gene-level claims of reliable prediction beyond cell identity control false discoveries across all in-scope genes.",
+   "passed": true,
+   "detail": "judgeable genes established with the noise ceiling against the permutation null (10973 judgeable, 309 not); claims use Benjamini-Hochberg at 5% within judgeable genes"
+  },
+  {
+   "id": "A7",
+   "check": "interval_reported",
+   "statement": "Each in-scope gene's correlation estimate and gain over the cell-type baseline include 95% confidence intervals.",
+   "passed": true,
+   "detail": "interval: [0.011558324401266872, 0.012865657266229392]"
+  },
+  {
+   "id": "A8",
+   "check": "deliverable_complete",
+   "statement": "Deliverable includes the finite held-out prediction matrix, reliable gene list, and per-gene correlation intervals.",
+   "passed": true,
+   "detail": "{\"file\": \"pred_hidden.npy\", \"shape\": [3124, 11282], \"finite\": true, \"gene_claims\": \"gene_claims.json\"}"
+  }
+ ],
+ "blocking_failures": [],
+ "review": {
+  "decision": "accept",
+  "issues": [
+   "Plan barely differs from the simple-learner floors: 0.1451 vs ridge 0.1445 and PLS 0.1447 (A5). The P1 model adds essentially nothing over plain ridge or PLS.",
+   "The gain over the cluster-mean baseline is statistically clear but small in absolute terms: margin 0.0122, CI [0.0116, 0.0129] (A7, margin_ci).",
+   "Absolute per-gene accuracy is low: mean r 0.145 against a noise ceiling of 0.190, with fraction_of_ceiling 0.76.",
+   "Gene claims are development-set estimates from 15 cross-validation splits on 7288 cells. The hidden cells are scored separately by the evaluator."
+  ],
+  "conclusion_matches_evidence": true,
+  "wording_limits": [
+   "Must not claim the result generalises to other donors, tissues, disease states or granulocytes.",
+   "Must not claim the predictions reveal causal gene regulation or chromatin-to-expression mechanisms.",
+   "Must not describe RNA as predicted 'accurately' or 'reliably' in absolute terms; mean r is about 0.145.",
+   "Must not claim P1 outperforms ridge, PLS or other simple learners.",
+   "Must not present the 4536 claimed genes as confirmed on the held-out hidden cells; they are a development-set estimate.",
+   "Must not make claims about the 309 unjudgeable genes, in either direction.",
+   "Must not describe the gain over cell identity as large; it is a mean of about 0.012 r."
+  ],
+  "reason": "All checks pass. Inputs are clean and nested (A1, A2), and scoring is on the thinned half (A3). The plan beats the depth, gene-activity and cluster-mean floors (A5), and the margin interval excludes zero (A7). Judgeable genes come from the ceiling-versus-permutation null, with BH 5% on those genes (A6). The deliverable is complete (A8). 4536 judgeable genes beat the cluster-mean baseline, which supports 'specific genes predicted beyond cell identity'. The effect is modest and P1 is equivalent to plain ridge, so the wording must stay restrained and within the single-donor scope.",
+  "model": "claude-opus-5-5",
+  "usage": {
+   "input_tokens": 4103,
+   "output_tokens": 1168,
+   "thinking_tokens": 388,
+   "list_price_usd": 0.056176,
+   "api_seconds": 11.139
+  },
+  "seconds": 12.1,
+  "cache_key": "16ad9be6834a24ef8d9704fabd50cb14"
+ },
+ "tournament_rank": 1
+}

@@ -1,0 +1,103 @@
+{
+ "question": "Given only the RNA profile of a cell, can the ATAC profile measured in that same cell be found again among the ATAC profiles of many candidate cells?",
+ "task_family": "cross_modal_retrieval",
+ "analysis_unit": "Individual cell (single nucleus with co-measured RNA and ATAC in development splits)",
+ "estimand": "Out-of-sample Mean Reciprocal Rank of a cell's true paired ATAC profile among unseen candidate ATAC profiles from the same donor, conditioned solely on that cell's measured RNA profile.",
+ "target": "Cell-level pairing identity and rank of each unseen query cell's true co-measured ATAC profile within the candidate ATAC pool.",
+ "allowed_inputs": [
+  "Paired RNA UMI counts and ATAC peak counts from development cells, partitioned by cell into disjoint training and evaluation splits",
+  "Ground-truth cell pairing indices on training splits for model fitting and on evaluation splits strictly for scoring retrieval",
+  "Peak-to-gene annotations (TSS distances and promoter/distal flags) and gene start coordinates",
+  "Unseen ATAC-only held-out cells of the same donor solely as optional additional distractors in the candidate ATAC pool",
+  "Development-set WNN cell-type annotations solely for post-hoc stratified reporting by population, never for training, selection, or retrieval"
+ ],
+ "forbidden_inputs": [
+  "Joint WNN cell-type annotations as model inputs or evaluation truth",
+  "Query cell ATAC profiles or test-split pairing labels during inference",
+  "Other query cells' RNA profiles or test-batch one-to-one assignment constraints",
+  "Evaluation RNA or ATAC profiles smoothed or imputed across cells",
+  "Evaluation-split cells during feature selection, latent space fitting, or hyperparameter tuning",
+  "Candidate cells' held-out or paired RNA profiles during candidate scoring"
+ ],
+ "forbidden_reasons": {
+  "Joint WNN cell-type annotations as model inputs or evaluation truth": "Constructed from joint RNA-ATAC clustering; using them as inputs leaks cross-modal pairing, and matching cell type does not prove same-cell retrieval.",
+  "Query cell ATAC profiles or test-split pairing labels during inference": "Directly leaks the ground-truth paired ATAC identity that must be recovered solely from the query cell's RNA profile.",
+  "Other query cells' RNA profiles or test-batch one-to-one assignment constraints": "The question conditions on one cell's RNA profile alone; bipartite matching across queries exploits mutual exclusion rather than single-cell retrieval.",
+  "Evaluation RNA or ATAC profiles smoothed or imputed across cells": "Cross-cell smoothing leaks graph neighborhood structure across test cells and masks single-cell dropout noise, overstating individual-cell retrieval accuracy.",
+  "Evaluation-split cells during feature selection, latent space fitting, or hyperparameter tuning": "Fitting preprocessing, embeddings, or hyperparameters on evaluation cells leaks test-set structure and biases out-of-sample retrieval estimates upward.",
+  "Candidate cells' held-out or paired RNA profiles during candidate scoring": "Candidates represent ATAC profiles only; accessing candidate RNA reduces cross-modal retrieval to unimodal RNA-to-RNA matching."
+ },
+ "required_comparators": [
+  "Floor 0 (permutation null): uniform random ranking of unseen candidate ATAC profiles",
+  "Floor 1 (sequencing depth): ranking candidate ATAC profiles by log total fragment depth matched to query log RNA UMI depth",
+  "Floor 2 (unlearned gene activity): similarity between query log-RNA and candidate ATAC promoter-plus-proximal peak sums from peak-gene links",
+  "Floor 3 (coarse cell-type cluster): matching query RNA to candidate ATAC via training-fitted cluster centroids (baseline k=20)",
+  "Simple linear reference: ridge, PLS, or CCA alignment between training-fitted RNA and ATAC latent spaces",
+  "Noise-ceiling ruler (upper bound): unimodal split-half count self-retrieval via binomial thinning on evaluation cells"
+ ],
+ "primary_metric": "Mean Reciprocal Rank (MRR) of the true paired ATAC profile across unseen query cells, using deterministic mid-ranks for ties",
+ "secondary_metrics": [
+  "Exact top-1 retrieval rate (Recall@1) across unseen query cells",
+  "1 - FOSCTTM (mean fraction of non-matching candidate ATAC profiles ranked strictly farther than the true paired profile)",
+  "Within-population and macro-averaged MRR and Recall@1 across cell types to evaluate rare populations and sub-cluster resolution",
+  "Ratio of cross-modal retrieval MRR to the binomial-thinning unimodal split-half self-retrieval noise ceiling on the same query cells"
+ ],
+ "acceptance_criteria": [
+  {
+   "id": "A1",
+   "statement": "Retrieval uses only a single query cell's RNA profile and candidate ATAC profiles, without WNN annotations or cross-query bijection constraints.",
+   "check": "no_forbidden_inputs",
+   "rule": "Zero forbidden inputs used in fitting, tuning, or inference; each query RNA profile is scored independently against the candidate pool."
+  },
+  {
+   "id": "A2",
+   "statement": "Each cell and both its RNA and ATAC profiles stay strictly on one side of every train, validation, and test split.",
+   "check": "correct_split_unit",
+   "rule": "Cell-identifier overlap between training sets and evaluation query or candidate sets must equal zero across all splits."
+  },
+  {
+   "id": "A3",
+   "statement": "Feature selection, normalisation scalers, latent representations, and hyperparameters are selected strictly within inner training splits.",
+   "check": "selection_nested",
+   "rule": "All data-dependent preprocessing and hyperparameter choices are frozen from inner development splits before touching held-out evaluation cells."
+  },
+  {
+   "id": "A4",
+   "statement": "Retrieval is scored on measured, unsmoothed single-cell query RNA and unsmoothed candidate ATAC profiles unseen during training.",
+   "check": "scored_on_unsmoothed_truth",
+   "rule": "Evaluation profiles undergo only per-cell transformations or training-fitted projections, with no cross-cell smoothing or imputation."
+  },
+  {
+   "id": "A5",
+   "statement": "All models and comparators are evaluated on identical unseen query cells against the exact same candidate ATAC pool.",
+   "check": "both_arms_same_units",
+   "rule": "Query cell IDs, candidate pool membership and size, and mid-rank tie handling are identical across every compared arm."
+  },
+  {
+   "id": "A6",
+   "statement": "Claims of individual or sub-cluster retrieval require MRR significantly above permutation, sequencing-depth, gene-activity, and coarse cluster floors.",
+   "check": "beats_required_floors",
+   "rule": "Lower bound of the paired-bootstrap 95% confidence interval for MRR difference (method minus each floor) exceeds zero."
+  },
+  {
+   "id": "A7",
+   "statement": "Nonlinear or complex retrieval architectures are benchmarked directly against a simple linear latent alignment on identical evaluation units.",
+   "check": "beats_simple_reference",
+   "rule": "Complex methods are favoured over the linear reference only when the paired-bootstrap 95% CI for MRR gain excludes zero."
+  },
+  {
+   "id": "A8",
+   "statement": "Primary MRR estimates and comparator differences include 95% confidence intervals; population-specific claims control false discovery rate at 5%.",
+   "check": "interval_reported",
+   "rule": "Paired nonparametric bootstrap over unseen query cells at 95% confidence; Benjamini-Hochberg at 5% FDR across cell populations if stratified claims are made."
+  }
+ ],
+ "conclusion_options": [
+  "Yes, at single-cell resolution: retrieval frequently ranks the true paired ATAC profile first and significantly beats coarse cluster, gene-activity, and depth floors, approaching the unimodal split-half noise ceiling.",
+  "Partially (sub-cluster neighborhood only): retrieval significantly beats coarse cluster, gene-activity, and depth floors, but single-cell measurement sparsity prevents reliable top-1 recovery of the exact paired ATAC profile.",
+  "Cell-type resolution only: retrieval significantly beats random and sequencing-depth floors, but does not significantly exceed coarse cluster-level matching; individual cells within a cell type cannot be distinguished.",
+  "No biological retrieval: given only a cell's RNA profile, ranking candidate ATAC profiles does not significantly outperform random permutation or technical sequencing-depth matching on unseen cells."
+ ],
+ "conclusion_scope": "Applies to unseen granulocyte-depleted PBMCs from this single healthy donor at this sequencing depth and candidate-pool size; establishes nothing about other donors, tissues, granulocytes, or disease states.",
+ "notes": "Provider text describes ATAC-to-RNA prediction, whereas this question requires RNA-to-ATAC cell retrieval on nested splits of the 7,288 paired development cells because the 3,124 held-out cells lack RNA."
+}

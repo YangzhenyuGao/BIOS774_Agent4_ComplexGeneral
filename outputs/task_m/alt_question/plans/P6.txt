@@ -1,0 +1,5 @@
+Coarse-to-Fine Specialist LoRA Mixture-of-Experts with Depth-Orthogonalized Residual Alignment
+
+We test single-cell RNA-to-ATAC retrieval with an unsupervised coarse-to-fine specialist mixture under nested 4-fold cross-validation across all 7,288 cells. Full-atlas ATAC LSI, TF-IDF peaks, and promoter activity align with RNA via balanced routers and 32 depth-orthogonalized residual experts regularized by training-only kNN denoising. Unseen query RNA profiles independently rank candidate ATAC profiles by combining prior-adjusted regime compatibility with within-regime residual similarity. Comparing paired-bootstrap intervals against all required floors, linear CCA, and split-half ceilings determines whether retrieval reaches single-cell, sub-cluster, or cluster-only resolution.
+
+Rationale: Global spaces prioritize major lineages (D6) and underfit rare types like 15 Plasma cells (D2). Unsupervised balanced routing with 32 shrunk residual experts isolates within-population state without WNN labels (D4). Depth orthogonalization removes technical confounding (D5), while training-only kNN auxiliary targets mitigate count sparsity (D1).

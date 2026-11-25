@@ -1,0 +1,95 @@
+{
+ "plan_id": "P5",
+ "name": "Cluster-Balanced Hyperspherical Contrastive Alignment with Multi-Scale MLP Readout",
+ "summary": "This plan separates cross-modal manifold learning from noisy per-gene regression using a two-stage contrastive architecture under nested four-fold cross-validation. On inner training splits, a CLIP objective aligns depth-free chromatin views with whole-cell RNA embeddings on the unit sphere using ATAC cluster balancing. A regularized neural head then predicts all in-scope genes from the aligned chromatin embedding. Paired-bootstrap testing against binomial-thinned RNA identifies which genes beat the cell-type baseline in this donor.",
+ "complexity": "ambitious",
+ "analysis_unit": "single cell (individual nucleus from the single healthy PBMC donor)",
+ "inputs": {
+  "tfidf_peaks": {
+   "max_peaks": 30000
+  },
+  "gene_activity": {
+   "mode": "promoter_and_distal"
+  },
+  "lsi": {
+   "n_components": 120,
+   "max_peaks": 108377
+  }
+ },
+ "preprocessing": [
+  "Strictly inside each outer training fold (never touching validation-fold or held-out cells), select top 30000 accessible peaks and fit TF-IDF, fit 120-component LSI on binarised 108377 peaks with the first depth-correlated SVD component dropped, and compute depth-normalised promoter-and-distal gene activity across the 11282 frozen in-scope genes using allowed peak-to-gene annotations.",
+  "Z-score continuous ATAC input blocks using inner-training means and standard deviations only, omitting raw log ATAC depth as a predictor to prevent technical library-size shortcuts.",
+  "Fit unsupervised k=20 clustering on inner-training ATAC LSI embeddings (frozen development k, never using WNN annotations) to derive inverse-square-root cluster sample weights for rare-population protection and to fit the Floor 1 comparator.",
+  "Log-normalise inner-training raw RNA UMI counts via log1p(10000 * counts / cell_total_UMI) across all 13536 development genes for Stage 1 paired RNA contrastive encoding and across the 11282 frozen in-scope genes for Stage 2 supervised head training.",
+  "For every unseen outer-fold validation cell, apply independent binomial thinning (p=0.5) to raw UMI counts to form halves A and B; log-normalise half B without smoothing as the sole evaluation target and reserve half A strictly for evaluating the RNA-to-RNA noise ceiling."
+ ],
+ "model": {
+  "component": "contrastive_pretrain_head",
+  "params": {
+   "embed_dim": 128,
+   "temperature": 0.07,
+   "pretrain_epochs": 120,
+   "head": "mlp"
+  }
+ },
+ "fusion": null,
+ "training": {
+  "max_epochs": 150,
+  "early_stopping_patience": 20,
+  "lr": 0.001,
+  "batch_size": 256,
+  "weight_decay": 0.0005,
+  "target_denoising": "none",
+  "internal_val_split": "85/15 stratified by inner-training ATAC cluster for Stage 1 InfoNCE and Stage 2 MLP early stopping",
+  "sample_weighting": "inverse_sqrt_inner_atac_cluster_frequency",
+  "convergence_check": "log full epoch loss histories for Stage 1 validation InfoNCE and Stage 2 validation MSE and verify convergence prior to scoring; refit final model on all 7288 development cells alone before predicting 3124 held-out ATAC cells"
+ },
+ "validation": {
+  "scheme": "kfold",
+  "k": 4,
+  "split_unit": "cell",
+  "scoring_target": "thinned_half",
+  "n_seeds": 2,
+  "compare_with": [
+   "simple_reference",
+   "floor_1_cell_type",
+   "floor_2_gene_activity",
+   "floor_3_depth",
+   "floor_4_simple_learners",
+   "noise_ceiling",
+   "permutation_null"
+  ],
+  "gene_claim_rule": "Score all models and comparators on identical outer-fold unseen cells against unsmoothed binomial-thinned log-normalised RNA half B with identical zero-variance handling (r=0 if zero variance), sanity-checking each baseline first. Partition all 11282 frozen in-scope genes: (0) unjudgeable if RNA-to-RNA noise_ceiling fails to beat the 1000-shuffle cell-permutation null; (2) reliably_predicted_beyond_cell_type if judgeable, candidate aggregate mean r beats floor_3_depth and floor_2_gene_activity, complexity gain over simple_reference exceeds cross-seed spread, and 2000-draw fold-stratified paired-bootstrap gain (r_model - r_floor1 > 0) passes Benjamini-Hochberg at 5% FDR across all 11282 in-scope genes; (1) not_beyond_cell_type otherwise."
+ },
+ "metrics": [
+  "Mean and median per-gene Pearson r against binomial-thinned log-normalised RNA (half B) and paired-bootstrap correlation gain (Delta_r) over floor_1_cell_type across unseen cells",
+  "Empirical two-sided 95% paired-bootstrap confidence intervals (2000 resamples) for per-gene r and gain over floor_1_cell_type across all 11282 in-scope genes, plus interval width and cross-fold coverage diagnostics",
+  "Counts and gene identities partitioned into unjudgeable, not-beyond-cell-type, and reliably-predicted-beyond-cell-type groups at 5% BH-FDR across all 11282 in-scope genes",
+  "Ratio of achieved per-gene Pearson r to the RNA-to-RNA noise_ceiling across judgeable in-scope genes",
+  "Within-cluster Pearson r per gene (across inner-fit ATAC clusters and post-hoc descriptive WNN development cell types) alongside pooled r to audit rare populations down to 15 Plasma cells",
+  "Cross-seed and cross-fold variance of selection metrics plus Stage 1 InfoNCE and Stage 2 MLP training/validation convergence curves"
+ ],
+ "allowed_conclusions": "Entitled to conclude exactly one of the four objective-defined options strictly for unseen granulocyte-depleted PBMCs of this single healthy donor under the same 10x Multiome assay: (1) unjudgeable due to measurement noise if no gene's ceiling beats the permutation null; (2) confounded by sequencing depth if aggregate mean r fails to beat floor_3_depth; (3) no gene predicted beyond cell identity if technical floors are beaten but zero judgeable genes beat floor_1_cell_type at 5% BH-FDR; or (4) specific identified genes are reliably predicted beyond cell identity at 5% BH-FDR. No claims are permitted regarding other donors, tissues, granulocytes, disease states, or causal regulation.",
+ "budget": {
+  "needs_gpu": false,
+  "pilot_minutes": 12.0,
+  "full_minutes": 75.0,
+  "cpus": 32
+ },
+ "diversity": {
+  "data": "depth_free_30k_tfidf_plus_full_gene_activity_and_120d_lsi",
+  "model": "symmetric_clip_contrastive_biencoder_with_mlp_head",
+  "method": "two_stage_cross_modal_hyperspherical_alignment_cluster_balanced_nested_4fold_cv"
+ },
+ "rationale": "Single-gene sparsity (D1) corrupts direct regression, whereas whole-cell InfoNCE alignment captures fine intra-cluster transcriptional state before readout (D6). Unit-sphere projection without depth curbs technical confounding (D5), and ATAC cluster reweighting preserves rare subtypes (D2) without joint-label leakage (D4).",
+ "difficulties_addressed": [
+  "D1",
+  "D2",
+  "D3",
+  "D4",
+  "D5",
+  "D6",
+  "D7"
+ ],
+ "new_components": []
+}

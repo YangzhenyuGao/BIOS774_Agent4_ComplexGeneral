@@ -1,0 +1,103 @@
+{
+ "plan_id": "P3",
+ "name": "Cis-Regulatory MultiVI Multi-Scale Ensemble with Precision-Weighted Posterior Retrieval",
+ "summary": "We train a nested 5-fold ensemble of MultiVI variational autoencoders coupling raw RNA UMI counts with cis-regulatory ATAC peaks within 150 kb of in-scope genes. Observed library depths enter solely into count decoders while unsupervised inverse-density sample weights preserve rare cell states without forbidden WNN annotations. Unseen RNA queries independently rank candidate ATAC profiles via precision-weighted Bhattacharyya similarity between unimodal posteriors, attenuating high-dropout axes. Paired comparisons against depth, gene-activity, cluster, linear CCA, and split-half ceiling rulers test whether retrieval achieves single-cell, sub-cluster, or only cell-type resolution.",
+ "complexity": "ambitious",
+ "analysis_unit": "Individual cell (single nucleus with co-measured RNA and ATAC in development splits)",
+ "inputs": {
+  "cis_peaks": {
+   "window_kb": 150,
+   "max_peaks_per_gene": 20
+  },
+  "depth": {}
+ },
+ "preprocessing": [
+  "Partition the 7,288 paired development cells randomly by cell ID (without using WNN annotations) into 5 outer folds (~1,458 test cells per fold) and split each outer training set 85%/15% (~4,955 inner-train, ~875 inner-val) strictly by cell ID",
+  "Within each inner-train split only, select the top 4,000 highly variable genes by Poisson deviance from the 11,282 in-scope genes and keep their raw integer UMI counts plus per-cell log total RNA UMI library size",
+  "Within each inner-train split only, construct the cis_peaks vocabulary (up to 20 peaks within +/-150 kb of each selected gene's TSS prioritized by promoter flag and TSS proximity, deduplicated and filtered to >=0.5% inner-train cell accessibility, yielding ~28,000-32,000 binarised cis-regulatory peaks) plus log total ATAC fragment depth",
+  "Compute unsupervised rare-state sample weights strictly on inner-train cells by fitting k=30 mutual-nearest-neighbor Leiden clusters on concatenated inner-train RNA PCA and depth-dropped ATAC LSI, taking inverse square-root cluster frequency clipped to [0.5, 5.0] and normalized to mean 1.0",
+  "Freeze all feature indices, ATAC peak region-accessibility scalers, and training-only CSLS hubness reference embeddings from inner splits before transforming unseen outer-fold query RNA or candidate ATAC cells with per-cell operations only"
+ ],
+ "model": {
+  "component": "joint_latent_multivi",
+  "params": {
+   "n_latent": 48
+  }
+ },
+ "fusion": null,
+ "training": {
+  "max_epochs": 250,
+  "early_stopping_patience": 25,
+  "lr": 0.001,
+  "batch_size": 256,
+  "weight_decay": 0.0001,
+  "target_denoising": "none",
+  "kl_warmup_epochs": 30,
+  "likelihood_and_alignment": "Negative Binomial RNA count decoder and Bernoulli ATAC cis-peak decoder conditioned on observed cell log-depths and inner-train region factors, paired with symmetric Jeffreys KL divergence aligning unimodal RNA and ATAC Gaussian posteriors and a batch covariance penalty decorrelating latent means from log sequencing depth",
+  "sample_weighting": "Multiply per-cell ELBO and modality-alignment losses by inner-train unsupervised inverse-density weights to prevent rare populations from collapsing into major clusters",
+  "multiscale_ensemble": "Train 3 joint_latent_multivi models per outer fold across bottleneck dimensions [32, 48, 64] (centered at nominal n_latent=48) and fit non-negative simplex combination weights plus CSLS hubness temperature strictly on inner-val retrieval MRR",
+  "convergence_and_structure_audit": "Record full per-epoch train/inner-val NB, Bernoulli, KL, and alignment loss curves plus inner-val MRR every 5 epochs; require early-stopping convergence before max_epochs, >=80% active latent dimensions, and non-degraded inner-val unimodal kNN structure preservation before outer scoring"
+ },
+ "validation": {
+  "scheme": "kfold",
+  "n_splits": 5,
+  "inner_val_fraction": 0.15,
+  "split_unit": "cell",
+  "candidate_pool_size": 1458,
+  "expanded_distractor_pool_size": 4582,
+  "scoring_rule": "Score each unseen query cell's unsmoothed RNA posterior q(z|x_i) independently against each unseen candidate cell's unsmoothed ATAC posterior q(z|y_j) via closed-form Bhattacharyya precision-weighted log-similarity, z-standardized and CSLS-debiased strictly against inner-train embeddings (zero cross-query assignment or test-batch coupling), ensembled across the 3 inner-tuned latent scales",
+  "tie_breaking": "deterministic_mid_ranks",
+  "metrics": [
+   "MRR",
+   "recall@1",
+   "recall@5",
+   "recall@10",
+   "FOSCTTM"
+  ],
+  "comparators": [
+   "Floor 0: uniform random permutation ranking on identical candidate pools",
+   "Floor 1: inner-train OLS log-RNA-to-log-ATAC sequencing-depth matching",
+   "Floor 2: unlearned gene_activity_bridge (promoter_and_distal) cosine similarity",
+   "Floor 3: inner-train k=20 ATAC LSI cluster centroid cross-modal matching with mid-rank ties",
+   "Simple linear reference: inner-train cca_latent alignment on RNA PCA and depth-filtered ATAC LSI",
+   "Noise-ceiling ruler: independent p=0.5 binomial-thinning unimodal split-half count self-retrieval (RNA-to-RNA and ATAC-to-ATAC) on identical outer-fold evaluation cells"
+  ],
+  "statistical_inference": "Pool out-of-fold reciprocal ranks across all 7,288 unseen development queries (and separately across the 4,582-candidate distractor-expanded pool adding 3,124 held-out ATAC-only cells); compute 2,000-replicate paired nonparametric bootstrap 95% CIs for MRR and all comparator differences, plus post-hoc WNN within-population MRR and Recall@1 with Benjamini-Hochberg 5% FDR across the 19 populations",
+  "sanity_checks": [
+   "Assert zero cell-ID overlap across inner-train, inner-val, outer-test, and ATAC-only distractors",
+   "Verify comparator implementations on synthetic/known-rank cases before outer evaluation",
+   "Measure selection-metric spread across the 3 variational ensemble members per fold and treat differences within run-to-run spread as ties"
+  ]
+ },
+ "metrics": [
+  "Mean Reciprocal Rank (MRR) with deterministic mid-ranks",
+  "Exact top-1 retrieval rate (Recall@1)",
+  "Recall@5 and Recall@10",
+  "1 - FOSCTTM",
+  "Within-population and macro-averaged MRR and Recall@1 across 19 post-hoc WNN populations (BH 5% FDR)",
+  "Ratio of cross-modal MRR to unimodal binomial-thinning split-half self-retrieval noise ceiling",
+  "Distractor-expanded MRR and Recall@1 on the 4,582-candidate pool (+3,124 held-out ATAC-only cells)"
+ ],
+ "allowed_conclusions": "Conclude single-cell resolution retrieval only if out-of-fold MRR significantly exceeds permutation, depth, gene-activity, k=20 cluster, and linear CCA baselines (paired-bootstrap 95% CI lower bound > 0) while substantial Recall@1 approaches the split-half noise ceiling; conclude sub-cluster neighborhood resolution if MRR significantly beats all four floors (and beats or ties linear CCA if complex machinery is credited) but sparsity caps Recall@1 well below the ceiling; conclude cell-type resolution only if MRR beats permutation and depth floors without beating the k=20 cluster floor; otherwise conclude no biological retrieval. Scope is restricted strictly to granulocyte-depleted PBMCs from this single healthy donor at this sequencing depth and candidate-pool size.",
+ "budget": {
+  "needs_gpu": false,
+  "pilot_minutes": 8.0,
+  "full_minutes": 65.0,
+  "cpus": 32
+ },
+ "diversity": {
+  "data": "cis_window_regulatory_peak_counts_and_raw_umi_counts_with_decoder_depth",
+  "model": "rare_weighted_generative_multivi_variational_autoencoder",
+  "method": "nested_5fold_multiscale_precision_weighted_posterior_ensemble"
+ },
+ "rationale": "Negative Binomial and Bernoulli decoders separate biological state from library-size confounding (D5) while modeling extreme count sparsity (D1). Precision-weighted posterior matching suppresses uncertain dropout dimensions during retrieval, and unsupervised inverse-density weighting plus 5-fold pooling protect rare populations like 15-cell Plasma states (D2) against coarse cluster baselines (D6).",
+ "difficulties_addressed": [
+  "D1",
+  "D2",
+  "D4",
+  "D5",
+  "D6",
+  "D7"
+ ],
+ "new_components": []
+}

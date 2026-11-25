@@ -1,0 +1,17 @@
+{
+ "created": "2026-11-25T11:48:07-0500",
+ "note": "task_m/audit",
+ "n_files": 2,
+ "files": [
+  {
+   "path": "P1.json",
+   "bytes": 6267,
+   "sha256": "486c448de99fc652ae669f7d994a0f6391524ba9acb908ea7acbc094e0e8aa1e"
+  },
+  {
+   "path": "final.json",
+   "bytes": 258,
+   "sha256": "26921da0aaeca39bd9abe1282f16edbe8871f4df7bd8ad3e00cbe340537b5618"
+  }
+ ]
+}

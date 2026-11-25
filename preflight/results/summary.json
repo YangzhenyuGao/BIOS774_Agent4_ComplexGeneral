@@ -1,0 +1,136 @@
+{
+ "what": "Sycamore preflight for Agent4, run 2026-11-25 02:45-03:25 EST from sycamore-login1. Covers the four items in README 9.0 plus the environment and tool families in README 6.5 and 7.4.",
+ "readme_9_0_items": {
+  "1_claude_cli": {
+   "status": "pass",
+   "binary": "~/.vscode-server/extensions/anthropic.claude-code-<version>-linux-x64/resources/native-binary/claude (2.1.331 on this date; the folder name changes on extension updates, so preflight/claude_cli.sh resolves it at call time)",
+   "login": "OAuth login already present on this machine; --bare cannot be used because it accepts API keys only",
+   "flags": "-p --model claude-opus-5-5 --effort <level> --system-prompt <text> --tools \"\" --setting-sources \"\" --strict-mcp-config --disable-slash-commands --safe-mode --no-session-persistence --output-format json, clean environment, empty working directory, prompt on stdin",
+   "measured": {
+    "plain_json_reply": {
+     "api_seconds": 1.5,
+     "list_price_usd": 0.0097,
+     "input_tokens": 940,
+     "output_tokens": 111
+    },
+    "with_json_schema_and_high_effort": {
+     "api_seconds": 8.3,
+     "list_price_usd": 0.028,
+     "turns": 2
+    },
+    "four_calls_in_parallel": {
+     "wall_seconds": 2.2,
+     "all_succeeded": true
+    },
+    "from_a_cpu_compute_node": {
+     "api_seconds": 0.9,
+     "succeeded": true
+    }
+   },
+   "note": "Cost is the list-price equivalent reported by the CLI; calls draw on the same subscription as interactive Claude Code use."
+  },
+  "2_gemini": {
+   "gemini-4-carbon": {
+    "status": "unreliable",
+    "attempts": 15,
+    "returned": 7,
+    "seconds_when_returned": [
+     4.0,
+     14.4,
+     17.7,
+     17.9,
+     32.3,
+     47.3,
+     48.2
+    ],
+    "hung": 8,
+    "seconds_waited_before_giving_up": [
+     100,
+     100,
+     120,
+     120,
+     150,
+     240,
+     240,
+     400
+    ],
+    "note": "Model metadata and countTokens answer instantly; only generation hangs. Both the generateContent and the Interactions endpoint hung. No hung call ever returned, including one given 400 s. The other models on the same key and host answered every time, so this is not a Sycamore network problem."
+   },
+   "gemini-4-neon": {
+    "status": "pass",
+    "seconds": [
+     2.0,
+     2.2,
+     2.2,
+     5.3
+    ]
+   },
+   "gemini-3.8-flash": {
+    "status": "pass",
+    "seconds": [
+     2.5,
+     2.4
+    ]
+   }
+  },
+  "hf_router_fallback_judges": {
+   "Qwen/Qwen3.8-2.4T-A95B": {
+    "status": "pass",
+    "seconds": [
+     2.0,
+     1.6
+    ],
+    "returns_reasoning": true
+   },
+   "deepseek-ai/DeepSeek-V4-Pro": {
+    "status": "pass",
+    "seconds": [
+     0.7,
+     0.6,
+     0.6
+    ],
+    "returns_reasoning": true
+   }
+  },
+  "3_compute_node_internet": {
+   "cpu_nodes": "pass: nep15080202 and nep15080203 reached generativelanguage.googleapis.com, router.huggingface.co, api.anthropic.com and pypi.org",
+   "gpu_nodes": "pass: job 5263115 on g15070304 (h100_priority) started 07:09 on 2026-11-25, about four hours after submission, and reached all four hosts",
+   "controller_inside_a_cpu_job": "pass: Claude judge call, Gemini call, Hugging Face call and sbatch all worked from a CPU compute node (job 5263130)"
+  },
+  "4_paths": "pass: every path in the README 9.0 table is readable; Agent4_ComplexGeneral is writable"
+ },
+ "environment": {
+  "python": "pass: agent3 environment, 26 packages import with PYTHONNOUSERSITE=1; nothing needed installing",
+  "task_M_tools": "pass on 3,000 cells: data loading, binomial read split, TF-IDF + LSI, ridge, kNN, PLS, cluster-mean, gene activity, depth-only, permutation null with BH correction (job 5263107)",
+  "multivi": "pass on a CPU node (job 5263135) and on an H100 (job 5263115): training, ATAC-only expression prediction, latent representation",
+  "task_T_tools": "pass on the 802-patient cohort: clinical table, five encoders at patient level, tile-level HDF5, logistic regression, gradient boosting, PCA, late fusion, patient-stratified and site-grouped splits (job 5263107)",
+  "pdf": "pass: matplotlib figure + WeasyPrint PDF, text extractable",
+  "r": "pass: R 4.6.0 with the home library; Seurat 5.5.0, Signac 1.17.1, glmnet, survival present. The README plan does not use R.",
+  "gpu": "pass: NVIDIA H100 80GB, torch 2.8.0+cu128 with CUDA 12.8; attention-MIL training with bfloat16 autocast and MultiVI both ran (job 5263115, 8 of 8 checks)"
+ },
+ "things_the_build_should_know": [
+  "scvi-tools: passing logger=False to train() leaves model.history empty, so convergence cannot be audited. Agent3 did this. Keep the default logger.",
+  "The 802-patient task cohort spans 19 collection sites, not 39 (39 is the count for all 1,061 patients). The five largest sites hold 426 patients; 3 sites have fewer than 10; 14 sites contain all four classes.",
+  "HER2 status is not definite for 255 of 802 patients (123 missing, 125 equivocal, 7 indeterminate).",
+  "First import of scanpy/torch/scvi on a compute node takes 20-50 s; reading the PBMC HDF5 and slicing by feature type took about 100 s with the Agent3-style loader.",
+  "Peak annotation has one row per peak with ';'-separated genes and peak types.",
+  "All 16 H100 GPUs were busy at 03:00 with forecast waits of 6-7 hours; CPU jobs started within seconds."
+ ],
+ "evidence_files": {
+  "logs": [
+   "logs/cpu-5263107.log",
+   "logs/scvi-cpu-5263135.log",
+   "logs/ctrl-5263130.log",
+   "logs/gpu-5263115.log"
+  ],
+  "results": [
+   "compute_cpu_5263107.json",
+   "compute_scvi_cpu_5263135.json",
+   "llm_check.json",
+   "llm_carbon_repeat.json",
+   "llm_first_call_login_node.json",
+   "claude_judge_wrapper_test.json",
+   "compute_gpu_5263115.json"
+  ]
+ }
+}

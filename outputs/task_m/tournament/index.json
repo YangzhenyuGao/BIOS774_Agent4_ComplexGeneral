@@ -1,0 +1,162 @@
+{
+ "created": "2026-11-25T11:48:05-0500",
+ "note": "task_m/tournament",
+ "n_files": 31,
+ "files": [
+  {
+   "path": "matches/P1_vs_P2.json",
+   "bytes": 30889,
+   "sha256": "b2c0028d3e524b6b4c9ba32448df2e0f2bfd110a2fbef196ffd309dd176a172d"
+  },
+  {
+   "path": "matches/P1_vs_P3.json",
+   "bytes": 31600,
+   "sha256": "9b91791df9107d63cda5cf58ca16f5f79f0ad4726e93e5180a5b1700325fd50f"
+  },
+  {
+   "path": "matches/P1_vs_P4.json",
+   "bytes": 31344,
+   "sha256": "5691a0d9f21bd1e66ef11ea4d63f8148b0add75334c6643ed84d112fccbfc6d2"
+  },
+  {
+   "path": "matches/P1_vs_P5.json",
+   "bytes": 32423,
+   "sha256": "3c874ccc2e75db461ca1fc9b51e24c04be295bd3034979ff722c96e0b4a51ba1"
+  },
+  {
+   "path": "matches/P1_vs_P6.json",
+   "bytes": 34646,
+   "sha256": "60b9e43879492a2488d389414ea74006aa3e02e90b96b510020449d270505150"
+  },
+  {
+   "path": "matches/P2_vs_P1.json",
+   "bytes": 30619,
+   "sha256": "3b303f31d0ab58bc481ffd4b84afb0d1b1627cc4e5dd2c4dc41971aa380ac571"
+  },
+  {
+   "path": "matches/P2_vs_P3.json",
+   "bytes": 32130,
+   "sha256": "4e9310f54ee88cd14a5b0be6f232566b8c941cf8553261f2cf274eb493e0c387"
+  },
+  {
+   "path": "matches/P2_vs_P4.json",
+   "bytes": 31865,
+   "sha256": "c7850ecf084ad710b62471da7d45ff569a37530e6bee5d5e4c1a9b93d45234a7"
+  },
+  {
+   "path": "matches/P2_vs_P5.json",
+   "bytes": 32086,
+   "sha256": "85c0d02217193001d7571ca7daf390450fe8e68f60ad197cca1ba72c8fd14b31"
+  },
+  {
+   "path": "matches/P2_vs_P6.json",
+   "bytes": 34774,
+   "sha256": "c233e917c3476186640d8e4c63a6d06613707881e998076df1956cbabd0d4271"
+  },
+  {
+   "path": "matches/P3_vs_P1.json",
+   "bytes": 31303,
+   "sha256": "703443e45d17b04f7c3b65f0c65304b72407907d0fcace46590e4f37e168ccdd"
+  },
+  {
+   "path": "matches/P3_vs_P2.json",
+   "bytes": 32250,
+   "sha256": "2d0c25ebb44ca52e84b5c47d816e8541645b15f3431405984b93d9c7a342c0fc"
+  },
+  {
+   "path": "matches/P3_vs_P4.json",
+   "bytes": 32824,
+   "sha256": "504782cdf68c68884a0ade5baec4efede3f160cdde6da164e4ec79220a0ba6e3"
+  },
+  {
+   "path": "matches/P3_vs_P5.json",
+   "bytes": 33070,
+   "sha256": "3c6691ea327fb09781026a3f0f15db49f27392439437cf1c39ade12c640c69c1"
+  },
+  {
+   "path": "matches/P3_vs_P6.json",
+   "bytes": 35513,
+   "sha256": "7542aa7fbd86ef3ec9a1676388dc17917be9e5b999b1dd732159de5d931a6b1c"
+  },
+  {
+   "path": "matches/P4_vs_P1.json",
+   "bytes": 31795,
+   "sha256": "ce8e54a6a9258e54dbddb5b0a9239fe2a777f94ef0a3f4e2756475b57b2aa673"
+  },
+  {
+   "path": "matches/P4_vs_P2.json",
+   "bytes": 32144,
+   "sha256": "8808390a00a46b27dd07b098bba38e81ab18261bf736f98c59912f8fea2e381c"
+  },
+  {
+   "path": "matches/P4_vs_P3.json",
+   "bytes": 32660,
+   "sha256": "128ec67ab414689346141a7fa54b4d403e78638057a8b98311c172571a5c5ba4"
+  },
+  {
+   "path": "matches/P4_vs_P5.json",
+   "bytes": 33489,
+   "sha256": "fa4d0cf3d3504d04d0e5fadd1db9331c66782842b99ad24b0c225ba6215eec6c"
+  },
+  {
+   "path": "matches/P4_vs_P6.json",
+   "bytes": 35899,
+   "sha256": "0da73425630b0da7791f92c12778023182016dbe81ac1d14b1dbcbf8c4d1a3e4"
+  },
+  {
+   "path": "matches/P5_vs_P1.json",
+   "bytes": 31893,
+   "sha256": "c924842cc67ccd6a20f730bac4632becdccdc96af281c7e1c06d52244bac60d3"
+  },
+  {
+   "path": "matches/P5_vs_P2.json",
+   "bytes": 32251,
+   "sha256": "6e1f0577b0e4bd8bd930bb17ca4e62d800225c8672fdfe14d44fd53e75891b5d"
+  },
+  {
+   "path": "matches/P5_vs_P3.json",
+   "bytes": 33351,
+   "sha256": "c9eaff0e7f7fe9a2a3392f261736c2f3972e085ea87072d4709675174695d236"
+  },
+  {
+   "path": "matches/P5_vs_P4.json",
+   "bytes": 33183,
+   "sha256": "62d47b47fc591f5508c1829c2aee2ee06f02efa03244bd48c6d73b9ea927e516"
+  },
+  {
+   "path": "matches/P5_vs_P6.json",
+   "bytes": 35806,
+   "sha256": "40fd93938a6522bd99ea60b94b00e48c3dfe892c8a4d910ded0ea40a1d8beef9"
+  },
+  {
+   "path": "matches/P6_vs_P1.json",
+   "bytes": 34829,
+   "sha256": "0ad63881f3f9c208c9a06a5d97da3c5c6545b852be6c4da6d063ab41dc55ce4d"
+  },
+  {
+   "path": "matches/P6_vs_P2.json",
+   "bytes": 34823,
+   "sha256": "496b0252410d09f545a445f44141babc91edfe73ede92c3fab8207cfe046af9c"
+  },
+  {
+   "path": "matches/P6_vs_P3.json",
+   "bytes": 35791,
+   "sha256": "02fe3ee28984c132923d5fd39538bd720f1d4668c50290701a5ac02b66c93316"
+  },
+  {
+   "path": "matches/P6_vs_P4.json",
+   "bytes": 35971,
+   "sha256": "4f507bb215df90570817c0d7a237b9ca0e541be108bd6c94c15e8ab12127b2fb"
+  },
+  {
+   "path": "matches/P6_vs_P5.json",
+   "bytes": 36239,
+   "sha256": "31c7dcf8556a6a21841c86c7ef31527a56dc95d73e934116ec7699e3f04982c3"
+  },
+  {
+   "path": "ranking.json",
+   "bytes": 2562,
+   "sha256": "8201759bb81632c6be78662526742f5a8b675324d45625be85373e68e4aec319"
+  }
+ ]
+}

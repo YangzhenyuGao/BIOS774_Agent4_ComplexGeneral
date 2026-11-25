@@ -1,0 +1,302 @@
+[
+ {
+  "plan_id": "P1",
+  "passed": true,
+  "rules": [
+   {
+    "rule": "inputs_from_view",
+    "passed": true,
+    "detail": "input representations ['lsi']; not ATAC-derived or not in the catalogue: []"
+   },
+   {
+    "rule": "no_label_inputs",
+    "passed": true,
+    "detail": "the supplied cell-type annotation is not among the model inputs"
+   },
+   {
+    "rule": "scoring_target_allowed",
+    "passed": true,
+    "detail": "declared scoring target: thinned_half; the objective requires measured, unsmoothed, independently thinned values"
+   },
+   {
+    "rule": "correct_split_unit",
+    "passed": true,
+    "detail": "declared split unit: cell; the analysis unit is the cell"
+   },
+   {
+    "rule": "no_forbidden_inputs",
+    "passed": true,
+    "detail": "all input rules passed; each forbidden input of the objective is covered as follows: [Joint WNN cell-type annotations as model inputs or evaluation truth] -> rule no_label_inputs | [Query cell ATAC profiles or test-split pairing labels during inference] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [Other query cells' RNA profiles or test-batch one-to-one assignment constraints] -> rule inputs_from_view: the view offers no such variable for the units to be predicted | [Evaluation RNA or ATAC profiles smoothed or imputed across cells] -> rule scoring_target_allowed | [Evaluation-split cells during feature selection, latent space fitting, or hyperparameter tuning] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [Candidate cells' held-out or paired RNA profiles during candidate scoring] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted"
+   },
+   {
+    "rule": "components_executable",
+    "passed": true,
+    "detail": "all components registered"
+   },
+   {
+    "rule": "within_budget",
+    "passed": true,
+    "detail": "declared full run 12.0 min; limit 120 min"
+   }
+  ],
+  "forbidden_input_coverage": {
+   "Joint WNN cell-type annotations as model inputs or evaluation truth": "rule no_label_inputs",
+   "Query cell ATAC profiles or test-split pairing labels during inference": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "Other query cells' RNA profiles or test-batch one-to-one assignment constraints": "rule inputs_from_view: the view offers no such variable for the units to be predicted",
+   "Evaluation RNA or ATAC profiles smoothed or imputed across cells": "rule scoring_target_allowed",
+   "Evaluation-split cells during feature selection, latent space fitting, or hyperparameter tuning": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "Candidate cells' held-out or paired RNA profiles during candidate scoring": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted"
+  },
+  "checked": "2026-11-25T11:47:53-0500"
+ },
+ {
+  "plan_id": "P2",
+  "passed": true,
+  "rules": [
+   {
+    "rule": "inputs_from_view",
+    "passed": true,
+    "detail": "input representations ['depth', 'gene_activity', 'tfidf_peaks']; not ATAC-derived or not in the catalogue: []"
+   },
+   {
+    "rule": "no_label_inputs",
+    "passed": true,
+    "detail": "the supplied cell-type annotation is not among the model inputs"
+   },
+   {
+    "rule": "scoring_target_allowed",
+    "passed": true,
+    "detail": "declared scoring target: thinned_half; the objective requires measured, unsmoothed, independently thinned values"
+   },
+   {
+    "rule": "correct_split_unit",
+    "passed": true,
+    "detail": "declared split unit: cell; the analysis unit is the cell"
+   },
+   {
+    "rule": "no_forbidden_inputs",
+    "passed": true,
+    "detail": "all input rules passed; each forbidden input of the objective is covered as follows: [Joint WNN cell-type annotations as model inputs or evaluation truth] -> rule no_label_inputs | [Query cell ATAC profiles or test-split pairing labels during inference] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [Other query cells' RNA profiles or test-batch one-to-one assignment constraints] -> rule inputs_from_view: the view offers no such variable for the units to be predicted | [Evaluation RNA or ATAC profiles smoothed or imputed across cells] -> rule scoring_target_allowed | [Evaluation-split cells during feature selection, latent space fitting, or hyperparameter tuning] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [Candidate cells' held-out or paired RNA profiles during candidate scoring] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted"
+   },
+   {
+    "rule": "components_executable",
+    "passed": true,
+    "detail": "all components registered"
+   },
+   {
+    "rule": "within_budget",
+    "passed": true,
+    "detail": "declared full run 30.0 min; limit 120 min"
+   }
+  ],
+  "forbidden_input_coverage": {
+   "Joint WNN cell-type annotations as model inputs or evaluation truth": "rule no_label_inputs",
+   "Query cell ATAC profiles or test-split pairing labels during inference": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "Other query cells' RNA profiles or test-batch one-to-one assignment constraints": "rule inputs_from_view: the view offers no such variable for the units to be predicted",
+   "Evaluation RNA or ATAC profiles smoothed or imputed across cells": "rule scoring_target_allowed",
+   "Evaluation-split cells during feature selection, latent space fitting, or hyperparameter tuning": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "Candidate cells' held-out or paired RNA profiles during candidate scoring": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted"
+  },
+  "checked": "2026-11-25T11:47:53-0500"
+ },
+ {
+  "plan_id": "P3",
+  "passed": true,
+  "rules": [
+   {
+    "rule": "inputs_from_view",
+    "passed": true,
+    "detail": "input representations ['cis_peaks', 'depth']; not ATAC-derived or not in the catalogue: []"
+   },
+   {
+    "rule": "no_label_inputs",
+    "passed": true,
+    "detail": "the supplied cell-type annotation is not among the model inputs"
+   },
+   {
+    "rule": "scoring_target_allowed",
+    "passed": true,
+    "detail": "declared scoring target: thinned_half; the objective requires measured, unsmoothed, independently thinned values"
+   },
+   {
+    "rule": "correct_split_unit",
+    "passed": true,
+    "detail": "declared split unit: cell; the analysis unit is the cell"
+   },
+   {
+    "rule": "no_forbidden_inputs",
+    "passed": true,
+    "detail": "all input rules passed; each forbidden input of the objective is covered as follows: [Joint WNN cell-type annotations as model inputs or evaluation truth] -> rule no_label_inputs | [Query cell ATAC profiles or test-split pairing labels during inference] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [Other query cells' RNA profiles or test-batch one-to-one assignment constraints] -> rule inputs_from_view: the view offers no such variable for the units to be predicted | [Evaluation RNA or ATAC profiles smoothed or imputed across cells] -> rule scoring_target_allowed | [Evaluation-split cells during feature selection, latent space fitting, or hyperparameter tuning] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [Candidate cells' held-out or paired RNA profiles during candidate scoring] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted"
+   },
+   {
+    "rule": "components_executable",
+    "passed": true,
+    "detail": "all components registered"
+   },
+   {
+    "rule": "within_budget",
+    "passed": true,
+    "detail": "declared full run 65.0 min; limit 120 min"
+   }
+  ],
+  "forbidden_input_coverage": {
+   "Joint WNN cell-type annotations as model inputs or evaluation truth": "rule no_label_inputs",
+   "Query cell ATAC profiles or test-split pairing labels during inference": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "Other query cells' RNA profiles or test-batch one-to-one assignment constraints": "rule inputs_from_view: the view offers no such variable for the units to be predicted",
+   "Evaluation RNA or ATAC profiles smoothed or imputed across cells": "rule scoring_target_allowed",
+   "Evaluation-split cells during feature selection, latent space fitting, or hyperparameter tuning": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "Candidate cells' held-out or paired RNA profiles during candidate scoring": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted"
+  },
+  "checked": "2026-11-25T11:47:53-0500"
+ },
+ {
+  "plan_id": "P4",
+  "passed": false,
+  "rules": [
+   {
+    "rule": "inputs_from_view",
+    "passed": true,
+    "detail": "input representations ['cis_peaks', 'depth', 'gene_activity', 'lsi']; not ATAC-derived or not in the catalogue: []"
+   },
+   {
+    "rule": "no_label_inputs",
+    "passed": true,
+    "detail": "the supplied cell-type annotation is not among the model inputs"
+   },
+   {
+    "rule": "scoring_target_allowed",
+    "passed": true,
+    "detail": "declared scoring target: thinned_half; the objective requires measured, unsmoothed, independently thinned values"
+   },
+   {
+    "rule": "correct_split_unit",
+    "passed": true,
+    "detail": "declared split unit: cell; the analysis unit is the cell"
+   },
+   {
+    "rule": "no_forbidden_inputs",
+    "passed": true,
+    "detail": "all input rules passed; each forbidden input of the objective is covered as follows: [Joint WNN cell-type annotations as model inputs or evaluation truth] -> rule no_label_inputs | [Query cell ATAC profiles or test-split pairing labels during inference] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [Other query cells' RNA profiles or test-batch one-to-one assignment constraints] -> rule inputs_from_view: the view offers no such variable for the units to be predicted | [Evaluation RNA or ATAC profiles smoothed or imputed across cells] -> rule scoring_target_allowed | [Evaluation-split cells during feature selection, latent space fitting, or hyperparameter tuning] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [Candidate cells' held-out or paired RNA profiles during candidate scoring] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted"
+   },
+   {
+    "rule": "components_executable",
+    "passed": false,
+    "detail": "not in registry: ['bidirectional_cistrans_pmi_retriever']"
+   },
+   {
+    "rule": "within_budget",
+    "passed": true,
+    "detail": "declared full run 45.0 min; limit 120 min"
+   }
+  ],
+  "forbidden_input_coverage": {
+   "Joint WNN cell-type annotations as model inputs or evaluation truth": "rule no_label_inputs",
+   "Query cell ATAC profiles or test-split pairing labels during inference": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "Other query cells' RNA profiles or test-batch one-to-one assignment constraints": "rule inputs_from_view: the view offers no such variable for the units to be predicted",
+   "Evaluation RNA or ATAC profiles smoothed or imputed across cells": "rule scoring_target_allowed",
+   "Evaluation-split cells during feature selection, latent space fitting, or hyperparameter tuning": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "Candidate cells' held-out or paired RNA profiles during candidate scoring": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted"
+  },
+  "checked": "2026-11-25T11:47:53-0500"
+ },
+ {
+  "plan_id": "P5",
+  "passed": false,
+  "rules": [
+   {
+    "rule": "inputs_from_view",
+    "passed": true,
+    "detail": "input representations ['cis_peaks', 'depth', 'gene_activity']; not ATAC-derived or not in the catalogue: []"
+   },
+   {
+    "rule": "no_label_inputs",
+    "passed": true,
+    "detail": "the supplied cell-type annotation is not among the model inputs"
+   },
+   {
+    "rule": "scoring_target_allowed",
+    "passed": true,
+    "detail": "declared scoring target: thinned_half; the objective requires measured, unsmoothed, independently thinned values"
+   },
+   {
+    "rule": "correct_split_unit",
+    "passed": true,
+    "detail": "declared split unit: cell; the analysis unit is the cell"
+   },
+   {
+    "rule": "no_forbidden_inputs",
+    "passed": true,
+    "detail": "all input rules passed; each forbidden input of the objective is covered as follows: [Joint WNN cell-type annotations as model inputs or evaluation truth] -> rule no_label_inputs | [Query cell ATAC profiles or test-split pairing labels during inference] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [Other query cells' RNA profiles or test-batch one-to-one assignment constraints] -> rule inputs_from_view: the view offers no such variable for the units to be predicted | [Evaluation RNA or ATAC profiles smoothed or imputed across cells] -> rule scoring_target_allowed | [Evaluation-split cells during feature selection, latent space fitting, or hyperparameter tuning] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [Candidate cells' held-out or paired RNA profiles during candidate scoring] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted"
+   },
+   {
+    "rule": "components_executable",
+    "passed": false,
+    "detail": "not in registry: ['chromosomal_multivector_late_interaction']"
+   },
+   {
+    "rule": "within_budget",
+    "passed": true,
+    "detail": "declared full run 48.0 min; limit 120 min"
+   }
+  ],
+  "forbidden_input_coverage": {
+   "Joint WNN cell-type annotations as model inputs or evaluation truth": "rule no_label_inputs",
+   "Query cell ATAC profiles or test-split pairing labels during inference": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "Other query cells' RNA profiles or test-batch one-to-one assignment constraints": "rule inputs_from_view: the view offers no such variable for the units to be predicted",
+   "Evaluation RNA or ATAC profiles smoothed or imputed across cells": "rule scoring_target_allowed",
+   "Evaluation-split cells during feature selection, latent space fitting, or hyperparameter tuning": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "Candidate cells' held-out or paired RNA profiles during candidate scoring": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted"
+  },
+  "checked": "2026-11-25T11:47:53-0500"
+ },
+ {
+  "plan_id": "P6",
+  "passed": false,
+  "rules": [
+   {
+    "rule": "inputs_from_view",
+    "passed": true,
+    "detail": "input representations ['depth', 'gene_activity', 'lsi', 'tfidf_peaks']; not ATAC-derived or not in the catalogue: []"
+   },
+   {
+    "rule": "no_label_inputs",
+    "passed": true,
+    "detail": "the supplied cell-type annotation is not among the model inputs"
+   },
+   {
+    "rule": "scoring_target_allowed",
+    "passed": true,
+    "detail": "declared scoring target: thinned_half; the objective requires measured, unsmoothed, independently thinned values"
+   },
+   {
+    "rule": "correct_split_unit",
+    "passed": true,
+    "detail": "declared split unit: cell; the analysis unit is the cell"
+   },
+   {
+    "rule": "no_forbidden_inputs",
+    "passed": true,
+    "detail": "all input rules passed; each forbidden input of the objective is covered as follows: [Joint WNN cell-type annotations as model inputs or evaluation truth] -> rule no_label_inputs | [Query cell ATAC profiles or test-split pairing labels during inference] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [Other query cells' RNA profiles or test-batch one-to-one assignment constraints] -> rule inputs_from_view: the view offers no such variable for the units to be predicted | [Evaluation RNA or ATAC profiles smoothed or imputed across cells] -> rule scoring_target_allowed | [Evaluation-split cells during feature selection, latent space fitting, or hyperparameter tuning] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [Candidate cells' held-out or paired RNA profiles during candidate scoring] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted"
+   },
+   {
+    "rule": "components_executable",
+    "passed": false,
+    "detail": "not in registry: ['coarse_to_fine_specialist_moe_retriever']"
+   },
+   {
+    "rule": "within_budget",
+    "passed": true,
+    "detail": "declared full run 52.0 min; limit 120 min"
+   }
+  ],
+  "forbidden_input_coverage": {
+   "Joint WNN cell-type annotations as model inputs or evaluation truth": "rule no_label_inputs",
+   "Query cell ATAC profiles or test-split pairing labels during inference": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "Other query cells' RNA profiles or test-batch one-to-one assignment constraints": "rule inputs_from_view: the view offers no such variable for the units to be predicted",
+   "Evaluation RNA or ATAC profiles smoothed or imputed across cells": "rule scoring_target_allowed",
+   "Evaluation-split cells during feature selection, latent space fitting, or hyperparameter tuning": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "Candidate cells' held-out or paired RNA profiles during candidate scoring": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted"
+  },
+  "checked": "2026-11-25T11:47:53-0500"
+ }
+]

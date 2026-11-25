@@ -1,0 +1,5 @@
+Unlabelled-Pre-Adapted Vision-Language Transformer MIL
+
+Patient tile bags from aligned vision-language pathology encoders (CONCH-Z and MUSK) are mapped via a learned linear projection into a multi-head Transformer aggregator. Strictly inside each training fold, the aggregator is pre-adapted using patient sub-bag consistency across training-fold and 259 unlabelled patients before balanced supervised fine-tuning with inner-selected flat or hierarchical subtype heads. Performance is evaluated via 3x5 repeated nested patient-level cross-validation and 5-fold site-held-out cross-validation against null and patient-mean logistic baselines. This determines standalone H&E PAM50 predictability, site robustness, and gain over simple mean pooling.
+
+Rationale: Sub-bag self-supervision across training and 259 unlabelled patients regularises high-capacity Transformer tile interaction against small-n/large-p overfitting (D3) and variable multi-slide bag sizes (D6). Learned vision-language projection, balanced weighting, and inner-tuned hierarchical heads preserve minority Her2 and LumA-versus-LumB signals (D1, D9), while site-held-out CV audits confounding (D4).

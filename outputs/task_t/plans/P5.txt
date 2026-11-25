@@ -1,0 +1,5 @@
+Clinical-Query Cross-Attention Vision-Language Tile Transformer
+
+Each patient's H&E tiles from compact vision-language encoders (CONCH-Z, MUSK) pass through a learned linear bottleneck and shallow tile transformer, then undergo cross-attention queried by the six clinical variables including explicit missing receptor states. Conditioning tile selection on clinical status focuses spatial attention on invasive subregions relevant to LumA versus LumB separation or missing HER2 cases. Paired 5x3 nested cross-validation, 19-site held-out testing, and a 95% patient bootstrap interval quantify incremental PAM50 value.
+
+Rationale: Relevant H&E morphology depends on clinical context: ER+ cases require proliferative tiles to separate LumA and LumB, whereas indeterminate HER2 cases require receptor-associated cues (D2, D5, D7). Learned bottlenecks and clinical cross-attention bypass stain-dominated PCA directions (D3, D4, D6).

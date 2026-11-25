@@ -1,0 +1,171 @@
+{
+ "plan_id": "P6",
+ "finished": "2026-11-25T07:42:20-0500",
+ "self_gain": 0.07720908663571824,
+ "self_ci": [
+  0.035861369640250634,
+  0.12238343002932693
+ ],
+ "conclusion": "improves",
+ "macro_f1_plan": 0.6754689947136305,
+ "macro_f1_clinical": 0.5982599080779123,
+ "n_patients_both_arms": 802,
+ "n_patients_cohort": 802,
+ "n_folds_declared": 15,
+ "n_folds_run": 15,
+ "stopped_for_budget": false,
+ "comparators": {
+  "clinical_only": {
+   "macro_f1": 0.5982599080779123,
+   "tuned": true,
+   "n_configurations": 17,
+   "same_patients_and_folds": true
+  },
+  "simple_reference": {
+   "macro_f1": 0.6869124474104743,
+   "gain_over_clinical": 0.08865253933256194,
+   "gain_over_clinical_ci": [
+    0.05647322632256014,
+    0.1268808629115752
+   ],
+   "same_patients_and_folds": true
+  }
+ },
+ "gain_over_simple_reference": -0.011443452696843695,
+ "gain_over_simple_reference_ci": [
+  -0.04306598827802642,
+  0.019844988587794717
+ ],
+ "site_held_out": {
+  "design": "5 folds, each holding out whole collection sites",
+  "n_sites": 19,
+  "n_folds_run": 5,
+  "n_patients_scored": 802,
+  "stopped_for_budget": false,
+  "gain": 0.07369183303086779,
+  "ci": [
+   0.027610504774500277,
+   0.1232238607698002
+  ],
+  "macro_f1_plan": 0.6468185748388467,
+  "macro_f1_clinical": 0.573126741807979,
+  "conclusion": "improves"
+ },
+ "recall_plan": {
+  "LumA": 0.7699186991869919,
+  "LumB": 0.6087719298245614,
+  "Basal": 0.8126520681265207,
+  "Her2": 0.5743589743589744
+ },
+ "recall_clinical": {
+  "LumA": 0.6626016260162602,
+  "LumB": 0.4473684210526316,
+  "Basal": 0.8102189781021898,
+  "Her2": 0.5128205128205128
+ },
+ "recall_change": {
+  "LumA": 0.10731707317073169,
+  "LumB": 0.16140350877192983,
+  "Basal": 0.0024330900243308973,
+  "Her2": 0.06153846153846165
+ },
+ "validation": {
+  "k": 5,
+  "repeats": 3,
+  "selection": "nested",
+  "inner_k": 2,
+  "clinical_tuned": true,
+  "split_unit": "patient",
+  "repeats_run": 3
+ },
+ "n_configs_image_arm": 2,
+ "training": {
+  "n_fits_reported": 15,
+  "share_converged": 1.0,
+  "median_epochs": 28.0,
+  "median_seconds_per_fit": 25.71,
+  "stopped_by": [
+   "early_stopping"
+  ],
+  "example_curve": {
+   "train_loss": [
+    1.3807,
+    1.18055,
+    1.02239,
+    0.84597,
+    0.77942,
+    0.75653,
+    0.64076,
+    0.5856,
+    0.5625,
+    0.51775,
+    0.6226,
+    0.55785,
+    0.57471,
+    0.44734,
+    0.4949,
+    0.61053,
+    0.35096,
+    0.40998,
+    0.45586,
+    0.35711
+   ],
+   "val_loss": [
+    1.25508,
+    1.11655,
+    0.97122,
+    0.88111,
+    0.76962,
+    0.74237,
+    0.71842,
+    0.70474,
+    0.686,
+    0.68484,
+    0.68833,
+    0.69444,
+    0.70097,
+    0.71519,
+    0.7158,
+    0.74435,
+    0.75467,
+    0.75833,
+    0.73683,
+    0.76075
+   ],
+   "ssl_loss": [
+    2.6898,
+    2.018,
+    1.82461,
+    1.71647,
+    1.65323,
+    1.62097,
+    1.57223,
+    1.54275,
+    1.50529,
+    1.48781,
+    1.47066,
+    1.45612,
+    1.43221,
+    1.43416,
+    1.42937,
+    1.40273,
+    1.40065,
+    1.38751,
+    1.38165,
+    1.36616,
+    1.35999,
+    1.36523,
+    1.34866,
+    1.35347,
+    1.35064
+   ]
+  }
+ },
+ "deliverable": {
+  "file": "self_validation_oof.npz",
+  "complete": true
+ },
+ "seconds_total": 2165.1,
+ "cpus": 12,
+ "scope": "incremental predictive value in this labelled cohort; not an independent biological mechanism"
+}

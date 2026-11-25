@@ -1,0 +1,131 @@
+{
+ "plan_id": "P4",
+ "name": "Bidirectional Cis-Trans Count-Likelihood PMI Retrieval with Within-Cluster Deviance Weighting",
+ "summary": "Rather than compressing cells into a global latent vector, this plan scores cross-modal pairing directly in count space via bidirectional Pointwise Mutual Information. A forward Cis-Attention plus Trans-LSI Negative-Binomial decoder evaluates unsmoothed query RNA counts from candidate ATAC profiles, while a reverse dropout-aware encoder scores candidate ATAC accessibility against a marginal depth baseline. Inner-split excess-deviance gene weights prioritize within-cluster regulatory variation across nested 5-fold cross-validation. Benchmarking against all required floors, linear alignment, and split-half ceilings establishes whether retrieval achieves single-cell, sub-cluster, or cluster-only resolution.",
+ "complexity": "ambitious",
+ "analysis_unit": "Individual cell (single nucleus with co-measured RNA and ATAC in development splits)",
+ "inputs": {
+  "cis_peaks": {
+   "window_kb": 250,
+   "max_peaks_per_gene": 24
+  },
+  "lsi": {
+   "n_components": 96,
+   "max_peaks": 60000
+  },
+  "gene_activity": {
+   "mode": "promoter"
+  },
+  "depth": {}
+ },
+ "preprocessing": [
+  "Partition 7,288 paired development cells into 5 disjoint outer folds at cell level; split each outer training set 85%/15% into inner_train (~4,955 cells) and inner_val (~875 cells) with zero cell overlap.",
+  "Fit TF-IDF and 96-component truncated SVD strictly on inner_train binarised ATAC peaks, drop component 1, and linearly residualise remaining 95 LSI components against inner_train log ATAC fragment depth.",
+  "Select the top 6,000 in-scope genes on inner_train by nonzero UMI variance and cis-peak linkage; attach static genomic annotations (multi-scale exponential TSS-distance basis at 2/15/75/250 kb and promoter/distal flag) to up to 24 cis-peaks per gene, depth-normalising candidate cis-peak counts.",
+  "Construct RNA encoder inputs per cell from log1p-CP10K counts concatenated with per-gene Poisson dropout log-probabilities (-L_q * pi_train_g) so shallow-depth zeros are distinguished from biological repression without cross-cell smoothing.",
+  "Fit inner_train unsupervised k=20 k-means on depth-free ATAC LSI (for Floor 3 and within-cluster deviance calculation) and compute inverse local k-NN (k=15) density sample weights clipped to [0.5, 5.0] in inner_train PCA+LSI space to upweight rare populations without WNN labels.",
+  "Fit per-peak marginal logistic ATAC depth models logit P0(y_cp > 0 | D_c) = alpha_p + beta_p * log(D_c) strictly on inner_train across the 25,000 cis-linked peaks."
+ ],
+ "model": {
+  "component": "bidirectional_cistrans_pmi_retriever",
+  "params": {
+   "n_genes_evaluated": 6000,
+   "n_cis_peaks_reported": 25000,
+   "cis_attn_dim": 16,
+   "cis_attn_heads": 2,
+   "trans_rank": 48,
+   "rev_hidden_dim": 256,
+   "rev_low_rank_dim": 64,
+   "dropout": 0.15,
+   "within_cluster_weight_grid": [
+    0.0,
+    0.25,
+    0.5,
+    0.75,
+    1.0
+   ],
+   "bidirectional_lambda_grid": [
+    0.0,
+    0.25,
+    0.5,
+    0.75,
+    1.0
+   ],
+   "hubness_ref_bank_size": 512
+  }
+ },
+ "fusion": null,
+ "training": {
+  "max_epochs": 60,
+  "early_stopping_patience": 10,
+  "lr": 0.0015,
+  "batch_size": 128,
+  "weight_decay": 0.0001,
+  "target_denoising": "none",
+  "optimizer": "AdamW with cosine annealing",
+  "loss": "Inverse-density-weighted sum of exact forward Negative-Binomial NLL (with query UMI exposure L_q and simplex-constrained ATAC-predicted gene rates), reverse marginal-calibrated Bernoulli LLR NLL over cis-linked peaks, and auxiliary in-batch symmetric PMI margin loss (margin 0.1).",
+  "convergence_audit": "Record per-epoch inner_train and inner_val NB deviance, Bernoulli LLR, and retrieval MRR; require monotonic smoothing and early-stopping convergence verification before unlocking outer_test evaluation."
+ },
+ "validation": {
+  "scheme": "kfold",
+  "n_splits": 5,
+  "inner_val_fraction": 0.15,
+  "split_unit": "cell",
+  "candidate_pool_size": 1458,
+  "expanded_distractor_pool_size": 4582,
+  "metrics": [
+   "MRR",
+   "recall@1",
+   "recall@5",
+   "recall@10",
+   "FOSCTTM",
+   "1-FOSCTTM"
+  ],
+  "scoring_protocol": "Score each outer_test query RNA profile strictly independently against unsmoothed candidate ATAC profiles (both primary ~1,458-cell fold pool and secondary ~4,582-cell pool adding 3,124 held-out ATAC-only distractors) using deterministic mid-ranks for ties; assert programmatically that batch=1 and full-batch query scoring match within 1e-6.",
+  "comparators_on_identical_splits": [
+   "Floor 0: permutation null (uniform random ranking + analytical harmonic expectation check)",
+   "Floor 1: sequencing depth matching (inner_train OLS mapping query log RNA UMI to expected log ATAC fragments)",
+   "Floor 2: unlearned promoter-plus-proximal gene activity cosine similarity",
+   "Floor 3: inner_train k=20 cluster centroid matching with deterministic mid-rank tie handling",
+   "Simple linear reference: inner_train linear CCA alignment (64 components) on RNA PCA and depth-filtered ATAC LSI",
+   "Noise-ceiling ruler: binomial-thinning (p=0.5) split-half unimodal self-retrieval on outer_test cells"
+  ],
+  "statistical_inference": "2,000-resample paired nonparametric bootstrap across all 7,288 out-of-fold query cells for 95% CIs on MRR and paired differences versus every floor and linear reference; post-hoc WNN-stratified MRR and Recall@1 across all 19 populations controlled via Benjamini-Hochberg at 5% FDR."
+ },
+ "metrics": [
+  "Mean Reciprocal Rank (MRR) with deterministic mid-ranks for ties (primary)",
+  "Exact top-1, top-5, and top-10 retrieval rates (Recall@1, Recall@5, Recall@10)",
+  "1 - FOSCTTM and FOSCTTM",
+  "Post-hoc within-population and macro-averaged MRR and Recall@1 across 19 WNN cell types (BH 5% FDR)",
+  "Ratio of cross-modal MRR to binomial-thinning unimodal split-half self-retrieval noise ceiling",
+  "Candidate-pool scaling retention from 1,458 paired candidates to 4,582 distractor-augmented candidates"
+ ],
+ "allowed_conclusions": "Select one of the four objective conclusions solely from paired-bootstrap 95% CIs on identical unseen cells: single-cell resolution requires high Recall@1 approaching the split-half ceiling and 95% CI > 0 over Floor 3 and linear CCA; sub-cluster neighborhood resolution requires 95% CI > 0 over Floors 0-3 (and linear reference if nonlinear complexity is claimed) while Recall@1 remains limited by single-cell sparsity; cell-type resolution holds if Floors 0-1 are beaten but Floor 3 is not; no biological retrieval holds otherwise. Scope strictly restricted to granulocyte-depleted PBMCs of this single healthy donor at this sequencing depth and pool size.",
+ "budget": {
+  "needs_gpu": true,
+  "pilot_minutes": 10.0,
+  "full_minutes": 45.0,
+  "cpus": 32
+ },
+ "diversity": {
+  "data": "tss_annotated_cis_peaks_plus_depth_free_trans_lsi_and_dropout_calibrated_counts",
+  "model": "bidirectional_cistrans_nb_bernoulli_pmi_decoder",
+  "method": "per_gene_within_cluster_deviance_weighted_bidirectional_pmi_retrieval"
+ },
+ "rationale": "Simplex-constrained Negative-Binomial and depth-calibrated Bernoulli likelihood ratios separate true repression from sampling dropout (D1) while cancelling depth confounding (D5) and candidate hubness. Inner-split excess-deviance gene weights amplify within-cluster cis-regulatory variation beyond coarse identity (D6), and unsupervised inverse-density weights protect rare states without WNN labels (D2, D4).",
+ "difficulties_addressed": [
+  "D1",
+  "D2",
+  "D3",
+  "D4",
+  "D5",
+  "D6",
+  "D7"
+ ],
+ "new_components": [
+  {
+   "name": "bidirectional_cistrans_pmi_retriever",
+   "description": "Per-feature bidirectional cross-modal count-likelihood scorer avoiding global bottleneck compression. Inputs: candidate depth-normalised cis_peaks with TSS-distance/promoter encodings, depth-residualised trans lsi, promoter gene_activity skip, raw query RNA UMI counts with total UMI exposure L_q, and candidate binarised cis-peaks with ATAC depth D_c. Forward head uses multi-head cis-attention modulated by trans-LSI to output simplex-normalised gene rates pi_cg (summing to 1, invariant to candidate depth) and per-gene NB dispersions r_g, scoring exact per-gene NB log-likelihoods of query RNA counts centered against a fixed inner_train RNA bank. Reverse head maps dropout-aware RNA inputs via a residual MLP and rank-64 bottleneck to cis-peak log-odds shifts over frozen inner_train marginal depth baselines logit P0(y_cp>0|D_c), computing exact depth-deconfounded Bernoulli log-likelihood ratios. Outputs: per-(query, candidate) PMI matrix combining forward NB scores (weighted by inner_val total and beyond-k20-cluster deviance explained) and reverse Bernoulli LLRs using inner_val-selected hyperparameters, scoring each query independently."
+  }
+ ]
+}

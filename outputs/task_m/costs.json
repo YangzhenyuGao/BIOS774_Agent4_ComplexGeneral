@@ -1,0 +1,121 @@
+{
+ "collected": "2026-11-25T11:48:01-0500",
+ "plans": {
+  "P1": {
+   "pilot": {
+    "wall_seconds": 16.0,
+    "cpus": 32,
+    "cpu_core_hours": 0.142,
+    "gpu_hours": 0.0,
+    "device": "cpu"
+   },
+   "full": {
+    "wall_seconds": 956.2,
+    "cpus": 32,
+    "cpu_core_hours": 8.5,
+    "gpu_hours": 0.0,
+    "device": "cpu"
+   }
+  },
+  "P2": {
+   "pilot": {
+    "wall_seconds": 66.8,
+    "cpus": 32,
+    "cpu_core_hours": 0.594,
+    "gpu_hours": 0.0,
+    "device": "cpu"
+   },
+   "full": {
+    "wall_seconds": 4130.7,
+    "cpus": 32,
+    "cpu_core_hours": 36.717,
+    "gpu_hours": 0.0,
+    "device": "cpu"
+   }
+  },
+  "P3": {
+   "pilot": {
+    "wall_seconds": 172.9,
+    "cpus": 32,
+    "cpu_core_hours": 1.537,
+    "gpu_hours": 0.0,
+    "device": "cpu"
+   },
+   "full": {
+    "wall_seconds": 3594.3,
+    "cpus": 32,
+    "cpu_core_hours": 31.949,
+    "gpu_hours": 0.0,
+    "device": "cpu"
+   }
+  },
+  "P4": {
+   "pilot": {
+    "wall_seconds": 39.8,
+    "cpus": 32,
+    "cpu_core_hours": 0.354,
+    "gpu_hours": 0.0,
+    "device": "cpu"
+   },
+   "full": {
+    "wall_seconds": 588.0,
+    "cpus": 32,
+    "cpu_core_hours": 5.227,
+    "gpu_hours": 0.0,
+    "device": "cpu"
+   }
+  },
+  "P5": {
+   "pilot": {
+    "wall_seconds": 181.6,
+    "cpus": 32,
+    "cpu_core_hours": 1.614,
+    "gpu_hours": 0.0,
+    "device": "cpu"
+   },
+   "full": {
+    "wall_seconds": 3294.9,
+    "cpus": 32,
+    "cpu_core_hours": 29.288,
+    "gpu_hours": 0.0,
+    "device": "cpu"
+   }
+  },
+  "P6": {
+   "pilot": {
+    "wall_seconds": 780.7,
+    "cpus": 32,
+    "cpu_core_hours": 6.94,
+    "gpu_hours": 0.0,
+    "device": "cpu"
+   },
+   "full": {
+    "wall_seconds": 4375.7,
+    "cpus": 32,
+    "cpu_core_hours": 38.895,
+    "gpu_hours": 0.0,
+    "device": "cpu"
+   }
+  }
+ },
+ "llm": {
+  "generator": {
+   "answered_calls": 19,
+   "failed_attempts": 33,
+   "input_tokens": 120550,
+   "output_tokens": 42008,
+   "thinking_tokens": 392738,
+   "wall_seconds": 17614.4,
+   "list_price_usd": 0
+  },
+  "judge": {
+   "answered_calls": 62,
+   "failed_attempts": 0,
+   "input_tokens": 755538,
+   "output_tokens": 57507,
+   "thinking_tokens": 18315,
+   "wall_seconds": 612.7,
+   "list_price_usd": 6.8812
+  }
+ }
+}

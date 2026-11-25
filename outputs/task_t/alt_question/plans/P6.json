@@ -1,0 +1,179 @@
+{
+ "plan_id": "P6",
+ "name": "Semi-Supervised Five-Encoder Shared-Private Product-of-Experts VIB",
+ "summary": "Each patient is represented by five foundation-model mean embeddings whitened inside training folds using labelled and unlabelled H&E cohorts. A semi-supervised Shared-Private Product-of-Experts Variational Information Bottleneck infers a consensus latent posterior across encoders while routing encoder-specific technical artifacts into orthogonal private latents via masked cross-view decoding. A logit-adjusted cosine classifier with inner-fold temperature scaling and macro-F1 threshold tuning predicts PAM50 subtypes. Repeated nested patient-level and 19-site-held-out cross-validation against null and linear baselines establishes broad, partial, site-confounded, or insufficient predictability.",
+ "complexity": "ambitious",
+ "analysis_unit": "patient",
+ "inputs": {
+  "image": {
+   "encoders": [
+    "UNI2-h",
+    "CONCH-Z",
+    "Virchow2",
+    "MUSK",
+    "H-Optimus-1"
+   ],
+   "level": "patient",
+   "reduce": {
+    "type": "pca",
+    "dim": 256
+   }
+  },
+  "clinical": {
+   "variables": [],
+   "use": false
+  }
+ },
+ "preprocessing": [
+  "Exclude all clinical (age, stage, histological_type), IHC receptor (er, pr, her2), RNA-derived, and site variables from predictors and preprocessing; retain patient_id for grouping and site solely for held-out site CV splits (A1).",
+  "Verify one-record-per-patient mean H&E vectors across multi-slide patients prior to splitting so all slides and tiles of every patient remain on one side of every fold and bootstrap resample (A2).",
+  "Inside each inner and outer training fold, pool labelled training patients with the 259 unlabelled H&E patients (excluding unlabelled patients from all validation/test scoring per A7), apply per-patient L2 normalization per encoder, center, and fit regularised whitened PCA (dim=256, shrinkage epsilon=1e-3) per encoder strictly on the training-fold pool (A3).",
+  "Compute empirical four-class PAM50 priors on labelled training-fold patients only for logit-adjusted training, post-hoc prior-consistent calibration, and null baselines."
+ ],
+ "model": {
+  "component": "shared_private_poe_vib",
+  "params": {
+   "encoders": [
+    "UNI2-h",
+    "CONCH-Z",
+    "Virchow2",
+    "MUSK",
+    "H-Optimus-1"
+   ],
+   "uses_unlabelled": true,
+   "encoder_hidden_dim": 192,
+   "shared_dim": 64,
+   "private_dim": 16,
+   "dropout": 0.25,
+   "beta_kl": 0.05,
+   "rec_weight": 0.5,
+   "orth_weight": 0.1,
+   "logit_adjust_tau": 1.0,
+   "encoder_mask_prob": 0.3,
+   "head": "flat",
+   "posthoc_calibration": "inner_fold_temperature_plus_simplex_macro_f1_thresholds"
+  }
+ },
+ "fusion": "none",
+ "training": {
+  "optimizer": "AdamW",
+  "max_epochs": 150,
+  "batch_size": 64,
+  "early_stopping_patience": 25,
+  "lr": 0.001,
+  "weight_decay": 0.01,
+  "kl_warmup_epochs": 20,
+  "class_weighting": "balanced",
+  "augmentation": {
+   "tile_resample": null,
+   "mixup_alpha": 0.2,
+   "tile_dropout": 0.0
+  },
+  "n_seeds_ensemble": 3,
+  "convergence_rule": "Require interior validation loss minimum or trailing 15-epoch ELBO slope below 1e-3 of initial loss drop before termination, logging per-epoch loss and macro-F1 curves (A6).",
+  "tuning": {
+   "selection_metric": "inner_oof_macro_f1",
+   "tie_breaker": "1-SE parsimony rule across inner folds preferring smaller shared_dim and higher beta_kl when differences fall within run-to-run spread.",
+   "grid": [
+    {
+     "shared_dim": 48,
+     "private_dim": 16,
+     "beta_kl": 0.05,
+     "logit_adjust_tau": 1.0,
+     "rec_weight": 0.5
+    },
+    {
+     "shared_dim": 64,
+     "private_dim": 16,
+     "beta_kl": 0.02,
+     "logit_adjust_tau": 1.0,
+     "rec_weight": 0.5
+    },
+    {
+     "shared_dim": 64,
+     "private_dim": 24,
+     "beta_kl": 0.05,
+     "logit_adjust_tau": 1.25,
+     "rec_weight": 0.25
+    },
+    {
+     "shared_dim": 96,
+     "private_dim": 24,
+     "beta_kl": 0.1,
+     "logit_adjust_tau": 0.75,
+     "rec_weight": 0.5
+    }
+   ]
+  }
+ },
+ "validation": {
+  "scheme": "repeated_kfold",
+  "k": 5,
+  "repeats": 3,
+  "split_unit": "patient",
+  "stratified": true,
+  "selection": "nested",
+  "inner_k": 3,
+  "clinical_comparator": {
+   "tuned": false
+  },
+  "comparators_on_identical_splits": [
+   "majority_class_null",
+   "stratified_class_prior_null",
+   "patient_mean_logreg"
+  ],
+  "site_held_out_cv": {
+   "scheme": "leave_one_site_out_grouped_cv",
+   "group_column": "site",
+   "n_groups": 19,
+   "selection": "nested_site_grouped",
+   "inner_k": 3,
+   "scoring": "pooled_out_of_fold_labelled_patients"
+  },
+  "interval": "bootstrap",
+  "bootstrap_resamples": 10000,
+  "sanity_checks": [
+   "Assert zero forbidden features in model inputs",
+   "Assert zero patient overlap across splits",
+   "Verify null baselines match analytical class-prior entropy and zero minority recall before scoring"
+  ]
+ },
+ "metrics": [
+  "Out-of-fold four-class macro-F1 across 3x5 repeated nested patient CV with 95% patient-level bootstrap CI",
+  "Paired out-of-fold macro-F1 gain over majority-class and stratified class-prior null baselines with 95% patient-level bootstrap CIs",
+  "Paired out-of-fold macro-F1 difference versus inner-tuned single-encoder patient-mean balanced logistic regression reference with 95% patient-level bootstrap CI",
+  "Proportion of class-prior multi-class log-loss (Shannon entropy) explained out-of-fold with 95% patient-level bootstrap CI",
+  "Macro and per-class one-vs-rest AUROC across LumA, LumB, Basal, and Her2 with 95% patient-level bootstrap CIs",
+  "Per-class recall, precision, and F1 for LumA, LumB, Basal, and Her2 including LumA-versus-LumB confusion rates",
+  "19-site-held-out grouped CV out-of-fold macro-F1 and paired gain over chance with 95% patient-level bootstrap CI",
+  "Per-fold training ELBO, cross-view reconstruction, and inner-validation macro-F1 convergence trajectories"
+ ],
+ "allowed_conclusions": "Select strictly one pre-specified conclusion from 95% patient-level bootstrap CIs: Broad predictability if macro-F1 beats chance in both patient-level and 19-site-held-out CV and all four PAM50 subtypes individually beat chance; Partial predictability if macro-F1 beats chance in both CVs but at least one subtype fails to beat chance; Site-confounded predictability if patient-CV macro-F1 beats chance but the 19-site-held-out paired 95% CI over chance includes or falls below zero; or Insufficient evidence if the patient-CV paired 95% CI over chance includes or falls below zero. Additionally state whether multi-encoder variational disentanglement improves over the simple linear H&E reference within TCGA-BRCA scope only, claiming neither incremental gain over clinical variables nor biological causality.",
+ "budget": {
+  "needs_gpu": false,
+  "pilot_minutes": 4.0,
+  "full_minutes": 35.0,
+  "cpus": 16
+ },
+ "diversity": {
+  "data": "five_encoder_patient_means_pca256_plus_unlabelled",
+  "model": "shared_private_poe_variational_information_bottleneck",
+  "method": "masked_cross_view_disentangled_elbo_with_bayes_calibrated_thresholds"
+ },
+ "rationale": "Five encoders create 7,424 features for 802 patients alongside strong site confounding and 8.1% Her2 prevalence. Semi-supervised Product-of-Experts inference extracts cross-encoder morphological consensus while orthogonal private latents absorb scanner-specific artifacts without using site labels. Logit-adjusted cosine classification with inner-fold calibration protects minority recall and log-loss.",
+ "difficulties_addressed": [
+  "D1",
+  "D3",
+  "D4",
+  "D5",
+  "D6",
+  "D8",
+  "D9"
+ ],
+ "new_components": [
+  {
+   "name": "shared_private_poe_vib",
+   "description": "Computes a semi-supervised multi-view Shared-Private Product-of-Experts Variational Information Bottleneck across M=5 patient-level encoder vectors (each 256-dim fold-whitened PCA). Inputs: 5 aligned patient vectors for labelled and unlabelled training-fold patients plus integer PAM50 labels for labelled training patients only (5 vectors per held-out labelled patient at inference). Architecture: M view-specific 2-layer LayerNorm-GELU-Dropout MLPs map each view m to shared diagonal Gaussian posterior parameters (mu_m, clamp(logvar_m, -6, 6)) in R^{shared_dim} and deterministic private latents z_priv_m in R^{private_dim}. Closed-form precision-weighted Product-of-Experts combines active views S with prior N(0,I): prec_poe = 1 + sum_{m in S} exp(-logvar_m), mu_poe = prec_poe^{-1} sum_{m in S} exp(-logvar_m)*mu_m. View decoders reconstruct all M views from [z_shared, z_priv_m] (substituting zero private vector for masked views m not in S). A cosine-normalized linear head with learnable scale maps z_shared (using deterministic mu_poe at test time) to 4 class scores f(z). Training: AdamW on mixed labelled+unlabelled mini-batches with random view masking (p=0.3, keeping >=2 views) and labelled latent mixup, minimizing logit-adjusted cross-entropy CE(f(z) + tau*log(pi_train), y) on labelled samples plus rec_weight*MSE across all M views, linearly warmed beta_kl*KL(q_poe||N(0,I)), and orth_weight*sum(||z_shared^T z_priv_m||_F^2 + 0.1*||z_priv_m||_2^2) on all training+unlabelled samples. After convergence, fits scalar temperature T>0 (inner-val NLL) for calibrated probabilities p_hat = softmax((f(mu_poe)+log(pi_train))/T) and simplex weights alpha in Delta^3 (coordinate ascent on inner-val macro-F1) for discrete predictions argmax_c(alpha_c * p_hat_c), averaging p_hat across n_seeds_ensemble seeds. Outputs: calibrated 4-class probabilities, macro-F1-calibrated class predictions, consensus embeddings, and epoch loss/metric curves."
+  }
+ ]
+}

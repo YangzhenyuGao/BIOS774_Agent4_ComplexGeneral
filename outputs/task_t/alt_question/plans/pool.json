@@ -1,0 +1,420 @@
+{
+ "frozen": "2026-11-25T07:43:26-0500",
+ "plan_ids": [
+  "P1",
+  "P2",
+  "P3",
+  "P4",
+  "P5",
+  "P6"
+ ],
+ "selection_report": {
+  "n_candidates": 8,
+  "n_after_dedup": 8,
+  "n_pool": 6,
+  "n_ambitious": 5,
+  "n_simple": 1,
+  "diversity_coverage": {
+   "data": [
+    "five_encoder_aligned_tile_bags_pca128",
+    "five_encoder_patient_means_pca256_plus_unlabelled",
+    "pure_vision_multiscale_tile_prototypes_plus_patient_pca",
+    "single_encoder_patient_mean_pca",
+    "unreduced_spherical_conchz_hoptimus1_tile_bags",
+    "vision_language_tiles_plus_unlabelled_linear_proj"
+   ],
+   "model": [
+    "decoupled_two_stage_hierarchical_multihead_mil",
+    "gated_multi_encoder_attention_mil",
+    "kmeans_prototype_histograms_and_gbdt_meta_stack",
+    "regularised_multinomial_logreg",
+    "shared_private_poe_variational_information_bottleneck",
+    "ssl_preadapted_transformer_mil_hierarchical_head"
+   ],
+   "method": [
+    "coarse_lineage_then_luminal_specialist_with_site_grouped_inner_tuning",
+    "fold_internal_subbag_ssl_then_balanced_finetuning",
+    "masked_cross_view_disentangled_elbo_with_bayes_calibrated_thresholds",
+    "multiscale_compositional_and_global_oof_probability_stacking",
+    "nested_selected_linear_reference",
+    "tile_level_early_gated_fusion_seed_ensemble"
+   ]
+  },
+  "diversity_ok": true,
+  "threshold": 0.75,
+  "pairwise_similarity": {
+   "R0B1C1|R0B2C1": 0.429,
+   "R0B1C1|R0B3C1": 0.286,
+   "R0B1C1|R0B4C1": 0.286,
+   "R0B1C1|R0B5C1": 0.286,
+   "R0B1C1|R0B6C1": 0.667,
+   "R0B2C1|R0B3C1": 0.429,
+   "R0B2C1|R0B4C1": 0.375,
+   "R0B2C1|R0B5C1": 0.429,
+   "R0B2C1|R0B6C1": 0.429,
+   "R0B3C1|R0B4C1": 0.375,
+   "R0B3C1|R0B5C1": 0.429,
+   "R0B3C1|R0B6C1": 0.286,
+   "R0B4C1|R0B5C1": 0.375,
+   "R0B4C1|R0B6C1": 0.286,
+   "R0B5C1|R0B6C1": 0.286
+  },
+  "renamed_from_candidate_ids": {
+   "R0B1C1": "P1",
+   "R0B2C1": "P2",
+   "R0B3C1": "P3",
+   "R0B4C1": "P4",
+   "R0B5C1": "P5",
+   "R0B6C1": "P6"
+  },
+  "invalid_candidates": []
+ },
+ "generation_calls": [
+  {
+   "round": 0,
+   "model": "gemini-4-carbon",
+   "cache_key": "405c6f81f2b428631186704f0cfb80f1",
+   "system_sha256": "66a1f7ee014287746be00c8ba769be9dd502fe0b150444a96ee350e0090bfb7b",
+   "prompt_sha256": "72d7d61d7c948802bc69c1bb3cb8f2e915faa7f99e8ab8e7f070de5c168d88fc",
+   "lessons": [
+    "K6",
+    "K5",
+    "K9",
+    "K1",
+    "K8",
+    "K10",
+    "K3",
+    "K7"
+   ],
+   "seconds": 142.2,
+   "attempts": [
+    {
+     "model": "gemini-4-carbon",
+     "ok": true,
+     "seconds": 142.2
+    }
+   ],
+   "usage": {
+    "input_tokens": 6565,
+    "output_tokens": 1486,
+    "thinking_tokens": 10277,
+    "finish_reason": "STOP"
+   }
+  },
+  {
+   "round": 0,
+   "model": "gemini-4-carbon",
+   "cache_key": "64249fee04eb64fc1028f1205baecee8",
+   "system_sha256": "04cc8f2f5c8e60a83cb1aed2b56ce0bd779bafa7dab46de696abd269601410c8",
+   "prompt_sha256": "cdc8f1edfe8ccc38356a22c5474d3e73d660937bf579b55a8a573d294b50034b",
+   "lessons": [
+    "K6",
+    "K5",
+    "K9",
+    "K1",
+    "K8",
+    "K10",
+    "K3",
+    "K7"
+   ],
+   "seconds": 254.3,
+   "attempts": [
+    {
+     "model": "gemini-4-carbon",
+     "ok": true,
+     "seconds": 254.3
+    }
+   ],
+   "usage": {
+    "input_tokens": 6743,
+    "output_tokens": 1985,
+    "thinking_tokens": 19122,
+    "finish_reason": "STOP"
+   }
+  },
+  {
+   "round": 0,
+   "model": "gemini-4-carbon",
+   "cache_key": "a41de81c808ae31a1b5f30e5f3a99cfd",
+   "system_sha256": "f4b4e05af4161e0e8d6137e63f79a5446f251ce658a095668c3669e9c02f17bc",
+   "prompt_sha256": "bcc7a45f2868d300e4881f7d150c6691a85bca73ad4f43b2c5ce6146b8eb24ec",
+   "lessons": [
+    "K6",
+    "K5",
+    "K9",
+    "K1",
+    "K8",
+    "K10",
+    "K3",
+    "K7"
+   ],
+   "seconds": 290.1,
+   "attempts": [
+    {
+     "model": "gemini-4-carbon",
+     "ok": true,
+     "seconds": 290.1
+    }
+   ],
+   "usage": {
+    "input_tokens": 6948,
+    "output_tokens": 2108,
+    "thinking_tokens": 19775,
+    "finish_reason": "STOP"
+   }
+  },
+  {
+   "round": 0,
+   "model": "gemini-4-carbon",
+   "cache_key": "6556d946405ca8d35910036e0c89737f",
+   "system_sha256": "48a96407205e05131f6e3da39feed655040276c0a69f4b8a04d282a15dcf89d4",
+   "prompt_sha256": "617ec1c3b4d4a5a2edbeca4052b3e7a9e05adb5a6128d94c4ea77df4689b2cb7",
+   "lessons": [
+    "K6",
+    "K5",
+    "K9",
+    "K1",
+    "K8",
+    "K10",
+    "K3",
+    "K7"
+   ],
+   "seconds": 278.4,
+   "attempts": [
+    {
+     "model": "gemini-4-carbon",
+     "ok": true,
+     "seconds": 278.4
+    }
+   ],
+   "usage": {
+    "input_tokens": 7145,
+    "output_tokens": 2554,
+    "thinking_tokens": 20915,
+    "finish_reason": "STOP"
+   }
+  },
+  {
+   "round": 0,
+   "model": "gemini-4-carbon",
+   "cache_key": "518db365098ff2b5669f2db283bbeca3",
+   "system_sha256": "d2f634f1d2795d8aaa5bee8a1c3d3f0ee96d64043887de8324af162032a59cff",
+   "prompt_sha256": "f410d6c662532f957125839a07f0d2133a29f265ac353804a3cedde2541028bd",
+   "lessons": [
+    "K6",
+    "K5",
+    "K9",
+    "K1",
+    "K8",
+    "K10",
+    "K3",
+    "K7"
+   ],
+   "seconds": 274.8,
+   "attempts": [
+    {
+     "model": "gemini-4-carbon",
+     "ok": true,
+     "seconds": 274.8
+    }
+   ],
+   "usage": {
+    "input_tokens": 7354,
+    "output_tokens": 2182,
+    "thinking_tokens": 20160,
+    "finish_reason": "STOP"
+   }
+  },
+  {
+   "round": 0,
+   "model": "gemini-4-carbon",
+   "cache_key": "9a84106c97086dbc8f9f699d66b6b674",
+   "system_sha256": "52ef5e3819abae75a720c008776b4de832b960369a4a79f101685bc1c7b71e8b",
+   "prompt_sha256": "fa1e6dc2fae7594376ea469092a74dc8e1f5e221fed57228675be2b9610f2202",
+   "lessons": [
+    "K6",
+    "K5",
+    "K9",
+    "K1",
+    "K8",
+    "K10",
+    "K3",
+    "K7"
+   ],
+   "seconds": 2874.7,
+   "attempts": [
+    {
+     "model": "gemini-4-carbon",
+     "ok": false,
+     "kind": "timeout",
+     "seconds": 360.1,
+     "error": "ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Read timed out. (read timeout=360)\"))"
+    },
+    {
+     "model": "gemini-4-carbon",
+     "ok": false,
+     "kind": "timeout",
+     "seconds": 360.2,
+     "error": "ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Read timed out. (read timeout=360)\"))"
+    },
+    {
+     "model": "gemini-4-carbon",
+     "ok": false,
+     "kind": "timeout",
+     "seconds": 360.2,
+     "error": "ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Read timed out. (read timeout=360)\"))"
+    },
+    {
+     "model": "gemini-4-carbon",
+     "ok": false,
+     "kind": "timeout",
+     "seconds": 360.2,
+     "error": "ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Read timed out. (read timeout=360)\"))"
+    },
+    {
+     "model": "gemini-4-carbon",
+     "ok": false,
+     "kind": "timeout",
+     "seconds": 360.2,
+     "error": "ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Read timed out. (read timeout=360)\"))"
+    },
+    {
+     "model": "gemini-4-carbon",
+     "ok": false,
+     "kind": "timeout",
+     "seconds": 360.2,
+     "error": "ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Read timed out. (read timeout=360)\"))"
+    },
+    {
+     "model": "gemini-4-carbon",
+     "ok": false,
+     "kind": "timeout",
+     "seconds": 360.2,
+     "error": "ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Read timed out. (read timeout=360)\"))"
+    },
+    {
+     "model": "gemini-4-carbon",
+     "ok": true,
+     "seconds": 283.6
+    }
+   ],
+   "usage": {
+    "input_tokens": 7561,
+    "output_tokens": 2599,
+    "thinking_tokens": 20592,
+    "finish_reason": "STOP"
+   }
+  },
+  {
+   "round": 0,
+   "model": "gemini-4-carbon",
+   "cache_key": "b8d192a30fe20cc121173d71eb29887a",
+   "system_sha256": "a7334a4d1c90d52011f642fedc4c61d8450d4a3887cd72c2305e8a810c9552d1",
+   "prompt_sha256": "bd7e6082620d8f3b5c8246f95a29f7c576c6ea350515ecfd1e2b35c146798297",
+   "lessons": [
+    "K6",
+    "K5",
+    "K9",
+    "K1",
+    "K8",
+    "K10",
+    "K3",
+    "K7"
+   ],
+   "seconds": 2909.9,
+   "attempts": [
+    {
+     "model": "gemini-4-carbon",
+     "ok": false,
+     "kind": "timeout",
+     "seconds": 360.1,
+     "error": "ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Read timed out. (read timeout=360)\"))"
+    },
+    {
+     "model": "gemini-4-carbon",
+     "ok": false,
+     "kind": "timeout",
+     "seconds": 360.2,
+     "error": "ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Read timed out. (read timeout=360)\"))"
+    },
+    {
+     "model": "gemini-4-carbon",
+     "ok": false,
+     "kind": "timeout",
+     "seconds": 360.1,
+     "error": "ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Read timed out. (read timeout=360)\"))"
+    },
+    {
+     "model": "gemini-4-carbon",
+     "ok": false,
+     "kind": "timeout",
+     "seconds": 360.1,
+     "error": "ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Read timed out. (read timeout=360)\"))"
+    },
+    {
+     "model": "gemini-4-carbon",
+     "ok": false,
+     "kind": "timeout",
+     "seconds": 360.2,
+     "error": "ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Read timed out. (read timeout=360)\"))"
+    },
+    {
+     "model": "gemini-4-carbon",
+     "ok": false,
+     "kind": "timeout",
+     "seconds": 360.2,
+     "error": "ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Read timed out. (read timeout=360)\"))"
+    },
+    {
+     "model": "gemini-4-carbon",
+     "ok": false,
+     "kind": "timeout",
+     "seconds": 360.2,
+     "error": "ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Read timed out. (read timeout=360)\"))"
+    },
+    {
+     "model": "gemini-4-carbon",
+     "ok": true,
+     "seconds": 318.8
+    }
+   ],
+   "usage": {
+    "input_tokens": 7789,
+    "output_tokens": 1901,
+    "thinking_tokens": 22138,
+    "finish_reason": "STOP"
+   }
+  },
+  {
+   "round": 0,
+   "model": "gemini-4-carbon",
+   "cache_key": "9b8220028a74cfb998dfc29935c1bc79",
+   "system_sha256": "c1d59f59918e85770a90869a643176acbf9c6150279fd49dbe23e14039c0fee9",
+   "prompt_sha256": "80c21953c6bc29d8d5558b18d3661f5ffed6366060a8b3e619d32dad4e292dd8",
+   "lessons": [
+    "K6",
+    "K5",
+    "K9",
+    "K1",
+    "K8",
+    "K10",
+    "K3",
+    "K7"
+   ],
+   "seconds": 332.9,
+   "attempts": [
+    {
+     "model": "gemini-4-carbon",
+     "ok": true,
+     "seconds": 332.9
+    }
+   ],
+   "usage": {
+    "input_tokens": 7984,
+    "output_tokens": 2896,
+    "thinking_tokens": 22335,
+    "finish_reason": "STOP"
+   }
+  }
+ ]
+}

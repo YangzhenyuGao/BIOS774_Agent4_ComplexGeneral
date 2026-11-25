@@ -1,0 +1,593 @@
+{
+ "created": "2026-11-25T11:48:07-0500",
+ "task_id": "task_m",
+ "n_files": 117,
+ "note": "The evaluator keeps the unified scores of benchmark 1 in its own directory; they are not listed here and selection methods must not read them.",
+ "files": [
+  {
+   "path": "shared_inputs/constraints.json",
+   "bytes": 2143,
+   "sha256": "684958f8e876ff4156ea5bacd741204550fc7e4a048a0eb0e7c00ac2f06bffdc"
+  },
+  {
+   "path": "shared_inputs/difficulties.json",
+   "bytes": 3642,
+   "sha256": "218f21ff4e196b4520a15c934e144940f0838fd6a2801db2c669e2837dc4791b"
+  },
+  {
+   "path": "shared_inputs/objective.json",
+   "bytes": 9040,
+   "sha256": "40884c94155984e572cbce830a428983a1872d0aba9de3fc3448693e6e7c09f7"
+  },
+  {
+   "path": "shared_inputs/objective_provenance.json",
+   "bytes": 185,
+   "sha256": "f41a56b2c0d1fb84fa92f1e4b70287b9f1fe5ebaf5db096d0876cfe9fc58e7c3"
+  },
+  {
+   "path": "shared_inputs/profile.json",
+   "bytes": 7616,
+   "sha256": "f0566b4a819744e713228575bdc8e9c8b5703bc596c693a863867bd45f516aba"
+  },
+  {
+   "path": "shared_inputs/question.txt",
+   "bytes": 250,
+   "sha256": "bd57109fba2653d3710192244e2497a3957c285b85c4c43274ffec122c40b7a2"
+  },
+  {
+   "path": "plans/P1.json",
+   "bytes": 5615,
+   "sha256": "2077bce0c03c05a7ecd881eca89cc47bf1ac751e9c44e5d19faa7d668a020dd4"
+  },
+  {
+   "path": "plans/P1.txt",
+   "bytes": 974,
+   "sha256": "a311910506191990fb29368b1050bb2c9d2e7492aa7f4a867f7c5177f3a12802"
+  },
+  {
+   "path": "plans/P2.json",
+   "bytes": 5868,
+   "sha256": "05f31154c3cf5643f1e76b7d0a8378765658375af25bab7971c8abcba0faecc4"
+  },
+  {
+   "path": "plans/P2.txt",
+   "bytes": 895,
+   "sha256": "b35584b54c36af889cbbfae35d5bec43ac44a7d38c1222f709c2846f5d52adde"
+  },
+  {
+   "path": "plans/P3.json",
+   "bytes": 6368,
+   "sha256": "e501dd4347b44e14cdae275c7e190cbb84d83ea5efc0e5caff464475eb5531c4"
+  },
+  {
+   "path": "plans/P3.txt",
+   "bytes": 966,
+   "sha256": "21d1ce4a62d21b77dfab2a3e2c4d85d1894b003c99ca7e529229f781bb4b922c"
+  },
+  {
+   "path": "plans/P4.json",
+   "bytes": 6513,
+   "sha256": "27f855f3f86dcb979651083887c44829ed5b5611b952af0282bdfc91fcda0ce3"
+  },
+  {
+   "path": "plans/P4.txt",
+   "bytes": 943,
+   "sha256": "606176c5d90f72857d2569e6bea20a296967cf08570ad4ceefd0cda365d3cda1"
+  },
+  {
+   "path": "plans/P5.json",
+   "bytes": 6793,
+   "sha256": "12ec3af263e7e5ab7578eec7a2bb287f87e5047b3f2a0d0b542eaa632d4c7bf7"
+  },
+  {
+   "path": "plans/P5.txt",
+   "bytes": 960,
+   "sha256": "5a3f6e674c07fd2d328a463e328ff744ed6893fab675a81ad1d80ef29e77c338"
+  },
+  {
+   "path": "plans/P6.json",
+   "bytes": 7930,
+   "sha256": "759cf562d7eb959b76803c6fdd3d670207f0495fb9bf56b5edb772f3eacec42c"
+  },
+  {
+   "path": "plans/P6.txt",
+   "bytes": 961,
+   "sha256": "c0de19ca5aa4cb1ba40945bb66ebeea191d53d8af3e0851c2dbbb7c5de990c9a"
+  },
+  {
+   "path": "plans/compliance.json",
+   "bytes": 21623,
+   "sha256": "a9d696d85efc33eab760dddf2af4f937220409bda865ed4fe957aba817a821c6"
+  },
+  {
+   "path": "plans/dropped.json",
+   "bytes": 16766,
+   "sha256": "11db6a82db446a619cbcc59e876e16f8853886bc4ce2e30e56a9a89337374333"
+  },
+  {
+   "path": "plans/pool.json",
+   "bytes": 7536,
+   "sha256": "58f0dbb7f86efe81cb3474f0895f2f9c5bc1541240cdc75158db7a9cc4d13f22"
+  },
+  {
+   "path": "plans/provenance/generation_call1.json",
+   "bytes": 34146,
+   "sha256": "080877fe24f65a147772f273aca5872d7648b3ce26cf151a685367131c4bca38"
+  },
+  {
+   "path": "plans/provenance/generation_call2.json",
+   "bytes": 34837,
+   "sha256": "4aee695bfd5911559d622b618e4d9bb6699f11fcc3ba93846a3c632fe3918613"
+  },
+  {
+   "path": "plans/provenance/generation_call3.json",
+   "bytes": 36063,
+   "sha256": "cba187e97cc44be0d0cf8532f776df1fb42ba886478713740fbb4a964adf2681"
+  },
+  {
+   "path": "plans/provenance/generation_call4.json",
+   "bytes": 37133,
+   "sha256": "271275f05b76d485d1f7bd7dc7d1770b8c124c8718f5838dca0d2e2cdbcde284"
+  },
+  {
+   "path": "plans/provenance/generation_call5.json",
+   "bytes": 37803,
+   "sha256": "8308cada79183db1c240431138a675dffe71b0c428102c53035e5ecb55ced6e6"
+  },
+  {
+   "path": "plans/provenance/generation_call6.json",
+   "bytes": 39318,
+   "sha256": "ffa09bbbb056b595b6830873af3da600fd1df989b815965d337339ae76c64621"
+  },
+  {
+   "path": "plans/provenance/generation_call7.json",
+   "bytes": 39306,
+   "sha256": "4839fe50aed437209ed6e8651d315cda4db3327ad13e9b82e68adddd089918b6"
+  },
+  {
+   "path": "plans/provenance/generation_call8.json",
+   "bytes": 42421,
+   "sha256": "05c1aca1c5f32ce038681f61b421c01ba3fdfe0ba9fed2f39c44bcad795a3f2e"
+  },
+  {
+   "path": "plans/registry_gaps.json",
+   "bytes": 2,
+   "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+  },
+  {
+   "path": "pilot/P1/evidence_card.json",
+   "bytes": 3287,
+   "sha256": "025c5c3b71c90355811bcdd2f3531be77fbca386e4113f36330f5b282a7c64e1"
+  },
+  {
+   "path": "pilot/P1/self_validation.json",
+   "bytes": 2696,
+   "sha256": "91a93b7989bb0c0dc3a1e2dc1af5ce3b9adbb2f5081493e44c6cb86fcdfa689b"
+  },
+  {
+   "path": "pilot/P1/self_validation_per_gene.npz",
+   "bytes": 50865,
+   "sha256": "865fac75ad355edc88411743e3924eb80aeaa19320ded2b24418ee2920448b1f"
+  },
+  {
+   "path": "pilot/P1/status.json",
+   "bytes": 78,
+   "sha256": "61b11145b84e7421e0505cb80463cf8c85f98a73c4591813713763902c73b00f"
+  },
+  {
+   "path": "pilot/P2/evidence_card.json",
+   "bytes": 3386,
+   "sha256": "ee57d7dcb61d80085a4b69041aa3d2c118c53b51ddf0f2b15b50a37df241bfc5"
+  },
+  {
+   "path": "pilot/P2/self_validation.json",
+   "bytes": 8339,
+   "sha256": "dfd3eb1eb4178de8555162e0e31291e7dfd8ee008e2cb4d9712a4dc72be27056"
+  },
+  {
+   "path": "pilot/P2/self_validation_per_gene.npz",
+   "bytes": 46693,
+   "sha256": "70e3ee819c28e2f5a19d400a7398e6370a84e7d9b9edf6bb4f94a727aa9c2554"
+  },
+  {
+   "path": "pilot/P2/status.json",
+   "bytes": 78,
+   "sha256": "ed2b42033cfd9e6545ef98b5f7120e6fa0345314fa5875897ecbc26c040fcd07"
+  },
+  {
+   "path": "pilot/P3/evidence_card.json",
+   "bytes": 3733,
+   "sha256": "425cc8141c687ead362e004c4e20cb3dc99bc99f589e8f8929254b4d4a59f39a"
+  },
+  {
+   "path": "pilot/P3/self_validation.json",
+   "bytes": 8769,
+   "sha256": "afc672ec2a98d5f751b0bbd0d106b38717eb1031a6d3b49271f779363316a0ce"
+  },
+  {
+   "path": "pilot/P3/self_validation_per_gene.npz",
+   "bytes": 49600,
+   "sha256": "157d666c7d970188599d8a92a1cd5e1c9da1d9f2204a127104c1a868963ceb50"
+  },
+  {
+   "path": "pilot/P3/status.json",
+   "bytes": 78,
+   "sha256": "9932f8f4cfdc271d6123a4c8de6637623072729fb23d5c3124771962d7a67cba"
+  },
+  {
+   "path": "pilot/P4/evidence_card.json",
+   "bytes": 3595,
+   "sha256": "1fa9ee502107d9fdc4f55d00884efc447e2c5d1e50b39bbd56ce959f94805532"
+  },
+  {
+   "path": "pilot/P4/self_validation.json",
+   "bytes": 9742,
+   "sha256": "6604da466044057e0d87395b520f20489af12e02d9b2b177018c1b09f9ebd5a4"
+  },
+  {
+   "path": "pilot/P4/self_validation_per_gene.npz",
+   "bytes": 48564,
+   "sha256": "419cfba24a91bc10a62668a248c13c9a92087cbe1bdcb4f641ed79a13ce9b70c"
+  },
+  {
+   "path": "pilot/P4/status.json",
+   "bytes": 78,
+   "sha256": "122c5e290a00b2ed761e9511e925e989b9f3ba7c7c945f42b2e479ec828460bf"
+  },
+  {
+   "path": "pilot/P5/evidence_card.json",
+   "bytes": 3700,
+   "sha256": "df0643098e0b73b73dba427c185e9f9ec12f8a3b7779cdec09a70eb67ce78cd0"
+  },
+  {
+   "path": "pilot/P5/self_validation.json",
+   "bytes": 11046,
+   "sha256": "aa3ab6e34c1cf7bd18d68a086858eae88271bd5bd3d10d283a5f6f4b21eea770"
+  },
+  {
+   "path": "pilot/P5/self_validation_per_gene.npz",
+   "bytes": 50317,
+   "sha256": "aaef6b9ba9a7900f64cfc4f1dc8e0a2ada8c597b0de6c5c58071d9583966a049"
+  },
+  {
+   "path": "pilot/P5/status.json",
+   "bytes": 78,
+   "sha256": "f66f8fda964aecb6df4a6fa5ec47139d0a528f15a9ed99c7463ba422dde1b403"
+  },
+  {
+   "path": "pilot/P6/evidence_card.json",
+   "bytes": 4864,
+   "sha256": "fd81d1843bbe58af8dd73f48fe7cfa3413ed280c1b50f5c02211ebd3070b4d80"
+  },
+  {
+   "path": "pilot/P6/self_validation.json",
+   "bytes": 31362,
+   "sha256": "a92c6cfc5b741fb8524c6be49a9e8663944fc5044dea83777ae9f0c1c09a4b3c"
+  },
+  {
+   "path": "pilot/P6/self_validation_per_gene.npz",
+   "bytes": 52259,
+   "sha256": "acbbabecf4dbc07c7cc4e2960004531efbe53240edd8ab203bf503e4373bb39f"
+  },
+  {
+   "path": "pilot/P6/status.json",
+   "bytes": 78,
+   "sha256": "3d8f0335ef4f1a90392e8fa771958851eaf9e50908cc3104914aedbd6ae80230"
+  },
+  {
+   "path": "tournament/matches/P1_vs_P2.json",
+   "bytes": 30889,
+   "sha256": "b2c0028d3e524b6b4c9ba32448df2e0f2bfd110a2fbef196ffd309dd176a172d"
+  },
+  {
+   "path": "tournament/matches/P1_vs_P3.json",
+   "bytes": 31600,
+   "sha256": "9b91791df9107d63cda5cf58ca16f5f79f0ad4726e93e5180a5b1700325fd50f"
+  },
+  {
+   "path": "tournament/matches/P1_vs_P4.json",
+   "bytes": 31344,
+   "sha256": "5691a0d9f21bd1e66ef11ea4d63f8148b0add75334c6643ed84d112fccbfc6d2"
+  },
+  {
+   "path": "tournament/matches/P1_vs_P5.json",
+   "bytes": 32423,
+   "sha256": "3c874ccc2e75db461ca1fc9b51e24c04be295bd3034979ff722c96e0b4a51ba1"
+  },
+  {
+   "path": "tournament/matches/P1_vs_P6.json",
+   "bytes": 34646,
+   "sha256": "60b9e43879492a2488d389414ea74006aa3e02e90b96b510020449d270505150"
+  },
+  {
+   "path": "tournament/matches/P2_vs_P1.json",
+   "bytes": 30619,
+   "sha256": "3b303f31d0ab58bc481ffd4b84afb0d1b1627cc4e5dd2c4dc41971aa380ac571"
+  },
+  {
+   "path": "tournament/matches/P2_vs_P3.json",
+   "bytes": 32130,
+   "sha256": "4e9310f54ee88cd14a5b0be6f232566b8c941cf8553261f2cf274eb493e0c387"
+  },
+  {
+   "path": "tournament/matches/P2_vs_P4.json",
+   "bytes": 31865,
+   "sha256": "c7850ecf084ad710b62471da7d45ff569a37530e6bee5d5e4c1a9b93d45234a7"
+  },
+  {
+   "path": "tournament/matches/P2_vs_P5.json",
+   "bytes": 32086,
+   "sha256": "85c0d02217193001d7571ca7daf390450fe8e68f60ad197cca1ba72c8fd14b31"
+  },
+  {
+   "path": "tournament/matches/P2_vs_P6.json",
+   "bytes": 34774,
+   "sha256": "c233e917c3476186640d8e4c63a6d06613707881e998076df1956cbabd0d4271"
+  },
+  {
+   "path": "tournament/matches/P3_vs_P1.json",
+   "bytes": 31303,
+   "sha256": "703443e45d17b04f7c3b65f0c65304b72407907d0fcace46590e4f37e168ccdd"
+  },
+  {
+   "path": "tournament/matches/P3_vs_P2.json",
+   "bytes": 32250,
+   "sha256": "2d0c25ebb44ca52e84b5c47d816e8541645b15f3431405984b93d9c7a342c0fc"
+  },
+  {
+   "path": "tournament/matches/P3_vs_P4.json",
+   "bytes": 32824,
+   "sha256": "504782cdf68c68884a0ade5baec4efede3f160cdde6da164e4ec79220a0ba6e3"
+  },
+  {
+   "path": "tournament/matches/P3_vs_P5.json",
+   "bytes": 33070,
+   "sha256": "3c6691ea327fb09781026a3f0f15db49f27392439437cf1c39ade12c640c69c1"
+  },
+  {
+   "path": "tournament/matches/P3_vs_P6.json",
+   "bytes": 35513,
+   "sha256": "7542aa7fbd86ef3ec9a1676388dc17917be9e5b999b1dd732159de5d931a6b1c"
+  },
+  {
+   "path": "tournament/matches/P4_vs_P1.json",
+   "bytes": 31795,
+   "sha256": "ce8e54a6a9258e54dbddb5b0a9239fe2a777f94ef0a3f4e2756475b57b2aa673"
+  },
+  {
+   "path": "tournament/matches/P4_vs_P2.json",
+   "bytes": 32144,
+   "sha256": "8808390a00a46b27dd07b098bba38e81ab18261bf736f98c59912f8fea2e381c"
+  },
+  {
+   "path": "tournament/matches/P4_vs_P3.json",
+   "bytes": 32660,
+   "sha256": "128ec67ab414689346141a7fa54b4d403e78638057a8b98311c172571a5c5ba4"
+  },
+  {
+   "path": "tournament/matches/P4_vs_P5.json",
+   "bytes": 33489,
+   "sha256": "fa4d0cf3d3504d04d0e5fadd1db9331c66782842b99ad24b0c225ba6215eec6c"
+  },
+  {
+   "path": "tournament/matches/P4_vs_P6.json",
+   "bytes": 35899,
+   "sha256": "0da73425630b0da7791f92c12778023182016dbe81ac1d14b1dbcbf8c4d1a3e4"
+  },
+  {
+   "path": "tournament/matches/P5_vs_P1.json",
+   "bytes": 31893,
+   "sha256": "c924842cc67ccd6a20f730bac4632becdccdc96af281c7e1c06d52244bac60d3"
+  },
+  {
+   "path": "tournament/matches/P5_vs_P2.json",
+   "bytes": 32251,
+   "sha256": "6e1f0577b0e4bd8bd930bb17ca4e62d800225c8672fdfe14d44fd53e75891b5d"
+  },
+  {
+   "path": "tournament/matches/P5_vs_P3.json",
+   "bytes": 33351,
+   "sha256": "c9eaff0e7f7fe9a2a3392f261736c2f3972e085ea87072d4709675174695d236"
+  },
+  {
+   "path": "tournament/matches/P5_vs_P4.json",
+   "bytes": 33183,
+   "sha256": "62d47b47fc591f5508c1829c2aee2ee06f02efa03244bd48c6d73b9ea927e516"
+  },
+  {
+   "path": "tournament/matches/P5_vs_P6.json",
+   "bytes": 35806,
+   "sha256": "40fd93938a6522bd99ea60b94b00e48c3dfe892c8a4d910ded0ea40a1d8beef9"
+  },
+  {
+   "path": "tournament/matches/P6_vs_P1.json",
+   "bytes": 34829,
+   "sha256": "0ad63881f3f9c208c9a06a5d97da3c5c6545b852be6c4da6d063ab41dc55ce4d"
+  },
+  {
+   "path": "tournament/matches/P6_vs_P2.json",
+   "bytes": 34823,
+   "sha256": "496b0252410d09f545a445f44141babc91edfe73ede92c3fab8207cfe046af9c"
+  },
+  {
+   "path": "tournament/matches/P6_vs_P3.json",
+   "bytes": 35791,
+   "sha256": "02fe3ee28984c132923d5fd39538bd720f1d4668c50290701a5ac02b66c93316"
+  },
+  {
+   "path": "tournament/matches/P6_vs_P4.json",
+   "bytes": 35971,
+   "sha256": "4f507bb215df90570817c0d7a237b9ca0e541be108bd6c94c15e8ab12127b2fb"
+  },
+  {
+   "path": "tournament/matches/P6_vs_P5.json",
+   "bytes": 36239,
+   "sha256": "31c7dcf8556a6a21841c86c7ef31527a56dc95d73e934116ec7699e3f04982c3"
+  },
+  {
+   "path": "tournament/ranking.json",
+   "bytes": 2562,
+   "sha256": "8201759bb81632c6be78662526742f5a8b675324d45625be85373e68e4aec319"
+  },
+  {
+   "path": "full/P1/full_run.json",
+   "bytes": 1683,
+   "sha256": "e0625a9f909633a07009b44aab85809b92c749502d0918753bd5e02ea3da162f"
+  },
+  {
+   "path": "full/P1/gene_claims.json",
+   "bytes": 795363,
+   "sha256": "d3406c548970084580acb828d56279902dcc067d712f41c4ecc70d28f7cf1b5b"
+  },
+  {
+   "path": "full/P1/pred_hidden.npy",
+   "bytes": 140980000,
+   "sha256": "e61578cca11659ad0a38386b3ba6fef3f461bd0e40b9744437a6101b60e95dcf"
+  },
+  {
+   "path": "full/P1/self_validation.json",
+   "bytes": 10742,
+   "sha256": "61b045225cce41f73c6bffa1b09f931978773c700cd44a23f63d851a6336c386"
+  },
+  {
+   "path": "full/P1/self_validation_per_gene.npz",
+   "bytes": 396104,
+   "sha256": "52305d04c34aea48f2e967e96d148827edc5abb1ef541f7c897458813fcb81a7"
+  },
+  {
+   "path": "full/P2/full_run.json",
+   "bytes": 6543,
+   "sha256": "702985054ed6239caf6d30bb0b93232fa321974cf0f2bd978c3d9f580f7374e7"
+  },
+  {
+   "path": "full/P2/gene_claims.json",
+   "bytes": 233074,
+   "sha256": "abd1599bdedbd26584eba5cc433f662ea65deba6a4fd3da7542c141e39d8f09f"
+  },
+  {
+   "path": "full/P2/pred_hidden.npy",
+   "bytes": 140980000,
+   "sha256": "fff52438b625cdf872536116166a5bbd29ac126b778a0523983287aa2f91405e"
+  },
+  {
+   "path": "full/P2/self_validation.json",
+   "bytes": 48035,
+   "sha256": "c76c7551b8d4283e4385cd4200c912aedf5b07d65502cfeb14618ce7774108d1"
+  },
+  {
+   "path": "full/P2/self_validation_per_gene.npz",
+   "bytes": 380107,
+   "sha256": "b57e5709ca5a471c5ebf2fcffb92351ec305d74bed701b54f7ecf94720ae9b07"
+  },
+  {
+   "path": "full/P3/full_run.json",
+   "bytes": 5851,
+   "sha256": "c7e9dbbc7d6c5d8ce9d170a672136d6fa1ddfec0be63cbb902d2ca3da16c1852"
+  },
+  {
+   "path": "full/P3/gene_claims.json",
+   "bytes": 247723,
+   "sha256": "a4179632e91f7613336da0320ee2dde7d22abf0551775229b1ba05f135562a71"
+  },
+  {
+   "path": "full/P3/pred_hidden.npy",
+   "bytes": 140980000,
+   "sha256": "b6cef55d2c87a9d6bbce8b20fb32cf1a2291ed747744dbedc494010eb6950c04"
+  },
+  {
+   "path": "full/P3/self_validation.json",
+   "bytes": 30367,
+   "sha256": "c0dbb3c4705093c0b7c7181668573b8e422ea16e956a6027aa2d9ddf34b77849"
+  },
+  {
+   "path": "full/P3/self_validation_per_gene.npz",
+   "bytes": 375633,
+   "sha256": "bf92e9a92f9cb1fb90ee4df8b816e9be733079fde20346bc92d896034797f7f9"
+  },
+  {
+   "path": "full/P4/full_run.json",
+   "bytes": 5462,
+   "sha256": "bf5c6123adbafbaf955de055cbe3c52246b4077027313c64ff1dbe0571411429"
+  },
+  {
+   "path": "full/P4/gene_claims.json",
+   "bytes": 129755,
+   "sha256": "57425c56b710a3379d5845b5658bad6864c3fd15a9c71bf7668a7f38c0a1a235"
+  },
+  {
+   "path": "full/P4/pred_hidden.npy",
+   "bytes": 140980000,
+   "sha256": "a2a81ceb0c472dcf203d4ec0ebc4b68305dae4c97c7c01fd174b6560cea0d979"
+  },
+  {
+   "path": "full/P4/self_validation.json",
+   "bytes": 14485,
+   "sha256": "54a8e421a87706065f9cbefd95a4f8650ec9a9e4dab2fa8c097467fad2f08423"
+  },
+  {
+   "path": "full/P4/self_validation_per_gene.npz",
+   "bytes": 371220,
+   "sha256": "d3b851c7e3f5e1537381b39f11533d16b1bc2af8d968a18ea29fa61130aa8039"
+  },
+  {
+   "path": "full/P5/full_run.json",
+   "bytes": 5372,
+   "sha256": "16e1515091b14d1e7074af5e256db6739be442259c80bf2070c32c64e8070596"
+  },
+  {
+   "path": "full/P5/gene_claims.json",
+   "bytes": 637980,
+   "sha256": "3b6a81d0b187b937fdbeb06d0354e592fab034b3ef821ceb425b1a9ebc770880"
+  },
+  {
+   "path": "full/P5/pred_hidden.npy",
+   "bytes": 140980000,
+   "sha256": "3990a13905164ad0080aafb18da4db500bb547451f8d88430faafc3cddb9fccd"
+  },
+  {
+   "path": "full/P5/self_validation.json",
+   "bytes": 39263,
+   "sha256": "0bfdef50b3f16cc6ee8a75442fd5f586dc80926d1832a50beb2912cd65fce8f0"
+  },
+  {
+   "path": "full/P5/self_validation_per_gene.npz",
+   "bytes": 395004,
+   "sha256": "a9abc2f7a0c930b0e7a3e1b3d702828a1bfc3cdb9ac8196761977bb0a6853d61"
+  },
+  {
+   "path": "full/P6/full_run.json",
+   "bytes": 11099,
+   "sha256": "bad653c254e461501f913d4ec485a454630a43e9b2518bcb21c6e7f74a61659f"
+  },
+  {
+   "path": "full/P6/gene_claims.json",
+   "bytes": 948850,
+   "sha256": "8054265366da6020da5f443676fb279ff1029677c0bb460ff609bc8784c9706f"
+  },
+  {
+   "path": "full/P6/pred_hidden.npy",
+   "bytes": 140980000,
+   "sha256": "ea54d38538bc742e11df8976b74a5b5da9ef7733a4a78a041b4ee7b0da6ab390"
+  },
+  {
+   "path": "full/P6/self_validation.json",
+   "bytes": 32645,
+   "sha256": "6abb8cd5dc631efb6d967a1eb4abcab602eed6ababa353d4548b94f2e7996513"
+  },
+  {
+   "path": "full/P6/self_validation_per_gene.npz",
+   "bytes": 397357,
+   "sha256": "4866ed567ba96d067f4f85205f662f246121ea75588b6666430817c6d7375e95"
+  },
+  {
+   "path": "audit/P1.json",
+   "bytes": 6267,
+   "sha256": "486c448de99fc652ae669f7d994a0f6391524ba9acb908ea7acbc094e0e8aa1e"
+  },
+  {
+   "path": "audit/final.json",
+   "bytes": 258,
+   "sha256": "26921da0aaeca39bd9abe1282f16edbe8871f4df7bd8ad3e00cbe340537b5618"
+  }
+ ]
+}

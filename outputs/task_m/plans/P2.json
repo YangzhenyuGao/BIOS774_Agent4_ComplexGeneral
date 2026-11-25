@@ -1,0 +1,98 @@
+{
+ "plan_id": "P2",
+ "name": "Sparse Cis-Regulatory Peak-to-Gene and Global LSI Neural Network",
+ "summary": "A sparse peak-to-gene neural network predicts all 11,282 in-scope genes jointly from local chromatin peaks within 250 kb of each TSS, depth-normalised gene activity, and a 100-component full-peak LSI cell state. Preprocessing, baseline clustering, and early-stopped training are strictly nested inside multi-seed 5-fold splits without held-out cells or WNN labels. Paired-bootstrap testing against binomial-thinned RNA Half B at 5% FDR over the cluster-mean floor identifies genes predictable beyond cell identity.",
+ "complexity": "ambitious",
+ "analysis_unit": "single cell (individual nucleus from the single healthy PBMC donor)",
+ "inputs": {
+  "cis_peaks": {
+   "window_kb": 250,
+   "max_peaks_per_gene": 30
+  },
+  "gene_activity": {
+   "mode": "promoter_and_distal"
+  },
+  "lsi": {
+   "n_components": 100,
+   "max_peaks": 108377
+  }
+ },
+ "preprocessing": [
+  "Inside each outer training fold (excluding outer validation cells and all 3,124 held-out cells), partition 85% inner-train and 15% inner-validation cells for early stopping.",
+  "Binarise all 108,377 ATAC peaks without frequency pruning to retain rare-type chromatin features, fit TF-IDF and 101-component truncated SVD on inner-train cells, drop component 1 (sequencing depth) to keep 100 LSI components, and transform inner-val, outer-val, and held-out cells.",
+  "Link up to 30 ATAC peaks within 250 kb of each frozen in-scope gene TSS using gene start coordinates and peak-to-gene annotations (prioritising promoter-flagged then nearest peaks, zero-padding genes with fewer peaks), depth-normalise per cell via log1p(CP10K), and standardise using inner-train mean and variance.",
+  "Compute depth-normalised promoter-and-distal gene activity scores per cell across all 11,282 in-scope genes.",
+  "Normalise inner-train and inner-val RNA counts via log1p(CP10K); split each outer-validation cell's raw RNA UMI counts via independent binomial thinning (p=0.5) into Half A (ceiling input) and unsmoothed log1p(CP10K) Half B (scoring target).",
+  "After nested evaluation, refit the full preprocessing pipeline and early-stopped model on the 7,288 development cells alone (85/15 inner early-stopping split) to generate the finite 3,124 x 11,282 held-out prediction matrix."
+ ],
+ "model": {
+  "component": "cis_regulatory",
+  "params": {
+   "learner": "masked_nn",
+   "window_kb": 250,
+   "max_peaks_per_gene": 30,
+   "global_state_dim": 100,
+   "hidden": [
+    128,
+    64
+   ]
+  }
+ },
+ "fusion": null,
+ "training": {
+  "max_epochs": 100,
+  "early_stopping_patience": 12,
+  "lr": 0.001,
+  "batch_size": 128,
+  "weight_decay": 0.0001,
+  "target_denoising": "none"
+ },
+ "validation": {
+  "scheme": "kfold",
+  "k": 5,
+  "split_unit": "cell",
+  "scoring_target": "thinned_half",
+  "n_seeds": 2,
+  "compare_with": [
+   "simple_reference",
+   "floor_1_cell_type",
+   "floor_2_gene_activity",
+   "floor_3_depth",
+   "floor_4_simple_learners",
+   "ceiling",
+   "permutation_null"
+  ],
+  "gene_claim_rule": "Score out-of-fold predictions for candidate and all comparators on identical unseen cells and identical thinned Half B targets (r=0 on zero variance). Assign genes whose RNA-to-RNA Half-A-to-Half-B ceiling fails the 95th percentile of 500 cell-permuted nulls to Group 0 (unjudgeable, p=1.0). On remaining genes, draw 1,000 paired cell bootstraps to compute 95% CIs for r and r_gain over floor_1_cell_type (nested k=20 ATAC clusters) and one-sided p-values; apply Benjamini-Hochberg across all 11,282 in-scope genes at 5% FDR, placing genes with q<0.05 and positive gain into Group 2 only if aggregate mean r exceeds floor_2_gene_activity and floor_3_depth beyond cross-seed spread."
+ },
+ "metrics": [
+  "Per-gene Pearson r against unsmoothed binomial-thinned RNA Half B and paired-bootstrap gain over floor_1_cell_type with empirical two-sided 95% CIs across all 11,282 in-scope genes",
+  "Mean and median per-gene Pearson r across all and judgeable genes, plus cross-seed and cross-fold dispersion",
+  "Gene counts and identities in Group 0 (unjudgeable), Group 1 (not-beyond-cell-type), and Group 2 (reliably-predicted-beyond-cell-type at 5% BH FDR)",
+  "Per-gene ratio of achieved r to the RNA-to-RNA split-half noise ceiling across judgeable genes",
+  "Within-cluster Pearson r across nested k=20 ATAC clusters and post-hoc development WNN cell types alongside pooled r to audit rare populations including Plasma cells",
+  "Epoch-by-epoch inner-train and inner-validation MSE loss histories, stopping epoch, and explicit convergence check before scoring"
+ ],
+ "allowed_conclusions": "Entitled solely to select one of the four compiled conclusion options—unjudgeable due to noise, confounded by sequencing depth, no gene predicted beyond cell identity, or an identified non-empty set of genes predicted beyond cell identity at 5% FDR—strictly for unseen granulocyte-depleted PBMCs of this single healthy donor under the same Multiome assay, without generalising to other donors, tissues, granulocytes, disease states, or causal regulation.",
+ "budget": {
+  "needs_gpu": false,
+  "pilot_minutes": 6.0,
+  "full_minutes": 48.0,
+  "cpus": 32
+ },
+ "diversity": {
+  "data": "cis_peaks_250kb_plus_gene_activity_and_100d_unpruned_lsi",
+  "model": "sparse_masked_peak_to_gene_neural_net",
+  "method": "joint_cis_trans_regulatory_modelling_multi_seed_nested_cv"
+ },
+ "rationale": "Global LSI reflects coarse lineage structure already captured by the cluster-mean baseline (D6) and blurs rare populations (D2). Pairing locus-specific TSS peaks with unpruned 100D LSI models non-linear cis-trans variation within cell types, while depth-normalised inputs block depth confounding (D5).",
+ "difficulties_addressed": [
+  "D6",
+  "D2",
+  "D5",
+  "D1",
+  "D3",
+  "D4",
+  "D7"
+ ],
+ "new_components": []
+}

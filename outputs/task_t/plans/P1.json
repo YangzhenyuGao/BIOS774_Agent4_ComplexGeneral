@@ -1,0 +1,147 @@
+{
+ "plan_id": "P1",
+ "name": "Nested PCA-Reduced Patient-Mean Logistic Fusion",
+ "summary": "This simple reference plan tests whether mean-pooled H&E features improve four-class PAM50 prediction over the six clinical covariates. Within repeated patient-level nested cross-validation, each fold fits identical missing-level clinical encodings, reduces one inner-selected encoder via PCA, and trains class-balanced logistic regression paired with a tuned clinical-only model. A site-held-out analysis checks site confounding. The paired bootstrap 95% interval for macro-F1 difference determines whether global morphology improves, worsens, or shows insufficient evidence.",
+ "complexity": "simple_reference",
+ "analysis_unit": "patient",
+ "inputs": {
+  "clinical": {
+   "use": true,
+   "variables": [
+    "age",
+    "stage",
+    "histological_type",
+    "er",
+    "pr",
+    "her2"
+   ]
+  },
+  "image": {
+   "encoders": [
+    "UNI2-h",
+    "CONCH-Z",
+    "Virchow2",
+    "MUSK",
+    "H-Optimus-1"
+   ],
+   "level": "patient",
+   "reduce": {
+    "type": "pca",
+    "dim": 32
+   }
+  }
+ },
+ "preprocessing": [
+  "Verify patient-level alignment across all 802 labelled patients (keeping multi-slide patients pooled into their single patient-mean vector per encoder), exclude the 259 unlabelled patients from supervised splits, and exclude all RNA-derived variables and collection site from predictor matrices.",
+  "Inside each inner, outer, and site-held-out training fold, impute age with the training-fold median and z-score standardise it; one-hot encode stage, histological_type, er, pr, and her2 using training-fold categories plus an explicit 'Missing' category level, sharing the exact encoded clinical matrix between clinical_only and patient_mean_logreg.",
+  "Inside each training fold, z-score standardise the candidate encoder's patient-mean H&E vector using training-fold mean and SD, fit PCA strictly on training-fold patients to retain n_pca components, z-score standardise the resulting PC scores using training-fold SDs, and concatenate with the clinical features.",
+  "Run sanity checks before scoring confirming disjoint patient IDs across splits, identical patient ordering across both arms, and non-trivial behaviour of the tuned clinical_only comparator."
+ ],
+ "model": {
+  "component": "patient_mean_logreg",
+  "params": {
+   "encoder": [
+    "UNI2-h",
+    "CONCH-Z",
+    "Virchow2",
+    "MUSK",
+    "H-Optimus-1"
+   ],
+   "n_pca": [
+    16,
+    32,
+    64
+   ],
+   "C": [
+    0.01,
+    0.1,
+    1.0,
+    10.0
+   ]
+  }
+ },
+ "fusion": "early_concat",
+ "training": {
+  "max_epochs": 1000,
+  "early_stopping_patience": 20,
+  "lr": null,
+  "weight_decay": null,
+  "class_weighting": "balanced",
+  "augmentation": {
+   "tile_resample": null,
+   "mixup_alpha": 0.0,
+   "tile_dropout": 0.0
+  },
+  "n_seeds_ensemble": 1,
+  "solver": "lbfgs",
+  "convergence_check": "Record per-iteration multinomial cross-entropy loss and gradient norm in every fold; confirm optimisation converges prior to max_epochs with trailing relative loss change below 1e-5.",
+  "tuning": {
+   "selection_metric": "macro_f1",
+   "tie_rule": "Treat inner-fold macro-F1 differences smaller than 0.005 as ties and select the most parsimonious configuration (smaller n_pca, smaller C).",
+   "grid": [
+    {
+     "C": 0.01
+    },
+    {
+     "C": 0.1
+    },
+    {
+     "C": 1.0
+    },
+    {
+     "C": 10.0
+    }
+   ]
+  }
+ },
+ "validation": {
+  "scheme": "repeated_kfold",
+  "k": 5,
+  "repeats": 3,
+  "split_unit": "patient",
+  "stratify_by": "PAM50",
+  "selection": "nested",
+  "inner_k": 3,
+  "clinical_comparator": {
+   "component": "clinical_only",
+   "tuned": true,
+   "same_folds_and_missingness": true
+  },
+  "interval": "bootstrap",
+  "bootstrap_resamples": 10000,
+  "oof_aggregation": "Evaluate paired out-of-fold predictions on identical splits across the 3 repeats, compute repeat-averaged patient-level class probabilities for the 802 patients, and draw 10,000 patient-level bootstrap resamples with replacement to form the paired 95% confidence interval.",
+  "site_sensitivity": "Run grouped leave-one-site-out cross-validation across all 19 collection sites (using site strictly as split group, never as a feature) with 3-fold patient-level inner CV inside training sites for both clinical_only and patient_mean_logreg."
+ },
+ "metrics": [
+  "Paired out-of-fold macro-F1 difference (image-plus-clinical minus clinical-only) across repeated nested CV with a patient-level 95% bootstrap confidence interval",
+  "Paired out-of-fold multiclass log-loss difference (image-plus-clinical minus clinical-only)",
+  "Paired out-of-fold macro one-vs-rest AUROC difference (image-plus-clinical minus clinical-only)",
+  "Per-class recall differences for LumA, LumB, Basal, and Her2",
+  "Site-held-out paired macro-F1 difference (image-plus-clinical minus clinical-only) across the 19 collection sites"
+ ],
+ "allowed_conclusions": "Conclude 'improves' if the 95% patient-level bootstrap confidence interval for paired macro-F1 difference lies strictly above zero, 'worse' if strictly below zero, and 'insufficient evidence' if it contains zero; qualify potential site confounding using the 19-site held-out difference and restrict scope to incremental linear patient-mean H&E prediction in this TCGA-BRCA cohort.",
+ "budget": {
+  "needs_gpu": false,
+  "pilot_minutes": 1.0,
+  "full_minutes": 5.0,
+  "cpus": 16
+ },
+ "diversity": {
+  "data": "clinical + PCA patient-mean single-encoder features",
+  "model": "regularised linear multinomial logistic regression",
+  "method": "early concatenation with nested encoder/PCA grid selection"
+ },
+ "rationale": "Foundation embeddings risk overfitting on 802 imbalanced patients alongside informative receptor covariates. Fold-internal PCA with class-balanced L2 logistic regression provides a low-variance linear benchmark under nested encoder selection. Complex tile-level or non-linear models are justified only if they outperform this reference on identical folds.",
+ "difficulties_addressed": [
+  "D1",
+  "D2",
+  "D3",
+  "D4",
+  "D5",
+  "D6",
+  "D7",
+  "D8",
+  "D9"
+ ],
+ "new_components": []
+}

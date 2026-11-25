@@ -1,0 +1,281 @@
+[
+ {
+  "plan_id": "R0B7C1",
+  "name": "Coupled Cis-Bridge Conditional Rectified Flow with Binomial-Monte-Carlo Log-Bayes-Factor Retrieval",
+  "reason": "pool is full",
+  "plan": {
+   "plan_id": "R0B7C1",
+   "name": "Coupled Cis-Bridge Conditional Rectified Flow with Binomial-Monte-Carlo Log-Bayes-Factor Retrieval",
+   "summary": "We summarize 500-kilobase chromatin windows around genes into four distance bands alongside global ATAC accessibility. Using training cells only, split-half ATAC self-retrieval learns a whitened target space orthogonal to sequencing depth. A conditional rectified-flow model then transports each query cell's RNA cis-regulatory prior into that chromatin space. At inference, single-cell binomial count subsampling estimates per-dimension shot-noise variances for closed-form Bayes-factor candidate ranking. Nested cross-validation against depth, gene-activity, cluster, linear, and noise-ceiling rulers establishes the resolution of retrieval.",
+   "complexity": "ambitious",
+   "analysis_unit": "Individual cell (single nucleus with co-measured RNA and ATAC in development splits)",
+   "inputs": {
+    "cis_peaks": {
+     "window_kb": 500,
+     "max_peaks_per_gene": 40
+    },
+    "tfidf_peaks": {
+     "max_peaks": 50000
+    },
+    "lsi": {
+     "n_components": 96,
+     "max_peaks": 80000
+    },
+    "gene_activity": {
+     "mode": "promoter_and_distal"
+    },
+    "depth": {}
+   },
+   "preprocessing": [
+    "Partition the 7,288 paired development cells strictly by cell ID into 5 disjoint outer folds (~1,458 cells per fold) and split each outer training set into 85% inner_train (~4,955 cells) and 15% inner_val (~875 cells) with zero cell overlap across any split (A2, A3).",
+    "For paired RNA UMI counts on the 11,282 in-scope genes, apply strictly per-cell library-size log1p(10000 * UMI / total_UMI) transformation, extract standardized [log_umi_depth, log_umi_depth^2] covariates using inner_train statistics, and fit a 128-component truncated SVD plus cis-aligned gene expression matrix on inner_train only.",
+    "Construct a 4-band spatial cis-regulatory filterbank from cis_peaks (window_kb=500, max_peaks_per_gene=40) and peak-gene TSS annotations by aggregating per-cell fragment-normalized ATAC peak counts with exponential TSS-distance kernels across promoter (<=2kb), proximal (2-25kb, tau=10kb), mid-distal (25-150kb, tau=60kb), and long-range enhancer (150-500kb, tau=200kb) bands, followed by log1p and a 128-component SVD fitted strictly on inner_train.",
+    "Compute inner_train-fitted promoter vs distal differential gene_activity, sparse tfidf_peaks over top 50,000 inner_train peaks projected to 128 SVD dimensions, 96-component depth-filtered lsi over top 80,000 inner_train peaks (component 1 dropped), and standardized [log_atac_depth, log_atac_depth^2].",
+    "Derive unsupervised rare-population training sample weights strictly inside inner_train from k=25 Euclidean kNN mean distances in ATAC LSI space (normalized to mean 1.0 and clipped to [0.5, 8.0]), never accessing WNN annotations during training, selection, or inference (D2, D4, K7)."
+   ],
+   "model": {
+    "component": "coupled_cis_bridge_flow_bayes_retriever",
+    "params": {
+     "latent_dim": 128,
+     "stage1_atac_hidden_dim": 512,
+     "stage1_split_half_temp": 0.07,
+     "stage1_whitening_weight": 0.25,
+     "stage1_depth_ortho_penalty": 10.0,
+     "flow_hidden_dim": 512,
+     "flow_num_adaln_blocks": 4,
+     "ode_solver": "heun",
+     "ode_steps": 8,
+     "listwise_hard_negatives": 31,
+     "listwise_loss_weight": 0.7,
+     "mc_rna_subsamples": 16,
+     "mc_atac_subsamples": 8,
+     "mc_binomial_retention": 0.75,
+     "variance_shrinkage_grid": [
+      0.02,
+      0.05,
+      0.1,
+      0.2
+     ]
+    }
+   },
+   "fusion": null,
+   "training": {
+    "max_epochs": 215,
+    "stage_epochs": {
+     "stage1_atac_split_half_manifold": 70,
+     "stage2_coupled_cis_bridge_cfm": 110,
+     "stage3_heun_ode_listwise_finetune": 35
+    },
+    "early_stopping_patience": 15,
+    "lr": 0.0005,
+    "stage3_lr": 0.0001,
+    "batch_size": 256,
+    "weight_decay": 0.0001,
+    "target_denoising": "none",
+    "train_binomial_thinning_range": [
+     0.5,
+     1.0
+    ],
+    "convergence_audit": "Log per-epoch train and inner_val losses and inner_val MRR across all three stages, restore best inner_val checkpoints per stage, verify max_d |Corr(z1_d, log_atac_depth)| < 0.02 and unimodal ATAC structure preservation on inner_val, and emit an explicit convergence statement before outer-fold scoring (K3, K4, K5)."
+   },
+   "validation": {
+    "scheme": "kfold",
+    "n_splits": 5,
+    "inner_val_fraction": 0.15,
+    "split_unit": "cell",
+    "candidate_pool_size": 1458,
+    "expanded_distractor_pool_size": 4582,
+    "pool_scaling_curve_sizes": [
+     250,
+     750,
+     1458,
+     4582
+    ],
+    "metrics": [
+     "MRR",
+     "recall@1",
+     "recall@5",
+     "recall@10",
+     "FOSCTTM"
+    ],
+    "comparator_protocol": "Evaluate Floor 0 (permutation), Floor 1 (sequencing depth), Floor 2 (unlearned promoter+proximal gene activity), Floor 3 (inner_train k=20 ATAC cluster centroids), Simple Linear Reference (inner_train CCA and Ridge alignment), and Unimodal Binomial-Thinning Split-Half Noise Ceiling on identical outer-fold query cell IDs, identical candidate ATAC pools, and deterministic mid-ranks for ties, after sanity-checking all baselines on oracle synthetic identity cases (A5, A6, A7, K8).",
+    "uncertainty_and_multiplicity": "10,000 paired nonparametric bootstrap resamples over all 7,288 out-of-fold query cells for 95% CIs on metrics and comparator deltas; post-hoc WNN stratified within-population and macro-averaged MRR/Recall@1 across all 19 populations with Benjamini-Hochberg FDR at 5% (A8, D3, K1)."
+   },
+   "metrics": [
+    "Primary: Out-of-fold Mean Reciprocal Rank (MRR) of the true paired ATAC profile with deterministic mid-ranks for ties and paired-bootstrap 95% CI (both primary 1,458-cell unseen fold pool and expanded 4,582-cell donor pool with 3,124 held-out ATAC distractors)",
+    "Exact top-1 retrieval rate (Recall@1), Recall@5, and Recall@10 across unseen query cells",
+    "1 - FOSCTTM (mean fraction of non-matching candidate ATAC profiles ranked strictly farther than the true paired profile)",
+    "Post-hoc stratified within-population and macro-averaged MRR and Recall@1 across all 19 WNN populations with 5% Benjamini-Hochberg FDR control",
+    "Ratio of cross-modal retrieval MRR to the unimodal binomial-thinning split-half self-retrieval noise ceiling on identical evaluation cells",
+    "Paired-bootstrap 95% CIs for MRR differences against Floor 0, Floor 1, Floor 2, Floor 3, and the Simple Linear Reference"
+   ],
+   "allowed_conclusions": "Map results strictly to the four objective conclusion options within unseen granulocyte-depleted PBMCs of this single healthy donor at this sequencing depth and pool size: claim 'Yes, at single-cell resolution' only if paired-bootstrap 95% CIs for MRR gain over Floor 0, Floor 1, Floor 2, Floor 3, and Simple Linear Reference all exclude zero above 0, Recall@1 is substantial, and MRR approaches the split-half noise ceiling; claim 'Partially (sub-cluster neighborhood only)' if MRR significantly beats all four floors (and linear reference if nonlinear advantage is claimed) while low Recall@1 shows sparsity prevents exact top-1 recovery; claim 'Cell-type resolution only' if MRR beats Floor 0 and Floor 1 but not Floor 3; otherwise claim 'No biological retrieval'.",
+   "budget": {
+    "needs_gpu": true,
+    "pilot_minutes": 7.0,
+    "full_minutes": 38.0,
+    "cpus": 32
+   },
+   "diversity": {
+    "data": "long_range_500kb_multiscale_tss_spectral_filterbank_plus_tfidf_lsi_and_per_cell_binomial_subsamples",
+    "model": "coupled_cis_bridge_conditional_rectified_flow_on_whitened_depth_orthogonal_split_half_atac_manifold",
+    "method": "staged_split_half_manifold_heun_ode_transport_and_shot_noise_marginalized_log_bayes_factor_retrieval"
+   },
+   "rationale": "Initializing conditional flow transport at the 500kb cis-regulatory bridge dedicates nonlinear capacity to subtle intra-cluster regulatory variation beyond cell type (D6). Depth orthogonalization removes technical confounding (D5), unsupervised density weighting preserves rare populations (D2), and binomial-thinning Bayes-factor scoring downweights dropout noise (D1).",
+   "difficulties_addressed": [
+    "D1",
+    "D2",
+    "D3",
+    "D4",
+    "D5",
+    "D6",
+    "D7"
+   ],
+   "new_components": [
+    {
+     "name": "coupled_cis_bridge_flow_bayes_retriever",
+     "description": "Three-stage continuous transport and Bayesian shot-noise retrieval module. Inputs: per-cell RNA SVD + cis-gene log-expression + RNA depth covariates for queries, and 4-band 500kb TSS spectral features + promoter/distal gene_activity + tfidf_peaks SVD + depth-dropped lsi + ATAC depth covariates for candidates. Training (strictly on inner_train with unsupervised kNN inverse-density weights): Stage 1 trains a 3-layer residual MLP ATAC encoder into R^128 via binomial split-half InfoNCE self-retrieval with closed-form ridge residualization + penalty orthogonalizing embeddings against [log_atac_depth, log_atac_depth^2] and covariance whitening toward I_128; Stage 2 fits a ridge cis-bridge z0(x) from RNA to frozen z1(y) and trains a 4-block AdaLN-Zero residual velocity network v_theta(z_t, t | RNA, depth_RNA) along straight interpolants z_t=(1-t)z0+t*z1 under random binomial RNA thinning; Stage 3 backpropagates through an 8-step Heun ODE solver using Plackett-Luce listwise ranking over 31 depth-decile-matched cis-neighborhood hard negatives plus 0.3*CFM anchor loss. Outputs/Inference: strictly per cell with zero cross-cell operations, draws M_RNA=16 binomial UMI subsamples (p=0.75) + full query through the 8-step Heun ODE to obtain query mean mu_q and variance sigma_q^2 + lambda_0, and M_ATAC=8 binomial fragment subsamples (p=0.75) + full candidate through Stage 1 encoder to obtain candidate mean nu_c and variance sigma_c^2 + lambda_0 (lambda_0 tuned on inner_val), scoring each (query, candidate) pair independently via the exact analytical Gaussian-marginalized Log-Bayes Factor sum_k 0.5*[log((a_qk*b_ck)/Delta) + (2*mu_qk*nu_ck)/Delta - mu_qk^2/(a_qk*Delta) - nu_ck^2/(b_ck*Delta)] where a=1+sigma_q^2, b=1+sigma_c^2, Delta=a*b-1."
+    }
+   ]
+  }
+ },
+ {
+  "plan_id": "R0B8C1",
+  "name": "Heterogeneous Peak-Gene Bipartite GNN with Query-Conditioned Cross-Encoder Smooth-MRR Reranking",
+  "reason": "pool is full",
+  "plan": {
+   "plan_id": "R0B8C1",
+   "name": "Heterogeneous Peak-Gene Bipartite GNN with Query-Conditioned Cross-Encoder Smooth-MRR Reranking",
+   "summary": "Each cell's RNA and ATAC counts are represented on an intra-cell heterogeneous bipartite graph of 87,029 peak-to-gene links alongside depth-filtered global LSI. Stage 1 performs two-hop intra-cell bipartite message passing pooled into co-regulatory modules to retrieve top ATAC candidates per query. Stage 2 applies a query-conditioned cross-encoder reranker trained with listwise Plackett-Luce smooth-MRR loss to score non-linear enhancer-transcription compatibility at active query loci. Nested four-fold cross-validation against required floors, linear CCA, and split-half ceilings tests whether locus-level interactions achieve individual-cell or sub-cluster retrieval.",
+   "complexity": "ambitious",
+   "analysis_unit": "Individual cell (single nucleus with co-measured RNA and ATAC in development splits; strictly per-query independent retrieval against unseen candidate ATAC pools)",
+   "inputs": {
+    "cis_peaks": {
+     "window_kb": 200,
+     "max_peaks_per_gene": 30
+    },
+    "lsi": {
+     "n_components": 80,
+     "max_peaks": 80000
+    },
+    "gene_activity": {
+     "mode": "promoter_and_distal"
+    },
+    "depth": {}
+   },
+   "preprocessing": [
+    "Partition the 7,288 paired development cells uniformly at random by cell ID (without WNN labels) into 4 outer folds of 1,822 cells each; within each 5,466-cell development set, hold out 15% (820 cells) as inner validation and fit all scalers, graphs, and encoders strictly on the 4,646 inner-train cells.",
+    "For RNA on inner-train (11,282 in-scope genes), compute per-cell log1p library-normalized counts and log total UMI depth, fit per-gene quadratic ridge regression on log UMI depth to obtain standardized depth-residualized expression surprise scores alongside raw count presence indicators, and extract 80 inner-train RNA principal components.",
+    "For ATAC on inner-train, compute log total fragment depth, fit binarized peak TF-IDF weights and 80-component LSI (dropping component 1 and regressing out residual linear/quadratic log ATAC depth), and compute depth-normalized promoter_and_distal gene activity.",
+    "Construct the static intra-cell Peak-to-Gene Heterogeneous Bipartite Graph over the 11,282 in-scope genes and linked cis-peaks within 200 kb TSS using the 87,029 allowed peak-gene annotations (6 edge features: 10/50/200 kb TSS RBF kernels, promoter flag, and inverse square-root gene and pleiotropic peak degrees); partition genes into 128 balanced co-regulatory modules via spectral clustering on shared-peak adjacency plus inner-train RNA co-expression.",
+    "Compute unsupervised rare-state sample weights on inner-train cells as clipped inverse square-root kNN density (k=30 in concatenated inner-train RNA PCA and ATAC LSI, clipped to [0.5, 5.0]) without accessing WNN annotations; perform zero cross-cell smoothing or imputation on any split."
+   ],
+   "model": {
+    "component": "bipartite_graph_retrieve_and_cross_rerank",
+    "params": {
+     "n_modules": 128,
+     "bipartite_hops": 2,
+     "node_channels": 8,
+     "module_dim": 16,
+     "global_embed_dim": 256,
+     "stage1_temperature": 0.07,
+     "depth_orth_penalty": 0.1,
+     "rerank_top_k_train": 64,
+     "rerank_top_k_eval": 128,
+     "query_active_loci": 48,
+     "cross_mixer_layers": 2,
+     "cross_hidden_dim": 128,
+     "dropout": 0.15,
+     "smooth_mrr_tau": 0.05
+    }
+   },
+   "fusion": null,
+   "training": {
+    "max_epochs": 80,
+    "stage1_epochs": 80,
+    "stage2_epochs": 40,
+    "early_stopping_patience": 10,
+    "lr": 0.001,
+    "stage2_lr": 0.0005,
+    "batch_size": 128,
+    "weight_decay": 0.0001,
+    "target_denoising": "none",
+    "sample_weighting": "unsupervised_inner_train_inverse_knn_density_clipped_0.5_to_5.0",
+    "loss_schedule": "Stage 1 minimizes rare-weighted symmetric InfoNCE with in-batch hard-negative upweighting plus batchwise log-depth covariance penalty; Stage 2 mines the 63 hardest inner-train Stage-1 ATAC negatives per query plus the ground-truth pair and minimizes rare-weighted Plackett-Luce listwise cross-entropy plus NeuralSort smooth-MRR loss with zero-centered candidate-depth baseline.",
+    "convergence_audit": "Record per-epoch inner-train and inner-val losses, inner-val MRR, and gradient norms for both stages; evaluate 3 seeds on Fold 1 inner-val to quantify seed variance (K1) and freeze the fusion scalar alpha on inner-val MRR with shrinkage to Stage 1 if gain is within seed spread."
+   },
+   "validation": {
+    "scheme": "kfold",
+    "n_splits": 4,
+    "inner_val_fraction": 0.15,
+    "split_unit": "cell",
+    "split_sizes": {
+     "inner_train": 4646,
+     "inner_val": 820,
+     "outer_test": 1822
+    },
+    "candidate_pool_size": 1822,
+    "expanded_distractor_pool_size": 4946,
+    "metrics": [
+     "MRR",
+     "recall@1",
+     "recall@5",
+     "recall@10",
+     "FOSCTTM"
+    ],
+    "tie_breaking": "deterministic_mid_ranks",
+    "scoring_protocol": "Score each unseen outer-test query cell independently against the 1,822 unseen outer-test ATAC candidates (and separately against the 4,946-cell pool adding the 3,124 unseen held-out ATAC-only cells strictly as frozen-scaler distractors); aggregate all 7,288 out-of-fold query ranks for 10,000 paired nonparametric bootstrap 95% CIs and post-hoc WNN 19-population BH-FDR (5%) reporting.",
+    "comparators_on_identical_splits": [
+     "Floor 0: uniform random permutation ranking",
+     "Floor 1: inner-train OLS log RNA-to-ATAC sequencing depth matching",
+     "Floor 2: unlearned promoter_and_distal gene activity cosine matching",
+     "Floor 3: inner-train k=20 ATAC cluster centroid matching",
+     "Simple linear reference: inner-train 64-component linear CCA and ridge alignment on RNA PCA and ATAC LSI",
+     "Noise-ceiling ruler: binomial-thinning (p=0.5) unimodal split-half count self-retrieval on evaluation cells"
+    ],
+    "sanity_checks": [
+     "Assert zero cell-ID overlap across inner-train, inner-val, outer-test, and distractor pools (A2, A3)",
+     "Assert single-query invariance: scoring 1 query vs 1,822 queries against the candidate pool yields identical bit-for-bit ranks with zero cross-query inputs (A1)",
+     "Assert convergence of Stage 1 and Stage 2 training curves before reading outer-test metrics (K3, K4)",
+     "Verify each floor and linear comparator on synthetic/split-half identity cases prior to evaluation (K8)"
+    ]
+   },
+   "metrics": [
+    "MRR",
+    "Recall@1",
+    "Recall@5",
+    "Recall@10",
+    "1 - FOSCTTM",
+    "Macro-averaged and per-population MRR and Recall@1 across 19 WNN populations (5% BH-FDR)",
+    "Ratio of cross-modal MRR to binomial-thinning unimodal split-half self-retrieval noise ceiling"
+   ],
+   "allowed_conclusions": "Entitled to conclude one of the four compiled conclusion options solely for unseen granulocyte-depleted PBMCs of this healthy donor at this sequencing depth and candidate-pool size: single-cell resolution if Recall@1 is substantial and paired-bootstrap 95% CIs for MRR gain beat all floors and linear CCA while approaching the split-half ceiling; sub-cluster neighborhood resolution if MRR significantly beats Floor 3 (k=20 clusters) and linear CCA (or matches CCA if Stage 2 does not add nonlinear gain) without reliable top-1 recovery; cell-type resolution if MRR beats Floors 0-1 but not Floor 3; or no biological retrieval if MRR fails to beat Floor 0 or Floor 1.",
+   "budget": {
+    "needs_gpu": true,
+    "pilot_minutes": 9.0,
+    "full_minutes": 44.0,
+    "cpus": 32
+   },
+   "diversity": {
+    "data": "intra_cell_heterogeneous_peak_gene_bipartite_graph_plus_depth_filtered_lsi",
+    "model": "two_stage_bipartite_gnn_biencoder_plus_query_conditioned_cross_encoder_reranker",
+    "method": "nested_4fold_two_stage_retrieve_and_plackett_luce_smooth_mrr_listwise_reranking_with_distractor_pool"
+   },
+   "rationale": "Intra-cell bipartite peak-gene propagation pools shared-enhancer signal to mitigate severe dropout without cross-cell smoothing (D1). Unlike pure bi-encoders, a depth-calibrated cross-encoder conditioned on active query genes penalizes sub-cluster enhancer-expression incompatibilities (D5, D6), while unsupervised inverse-density Plackett-Luce Smooth-MRR training protects rare populations (D2, D7).",
+   "difficulties_addressed": [
+    "D1",
+    "D2",
+    "D4",
+    "D5",
+    "D6",
+    "D7"
+   ],
+   "new_components": [
+    {
+     "name": "bipartite_graph_retrieve_and_cross_rerank",
+     "description": "Two-stage single-query cross-modal retriever and reranker. What it computes: Stage 1 runs 2-hop intra-cell edge-gated message passing over the 87,029-edge peak-gene bipartite graph (never across cells), attention-pools the 11,282 genes into 128 spectral co-regulatory module tokens, fuses global RNA PCA / depth-dropped ATAC LSI with batchwise log-depth orthogonalization, and retrieves top-K=128 ATAC candidates per query via cosine similarity s1(q,j). Stage 2 scores each (q,j) in top-K independently via a FiLM pair-depth-calibrated 2-layer Gated MLP-Mixer over 128 cross-modal module interaction tokens [T_q, T_j, T_q*T_j, |T_q-T_j|] plus a 48-locus active-gene enhancer-closure veto MLP on query q's highest-surprise expressed genes, outputting S(q,j) = s1(q,j) + alpha*f_cross(q,j) inside top-K and s1(q,j) - margin outside top-K. Inputs: per-cell RNA depth-residualized and raw counts, linked cis_peaks with TSS annotations, promoter_and_distal gene_activity, depth-dropped lsi, and per-cell log depths. Outputs: deterministic mid-rank candidate scores for each single query cell. Training: Stage 1 uses rare-density-weighted InfoNCE + depth covariance penalty; Stage 2 uses rare-density-weighted listwise Plackett-Luce + NeuralSort Smooth-MRR loss over 64 hard inner-train candidates per query with early stopping on inner-val MRR."
+    }
+   ]
+  }
+ }
+]

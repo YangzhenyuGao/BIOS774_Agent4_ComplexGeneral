@@ -1,0 +1,5 @@
+Multi-Scale Pure-Vision Prototype and Boosted-Tree Stacking Ensemble
+
+Each patient's slides are represented across Virchow2, UNI2-h, and H-Optimus-1 as discrete tile-prototype proportions and PCA patient-mean vectors. Inside each training fold, a balanced logistic meta-learner stacks out-of-fold probabilities from multi-scale prototype classifiers and boosted trees using H&E features alone. Repeated nested patient and site-grouped cross-validation benchmarks this stack against chance baselines and the simple logistic reference. Bootstrap intervals establish whether H&E subtype predictability is broad, partial, site-confounded, or insufficient.
+
+Rationale: Quantising variable-length tile bags (D6) into compact prototype proportions curbs high-dimensional overfitting (D3) and dampens continuous site stain shifts (D4) while preserving focal phenotypes lost in patient averages. Balanced boosted trees and meta-stacking capture non-linear interactions for minority Her2 and LumA/LumB separation (D1).

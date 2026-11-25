@@ -1,0 +1,329 @@
+{
+ "frozen": "2026-11-25T05:18:32-0500",
+ "plan_ids": [
+  "P1",
+  "P2",
+  "P3",
+  "P4",
+  "P5",
+  "P6"
+ ],
+ "selection_report": {
+  "n_candidates": 8,
+  "n_after_dedup": 8,
+  "n_pool": 6,
+  "n_ambitious": 5,
+  "n_simple": 1,
+  "diversity_coverage": {
+   "data": [
+    "cis_peaks_250kb_plus_gene_activity_and_100d_unpruned_lsi",
+    "depth_free_30k_tfidf_plus_full_gene_activity_and_120d_lsi",
+    "filtered_50k_lsi_80d_plus_standardized_log_depth",
+    "global_lsi_depth_dropped",
+    "high_dim_50k_tfidf_peaks_plus_promoter_activity_and_log_depth",
+    "view_partitioned_100kb_cis_peaks_25k_tfidf_gene_activity_100d_lsi_and_depth"
+   ],
+   "model": [
+    "closed_form_linear_ridge",
+    "negative_binomial_count_encoder_decoder_mlp",
+    "per_gene_early_stopped_gradient_boosted_trees",
+    "per_gene_ridge_meta_ensemble_of_cluster_anchor_residual_mlp_cis_masked_nn_and_lowrank_net",
+    "sparse_masked_peak_to_gene_neural_net",
+    "symmetric_clip_contrastive_biencoder_with_mlp_head"
+   ],
+   "method": [
+    "atac_cluster_reweighted_generative_count_translation_nested_3fold_cv",
+    "cluster_mean_residual_decomposition_with_knn_target_denoising_repeated_70_30_holdout",
+    "heterogeneous_mechanism_oof_stacking_nested_repeated_3fold_cv",
+    "joint_cis_trans_regulatory_modelling_multi_seed_nested_cv",
+    "single_global_linear_nested_5fold_cv",
+    "two_stage_cross_modal_hyperspherical_alignment_cluster_balanced_nested_4fold_cv"
+   ]
+  },
+  "diversity_ok": true,
+  "threshold": 0.75,
+  "pairwise_similarity": {
+   "R0B1C1|R0B2C1": 0.25,
+   "R0B1C1|R0B3C1": 0.333,
+   "R0B1C1|R0B4C1": 0.0,
+   "R0B1C1|R0B5C1": 0.333,
+   "R0B1C1|R0B6C1": 0.25,
+   "R0B2C1|R0B3C1": 0.25,
+   "R0B2C1|R0B4C1": 0.0,
+   "R0B2C1|R0B5C1": 0.25,
+   "R0B2C1|R0B6C1": 0.2,
+   "R0B3C1|R0B4C1": 0.0,
+   "R0B3C1|R0B5C1": 0.333,
+   "R0B3C1|R0B6C1": 0.25,
+   "R0B4C1|R0B5C1": 0.0,
+   "R0B4C1|R0B6C1": 0.0,
+   "R0B5C1|R0B6C1": 0.25
+  },
+  "renamed_from_candidate_ids": {
+   "R0B1C1": "P1",
+   "R0B2C1": "P2",
+   "R0B3C1": "P3",
+   "R0B4C1": "P4",
+   "R0B5C1": "P5",
+   "R0B6C1": "P6"
+  },
+  "invalid_candidates": []
+ },
+ "generation_calls": [
+  {
+   "round": 0,
+   "model": "gemini-4-carbon",
+   "cache_key": "c3e416a0f679f50c7164838964b56036",
+   "system_sha256": "e4bee8defea58d8a2b8a76e2a4634ffc37d8b07dcdbc17eeebbcb01c0756119f",
+   "prompt_sha256": "da4ae3b5258fc298ceb2580be8569a3fbe575f0df8d3d1a2d89082c64605fafa",
+   "lessons": [
+    "K4",
+    "K5",
+    "K6",
+    "K8",
+    "K1",
+    "K10",
+    "K3",
+    "K7"
+   ],
+   "seconds": 236.6,
+   "attempts": [
+    {
+     "model": "gemini-4-carbon",
+     "ok": true,
+     "seconds": 236.6
+    }
+   ],
+   "usage": {
+    "input_tokens": 6738,
+    "output_tokens": 1514,
+    "thinking_tokens": 14816,
+    "finish_reason": "STOP"
+   }
+  },
+  {
+   "round": 0,
+   "model": "gemini-4-carbon",
+   "cache_key": "63c3593b3ca2cb250ee2ecb223f8b3c3",
+   "system_sha256": "28e4b3f8464d19ed1591fcc95473e6c8a4423649a5a6922522f165aaee2877fb",
+   "prompt_sha256": "6d7d4e2eafe8c996e3ec0487b6c0ba554c5a82c25c0a79c42ed7c15da7df2019",
+   "lessons": [
+    "K4",
+    "K5",
+    "K6",
+    "K8",
+    "K1",
+    "K10",
+    "K3",
+    "K7"
+   ],
+   "seconds": 260.5,
+   "attempts": [
+    {
+     "model": "gemini-4-carbon",
+     "ok": true,
+     "seconds": 260.5
+    }
+   ],
+   "usage": {
+    "input_tokens": 6878,
+    "output_tokens": 1630,
+    "thinking_tokens": 21820,
+    "finish_reason": "STOP"
+   }
+  },
+  {
+   "round": 0,
+   "model": "gemini-4-carbon",
+   "cache_key": "7def2dfe0a64c5e99aadc35b6165199c",
+   "system_sha256": "8d1dd197ba813b2827b94c867fbf90a5900ad6c1d473828e7a03150a6f615a08",
+   "prompt_sha256": "16ea06843c43cbae57845d39728e5eaac3958f8d352bd09b4651c394cfbb0ca8",
+   "lessons": [
+    "K4",
+    "K5",
+    "K6",
+    "K8",
+    "K1",
+    "K10",
+    "K3",
+    "K7"
+   ],
+   "seconds": 254.0,
+   "attempts": [
+    {
+     "model": "gemini-4-carbon",
+     "ok": true,
+     "seconds": 254.0
+    }
+   ],
+   "usage": {
+    "input_tokens": 7114,
+    "output_tokens": 1678,
+    "thinking_tokens": 17047,
+    "finish_reason": "STOP"
+   }
+  },
+  {
+   "round": 0,
+   "model": "gemini-4-carbon",
+   "cache_key": "863697719247cbe27364b3197b9323a4",
+   "system_sha256": "e332b399a9132bbe671eddeb710d49a3130695ce8eec5a75c85b416d3b9380bc",
+   "prompt_sha256": "ebe236a464e557eef07ac1f7f864703dfaf3a582338a90db6048e54d24c34213",
+   "lessons": [
+    "K4",
+    "K5",
+    "K6",
+    "K8",
+    "K1",
+    "K10",
+    "K3",
+    "K7"
+   ],
+   "seconds": 717.8,
+   "attempts": [
+    {
+     "model": "gemini-4-carbon",
+     "ok": false,
+     "kind": "timeout",
+     "seconds": 360.1,
+     "error": "ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Read timed out. (read timeout=360)\"))"
+    },
+    {
+     "model": "gemini-4-carbon",
+     "ok": true,
+     "seconds": 347.6
+    }
+   ],
+   "usage": {
+    "input_tokens": 7305,
+    "output_tokens": 1699,
+    "thinking_tokens": 27087,
+    "finish_reason": "STOP"
+   }
+  },
+  {
+   "round": 0,
+   "model": "gemini-4-carbon",
+   "cache_key": "7fb17889da9906f39fc78317e454c0fe",
+   "system_sha256": "e70e7b573429a69c002d16c543c72609bff0f5ffda48202ac6d49f2b0b7f75ea",
+   "prompt_sha256": "57a6286b56baef4dfbf761e214d1a2b4b62c1620cf7ee4002989c485ae28923e",
+   "lessons": [
+    "K4",
+    "K5",
+    "K6",
+    "K8",
+    "K1",
+    "K10",
+    "K3",
+    "K7"
+   ],
+   "seconds": 290.6,
+   "attempts": [
+    {
+     "model": "gemini-4-carbon",
+     "ok": true,
+     "seconds": 290.6
+    }
+   ],
+   "usage": {
+    "input_tokens": 7504,
+    "output_tokens": 1764,
+    "thinking_tokens": 22385,
+    "finish_reason": "STOP"
+   }
+  },
+  {
+   "round": 0,
+   "model": "gemini-4-carbon",
+   "cache_key": "d4d9dacf0d73b36f79e3549dc114a5b2",
+   "system_sha256": "21e8a2cf2b700c4e8f4f261da7c477122e1a2de45352d425cb72644ac1d0b94d",
+   "prompt_sha256": "66a33a14c4425fa2e32b52b46b5099f5abb78bb5205ffd29c248b825b8f11f9c",
+   "lessons": [
+    "K4",
+    "K5",
+    "K6",
+    "K8",
+    "K1",
+    "K10",
+    "K3",
+    "K7"
+   ],
+   "seconds": 291.5,
+   "attempts": [
+    {
+     "model": "gemini-4-carbon",
+     "ok": true,
+     "seconds": 291.5
+    }
+   ],
+   "usage": {
+    "input_tokens": 7743,
+    "output_tokens": 2120,
+    "thinking_tokens": 23800,
+    "finish_reason": "STOP"
+   }
+  },
+  {
+   "round": 0,
+   "model": "gemini-4-carbon",
+   "cache_key": "3620d6b96651ab6916f30e407e387815",
+   "system_sha256": "f4c00bef9ef3de446c0b320a021209961e76c9bbb94663ea6e95b4b87161b55e",
+   "prompt_sha256": "f36ab1df5975277b53dde9bf2e05dcaf24d2d113cca1aef96cb1f7775403c737",
+   "lessons": [
+    "K4",
+    "K5",
+    "K6",
+    "K8",
+    "K1",
+    "K10",
+    "K3",
+    "K7"
+   ],
+   "seconds": 274.0,
+   "attempts": [
+    {
+     "model": "gemini-4-carbon",
+     "ok": true,
+     "seconds": 274.0
+    }
+   ],
+   "usage": {
+    "input_tokens": 8022,
+    "output_tokens": 1652,
+    "thinking_tokens": 20850,
+    "finish_reason": "STOP"
+   }
+  },
+  {
+   "round": 0,
+   "model": "gemini-4-carbon",
+   "cache_key": "2895ddaf5f2d7d0e805f3dceb7985eec",
+   "system_sha256": "aa8e36158721c37cf92f10bcd3354895d13e9a0fb96deb3cd27c3feed9bdccb1",
+   "prompt_sha256": "9ae0effda972b1f6db20edf676b2f3a5ee5b4818ffc9e37076364ffbcf157177",
+   "lessons": [
+    "K4",
+    "K5",
+    "K6",
+    "K8",
+    "K1",
+    "K10",
+    "K3",
+    "K7"
+   ],
+   "seconds": 338.5,
+   "attempts": [
+    {
+     "model": "gemini-4-carbon",
+     "ok": true,
+     "seconds": 338.5
+    }
+   ],
+   "usage": {
+    "input_tokens": 8213,
+    "output_tokens": 2563,
+    "thinking_tokens": 25045,
+    "finish_reason": "STOP"
+   }
+  }
+ ]
+}

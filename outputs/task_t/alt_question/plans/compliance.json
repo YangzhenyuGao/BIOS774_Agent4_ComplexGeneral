@@ -1,0 +1,296 @@
+[
+ {
+  "plan_id": "P1",
+  "passed": true,
+  "rules": [
+   {
+    "rule": "inputs_from_view",
+    "passed": true,
+    "detail": "input blocks ['clinical', 'image']; unknown blocks []; unknown encoders []"
+   },
+   {
+    "rule": "clinical_variables_allowed",
+    "passed": true,
+    "detail": "declared clinical variables []; outside the six covariates: []"
+   },
+   {
+    "rule": "clinical_block_matches_question",
+    "passed": true,
+    "detail": "the question excludes clinical variables; the plan does not use them"
+   },
+   {
+    "rule": "correct_split_unit",
+    "passed": true,
+    "detail": "declared split unit: patient; the analysis unit is the patient"
+   },
+   {
+    "rule": "no_forbidden_inputs",
+    "passed": true,
+    "detail": "all input rules passed; each forbidden input of the objective is covered as follows: [er, pr, her2 (immunohistochemistry receptor statuses)] -> rule clinical_block_matches_question | [histological_type] -> no deterministic rule; left to the audit reviewer | [age and stage] -> no deterministic rule; left to the audit reviewer | [RNA expression or RNA-derived variables] -> rule inputs_from_view: the view offers no such variable for the units to be predicted | [site (as a model input feature)] -> rule clinical_variables_allowed: site is a grouping column, not an allowed covariate"
+   },
+   {
+    "rule": "components_executable",
+    "passed": true,
+    "detail": "all components registered"
+   },
+   {
+    "rule": "within_budget",
+    "passed": true,
+    "detail": "declared full run 10.0 min; limit 120 min"
+   }
+  ],
+  "forbidden_input_coverage": {
+   "er, pr, her2 (immunohistochemistry receptor statuses)": "rule clinical_block_matches_question",
+   "histological_type": "no deterministic rule; left to the audit reviewer",
+   "age and stage": "no deterministic rule; left to the audit reviewer",
+   "RNA expression or RNA-derived variables": "rule inputs_from_view: the view offers no such variable for the units to be predicted",
+   "site (as a model input feature)": "rule clinical_variables_allowed: site is a grouping column, not an allowed covariate"
+  },
+  "checked": "2026-11-25T07:43:26-0500"
+ },
+ {
+  "plan_id": "P2",
+  "passed": true,
+  "rules": [
+   {
+    "rule": "inputs_from_view",
+    "passed": true,
+    "detail": "input blocks ['clinical', 'image']; unknown blocks []; unknown encoders []"
+   },
+   {
+    "rule": "clinical_variables_allowed",
+    "passed": true,
+    "detail": "declared clinical variables []; outside the six covariates: []"
+   },
+   {
+    "rule": "clinical_block_matches_question",
+    "passed": true,
+    "detail": "the question excludes clinical variables; the plan does not use them"
+   },
+   {
+    "rule": "correct_split_unit",
+    "passed": true,
+    "detail": "declared split unit: patient; the analysis unit is the patient"
+   },
+   {
+    "rule": "no_forbidden_inputs",
+    "passed": true,
+    "detail": "all input rules passed; each forbidden input of the objective is covered as follows: [er, pr, her2 (immunohistochemistry receptor statuses)] -> rule clinical_block_matches_question | [histological_type] -> no deterministic rule; left to the audit reviewer | [age and stage] -> no deterministic rule; left to the audit reviewer | [RNA expression or RNA-derived variables] -> rule inputs_from_view: the view offers no such variable for the units to be predicted | [site (as a model input feature)] -> rule clinical_variables_allowed: site is a grouping column, not an allowed covariate"
+   },
+   {
+    "rule": "components_executable",
+    "passed": true,
+    "detail": "all components registered"
+   },
+   {
+    "rule": "within_budget",
+    "passed": true,
+    "detail": "declared full run 75.0 min; limit 120 min"
+   }
+  ],
+  "forbidden_input_coverage": {
+   "er, pr, her2 (immunohistochemistry receptor statuses)": "rule clinical_block_matches_question",
+   "histological_type": "no deterministic rule; left to the audit reviewer",
+   "age and stage": "no deterministic rule; left to the audit reviewer",
+   "RNA expression or RNA-derived variables": "rule inputs_from_view: the view offers no such variable for the units to be predicted",
+   "site (as a model input feature)": "rule clinical_variables_allowed: site is a grouping column, not an allowed covariate"
+  },
+  "checked": "2026-11-25T07:43:26-0500"
+ },
+ {
+  "plan_id": "P3",
+  "passed": true,
+  "rules": [
+   {
+    "rule": "inputs_from_view",
+    "passed": true,
+    "detail": "input blocks ['clinical', 'image']; unknown blocks []; unknown encoders []"
+   },
+   {
+    "rule": "clinical_variables_allowed",
+    "passed": true,
+    "detail": "declared clinical variables []; outside the six covariates: []"
+   },
+   {
+    "rule": "clinical_block_matches_question",
+    "passed": true,
+    "detail": "the question excludes clinical variables; the plan does not use them"
+   },
+   {
+    "rule": "correct_split_unit",
+    "passed": true,
+    "detail": "declared split unit: patient; the analysis unit is the patient"
+   },
+   {
+    "rule": "no_forbidden_inputs",
+    "passed": true,
+    "detail": "all input rules passed; each forbidden input of the objective is covered as follows: [er, pr, her2 (immunohistochemistry receptor statuses)] -> rule clinical_block_matches_question | [histological_type] -> no deterministic rule; left to the audit reviewer | [age and stage] -> no deterministic rule; left to the audit reviewer | [RNA expression or RNA-derived variables] -> rule inputs_from_view: the view offers no such variable for the units to be predicted | [site (as a model input feature)] -> rule clinical_variables_allowed: site is a grouping column, not an allowed covariate"
+   },
+   {
+    "rule": "components_executable",
+    "passed": true,
+    "detail": "all components registered"
+   },
+   {
+    "rule": "within_budget",
+    "passed": true,
+    "detail": "declared full run 75.0 min; limit 120 min"
+   }
+  ],
+  "forbidden_input_coverage": {
+   "er, pr, her2 (immunohistochemistry receptor statuses)": "rule clinical_block_matches_question",
+   "histological_type": "no deterministic rule; left to the audit reviewer",
+   "age and stage": "no deterministic rule; left to the audit reviewer",
+   "RNA expression or RNA-derived variables": "rule inputs_from_view: the view offers no such variable for the units to be predicted",
+   "site (as a model input feature)": "rule clinical_variables_allowed: site is a grouping column, not an allowed covariate"
+  },
+  "checked": "2026-11-25T07:43:26-0500"
+ },
+ {
+  "plan_id": "P4",
+  "passed": true,
+  "rules": [
+   {
+    "rule": "inputs_from_view",
+    "passed": true,
+    "detail": "input blocks ['clinical', 'image']; unknown blocks []; unknown encoders []"
+   },
+   {
+    "rule": "clinical_variables_allowed",
+    "passed": true,
+    "detail": "declared clinical variables []; outside the six covariates: []"
+   },
+   {
+    "rule": "clinical_block_matches_question",
+    "passed": true,
+    "detail": "the question excludes clinical variables; the plan does not use them"
+   },
+   {
+    "rule": "correct_split_unit",
+    "passed": true,
+    "detail": "declared split unit: patient; the analysis unit is the patient"
+   },
+   {
+    "rule": "no_forbidden_inputs",
+    "passed": true,
+    "detail": "all input rules passed; each forbidden input of the objective is covered as follows: [er, pr, her2 (immunohistochemistry receptor statuses)] -> rule clinical_block_matches_question | [histological_type] -> no deterministic rule; left to the audit reviewer | [age and stage] -> no deterministic rule; left to the audit reviewer | [RNA expression or RNA-derived variables] -> rule inputs_from_view: the view offers no such variable for the units to be predicted | [site (as a model input feature)] -> rule clinical_variables_allowed: site is a grouping column, not an allowed covariate"
+   },
+   {
+    "rule": "components_executable",
+    "passed": true,
+    "detail": "all components registered"
+   },
+   {
+    "rule": "within_budget",
+    "passed": true,
+    "detail": "declared full run 75.0 min; limit 120 min"
+   }
+  ],
+  "forbidden_input_coverage": {
+   "er, pr, her2 (immunohistochemistry receptor statuses)": "rule clinical_block_matches_question",
+   "histological_type": "no deterministic rule; left to the audit reviewer",
+   "age and stage": "no deterministic rule; left to the audit reviewer",
+   "RNA expression or RNA-derived variables": "rule inputs_from_view: the view offers no such variable for the units to be predicted",
+   "site (as a model input feature)": "rule clinical_variables_allowed: site is a grouping column, not an allowed covariate"
+  },
+  "checked": "2026-11-25T07:43:26-0500"
+ },
+ {
+  "plan_id": "P5",
+  "passed": true,
+  "rules": [
+   {
+    "rule": "inputs_from_view",
+    "passed": true,
+    "detail": "input blocks ['clinical', 'image']; unknown blocks []; unknown encoders []"
+   },
+   {
+    "rule": "clinical_variables_allowed",
+    "passed": true,
+    "detail": "declared clinical variables []; outside the six covariates: []"
+   },
+   {
+    "rule": "clinical_block_matches_question",
+    "passed": true,
+    "detail": "the question excludes clinical variables; the plan does not use them"
+   },
+   {
+    "rule": "correct_split_unit",
+    "passed": true,
+    "detail": "declared split unit: patient; the analysis unit is the patient"
+   },
+   {
+    "rule": "no_forbidden_inputs",
+    "passed": true,
+    "detail": "all input rules passed; each forbidden input of the objective is covered as follows: [er, pr, her2 (immunohistochemistry receptor statuses)] -> rule clinical_block_matches_question | [histological_type] -> no deterministic rule; left to the audit reviewer | [age and stage] -> no deterministic rule; left to the audit reviewer | [RNA expression or RNA-derived variables] -> rule inputs_from_view: the view offers no such variable for the units to be predicted | [site (as a model input feature)] -> rule clinical_variables_allowed: site is a grouping column, not an allowed covariate"
+   },
+   {
+    "rule": "components_executable",
+    "passed": true,
+    "detail": "all components registered"
+   },
+   {
+    "rule": "within_budget",
+    "passed": true,
+    "detail": "declared full run 88.0 min; limit 120 min"
+   }
+  ],
+  "forbidden_input_coverage": {
+   "er, pr, her2 (immunohistochemistry receptor statuses)": "rule clinical_block_matches_question",
+   "histological_type": "no deterministic rule; left to the audit reviewer",
+   "age and stage": "no deterministic rule; left to the audit reviewer",
+   "RNA expression or RNA-derived variables": "rule inputs_from_view: the view offers no such variable for the units to be predicted",
+   "site (as a model input feature)": "rule clinical_variables_allowed: site is a grouping column, not an allowed covariate"
+  },
+  "checked": "2026-11-25T07:43:26-0500"
+ },
+ {
+  "plan_id": "P6",
+  "passed": false,
+  "rules": [
+   {
+    "rule": "inputs_from_view",
+    "passed": true,
+    "detail": "input blocks ['clinical', 'image']; unknown blocks []; unknown encoders []"
+   },
+   {
+    "rule": "clinical_variables_allowed",
+    "passed": true,
+    "detail": "declared clinical variables []; outside the six covariates: []"
+   },
+   {
+    "rule": "clinical_block_matches_question",
+    "passed": true,
+    "detail": "the question excludes clinical variables; the plan does not use them"
+   },
+   {
+    "rule": "correct_split_unit",
+    "passed": true,
+    "detail": "declared split unit: patient; the analysis unit is the patient"
+   },
+   {
+    "rule": "no_forbidden_inputs",
+    "passed": true,
+    "detail": "all input rules passed; each forbidden input of the objective is covered as follows: [er, pr, her2 (immunohistochemistry receptor statuses)] -> rule clinical_block_matches_question | [histological_type] -> no deterministic rule; left to the audit reviewer | [age and stage] -> no deterministic rule; left to the audit reviewer | [RNA expression or RNA-derived variables] -> rule inputs_from_view: the view offers no such variable for the units to be predicted | [site (as a model input feature)] -> rule clinical_variables_allowed: site is a grouping column, not an allowed covariate"
+   },
+   {
+    "rule": "components_executable",
+    "passed": false,
+    "detail": "not in registry: ['shared_private_poe_vib']"
+   },
+   {
+    "rule": "within_budget",
+    "passed": true,
+    "detail": "declared full run 35.0 min; limit 120 min"
+   }
+  ],
+  "forbidden_input_coverage": {
+   "er, pr, her2 (immunohistochemistry receptor statuses)": "rule clinical_block_matches_question",
+   "histological_type": "no deterministic rule; left to the audit reviewer",
+   "age and stage": "no deterministic rule; left to the audit reviewer",
+   "RNA expression or RNA-derived variables": "rule inputs_from_view: the view offers no such variable for the units to be predicted",
+   "site (as a model input feature)": "rule clinical_variables_allowed: site is a grouping column, not an allowed covariate"
+  },
+  "checked": "2026-11-25T07:43:26-0500"
+ }
+]

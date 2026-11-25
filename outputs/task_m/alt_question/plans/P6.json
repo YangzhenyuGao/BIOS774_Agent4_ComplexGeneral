@@ -1,0 +1,127 @@
+{
+ "plan_id": "P6",
+ "name": "Coarse-to-Fine Specialist LoRA Mixture-of-Experts with Depth-Orthogonalized Residual Alignment",
+ "summary": "We test single-cell RNA-to-ATAC retrieval with an unsupervised coarse-to-fine specialist mixture under nested 4-fold cross-validation across all 7,288 cells. Full-atlas ATAC LSI, TF-IDF peaks, and promoter activity align with RNA via balanced routers and 32 depth-orthogonalized residual experts regularized by training-only kNN denoising. Unseen query RNA profiles independently rank candidate ATAC profiles by combining prior-adjusted regime compatibility with within-regime residual similarity. Comparing paired-bootstrap intervals against all required floors, linear CCA, and split-half ceilings determines whether retrieval reaches single-cell, sub-cluster, or cluster-only resolution.",
+ "complexity": "ambitious",
+ "analysis_unit": "Individual cell (single nucleus with co-measured RNA and ATAC in development splits)",
+ "inputs": {
+  "lsi": {
+   "n_components": 128,
+   "max_peaks": 108377
+  },
+  "tfidf_peaks": {
+   "max_peaks": 60000
+  },
+  "gene_activity": {
+   "mode": "promoter"
+  },
+  "depth": {}
+ },
+ "preprocessing": [
+  "Partition the 7,288 paired development cells strictly by cell ID into 4 exact outer folds of 1,822 test cells each, subdividing each 5,466-cell outer training set into 4,646 inner-train and 820 inner-val cells with zero cell overlap across splits.",
+  "Fit all feature selectors, scalers, projections, and unsupervised anchors strictly on the 4,646 inner-train cells of each fold; never use WNN cell-type annotations, held-out cells, or outer-test cells during fitting or tuning.",
+  "RNA per-cell representation (11,282 in-scope genes): compute library-size log1p(CPM/100) and inner-train-fitted clipped analytic Pearson residuals [-10, 10], compressed into a 256-dim inner-train PCA global branch concatenated with top-4,096 inner-train highly variable gene residuals, plus scalar log1p total RNA UMI depth solely for nuisance orthogonalization.",
+  "ATAC per-cell representation: fit binarized TF-IDF and 128-dim truncated SVD across all 108,377 peaks (dropping component 1 for technical depth), sparse TF-IDF over the top 60,000 inner-train accessible peaks, depth-normalized promoter gene_activity across 11,282 in-scope genes, and scalar log1p total ATAC fragment depth solely for nuisance orthogonalization.",
+  "Construct a training-only mutual kNN graph (k=15 in inner-train PCA/LSI space) strictly among the 4,646 inner-train cells to form knn_pool(15) denoised auxiliary targets; leave all inner-val and outer-test RNA and ATAC profiles completely unsmoothed.",
+  "Fit 32 unsupervised anchor regimes strictly on inner-train cells via minimum-occupancy-constrained spherical GMM over 32-dim depth-residualized canonical variates, recording inner-train regime priors pi_k and per-regime feature centroids."
+ ],
+ "model": {
+  "component": "coarse_to_fine_specialist_moe_retriever",
+  "params": {
+   "n_regimes": 32,
+   "trunk_dim": 512,
+   "macro_embed_dim": 96,
+   "specialist_embed_dim": 32,
+   "lora_rank": 16,
+   "shrinkage_prior_count": 25.0,
+   "macro_temperature": 0.07,
+   "specialist_temperature": 0.1,
+   "barlow_lambda": 0.005,
+   "depth_ortho_weight": 2.0,
+   "aux_denoise_weight": 0.25,
+   "dropout": 0.2,
+   "n_seeds": 3
+  }
+ },
+ "fusion": null,
+ "training": {
+  "max_epochs": 120,
+  "early_stopping_patience": 15,
+  "lr": 0.0008,
+  "batch_size": 256,
+  "weight_decay": 0.0001,
+  "target_denoising": "knn_pool(15)",
+  "optimizer": "AdamW_cosine_warmup_10_epochs",
+  "loss_components": "inverse_regime_frequency_balanced_router_KL_and_CE + symmetric_macro_InfoNCE + within_regime_responsibility_weighted_InfoNCE + specialist_Barlow_Twins_decorrelation + Gram_Schmidt_and_HSIC_depth_orthogonality_penalty + inner_train_only_knn_pool_15_auxiliary_cosine_loss",
+  "selection_and_convergence_audit": "Monitor per-epoch inner-train and inner-val loss components and unsmoothed inner-val MRR; select checkpoint and tune scoring weights (w_route, w_macro, w_spec) strictly on inner-val MRR, average 3 seeds per fold after measuring seed spread, and verify monotonic plateau and embedding-to-depth |r| < 0.02 before outer-test scoring."
+ },
+ "validation": {
+  "scheme": "kfold",
+  "n_splits": 4,
+  "split_unit": "cell",
+  "split_sizes": {
+   "inner_train": 4646,
+   "inner_val": 820,
+   "outer_test": 1822
+  },
+  "candidate_pool_size": 1822,
+  "expanded_distractor_pool_size": 4946,
+  "metrics": [
+   "MRR",
+   "recall@1",
+   "recall@5",
+   "recall@10",
+   "1-FOSCTTM",
+   "FOSCTTM",
+   "within_population_and_macro_MRR_recall@1",
+   "noise_ceiling_MRR_ratio"
+  ],
+  "tie_handling": "deterministic_mid_ranks",
+  "inference_rule": "Score each unseen outer-test query RNA profile independently against unsmoothed candidate ATAC profiles via S(q,c) = w_route * log(sum_k q_k(x_q)*p_k(y_c)/pi_k) + w_macro * cos(z_macro_q, z_macro_c) + w_spec * sum_k gamma_qc(k)*cos(z_spec_q(k), z_spec_c(k)), with zero cross-query assignment constraints and zero candidate RNA access.",
+  "required_comparators_on_identical_splits": [
+   "Floor 0: uniform random permutation ranking (sanity-checked against analytical harmonic expectation)",
+   "Floor 1: negative absolute difference between standardized query log RNA UMI depth and candidate log ATAC fragment depth",
+   "Floor 2: cosine similarity between query log1p RNA and unlearned candidate promoter_and_distal gene_activity",
+   "Floor 3: inner-train-fitted k=20 RNA and ATAC cluster centroid correspondence matching",
+   "Simple linear reference: inner-train-fitted CCA (plus ridge and PLS checks) between RNA PCA and depth-filtered ATAC LSI",
+   "Noise-ceiling ruler: 20-repeat binomial-thinning split-half unimodal self-retrieval MRR on the exact outer-test cells"
+  ],
+  "statistical_testing": "10,000-iteration paired nonparametric bootstrap over all 7,288 out-of-fold unseen query cells for 95% CIs on MRR and paired differences against every floor and linear reference; post-hoc stratification by the 19 development WNN populations with Benjamini-Hochberg 5% FDR control."
+ },
+ "metrics": [
+  "MRR",
+  "recall@1",
+  "recall@5",
+  "recall@10",
+  "1-FOSCTTM",
+  "within_population_and_macro_MRR_recall@1",
+  "noise_ceiling_MRR_ratio"
+ ],
+ "allowed_conclusions": "Map paired-bootstrap 95% CIs strictly to the four compiled conclusion options: claim single-cell resolution only if Recall@1 is substantial and MRR significantly beats Floor 0, Floor 1, Floor 2, Floor 3, and the simple linear reference while approaching the split-half noise ceiling; claim sub-cluster neighborhood resolution if MRR significantly beats Floor 3 and all lower floors (and beats linear CCA to justify model complexity) while top-1 recovery remains sparse; claim cell-type resolution only if MRR beats Floor 0 and Floor 1 but not Floor 3; otherwise conclude no biological retrieval. Scope is strictly restricted to unseen granulocyte-depleted PBMCs from this single healthy donor at this sequencing depth and candidate-pool size.",
+ "budget": {
+  "needs_gpu": false,
+  "pilot_minutes": 8.0,
+  "full_minutes": 52.0,
+  "cpus": 32
+ },
+ "diversity": {
+  "data": "full_atlas_lsi_sparse_tfidf_and_promoter_activity_with_train_knn_denoising",
+  "model": "hierarchical_specialist_lora_moe_with_barlow_twins_and_depth_orthogonalization",
+  "method": "exact_nested_4fold_bayes_regime_routing_plus_within_regime_specialist_residual_scoring"
+ },
+ "rationale": "Global spaces prioritize major lineages (D6) and underfit rare types like 15 Plasma cells (D2). Unsupervised balanced routing with 32 shrunk residual experts isolates within-population state without WNN labels (D4). Depth orthogonalization removes technical confounding (D5), while training-only kNN auxiliary targets mitigate count sparsity (D1).",
+ "difficulties_addressed": [
+  "D1",
+  "D2",
+  "D4",
+  "D5",
+  "D6",
+  "D7"
+ ],
+ "new_components": [
+  {
+   "name": "coarse_to_fine_specialist_moe_retriever",
+   "description": "Dual-modality hierarchical mixture-of-specialists retrieval network. Inputs: per-cell RNA log1p/Pearson-residual features + log RNA depth, and ATAC 128-dim full-atlas LSI + 60k sparse TF-IDF + promoter gene_activity + log ATAC depth. Computes: (1) modality-specific 512-dim residual MLP trunks; (2) soft routers outputting 32 unsupervised regime probabilities q(k|RNA) and p(k|ATAC); (3) 96-dim L2-normalized macro embeddings; and (4) 32 regime-centered specialist 32-dim L2-normalized embeddings parameterized as a shared residual projection plus empirical-Bayes-shrunk (n_k/(n_k+25)) rank-16 LoRA adapters, with differentiable batchwise Gram-Schmidt orthogonalization removing linear correlation with log depth and a depth-driven scalar temperature gate. Outputs: independent pairwise similarity scores combining log Bayes-factor regime compatibility log(sum_k q_k*p_k/pi_k), macro cosine similarity, and joint-responsibility-weighted specialist residual cosine similarity. Training: AdamW on paired inner-train cells minimizing inverse-frequency-weighted router KL/CE, macro InfoNCE, within-regime responsibility-weighted InfoNCE, specialist Barlow-Twins redundancy loss, depth HSIC/covariance penalty, and an auxiliary head predicting inner-train knn_pool(15) targets discarded at inference."
+  }
+ ]
+}

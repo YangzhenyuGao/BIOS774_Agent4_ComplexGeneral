@@ -1,0 +1,5 @@
+Multi-Scale Morphological-Prototype and Boosted-Tree Super-Learner
+
+Each patient's slides are summarised by compositional tile-prototype histograms (Virchow2, H-Optimus-1) and PCA-compressed global embeddings (H-Optimus-1, MUSK, CONCH-Z), integrated with clinical covariates via nested probability stacking. Within each training fold, a regularised logistic meta-learner blends out-of-fold probabilities from a clinical-only anchor, linear and boosted-tree prototype classifiers, and multi-encoder gradient boosting, benchmarked against the simple reference. Paired macro-F1 differences across repeated patient-level cross-validation and site-held-out splits with a 95% bootstrap interval determine whether H&E images improve PAM50 prediction.
+
+Rationale: Quantising tiles into bag-size-invariant prototype proportions preserves focal LumA/LumB heterogeneity while compressing high-dimensional features and dampening continuous stain shifts (D3, D4, D6). Boosted trees model non-linear interactions with missing HER2 (D2), while clinical-anchored probability stacking down-weights overfitted image branches (D7, D9).

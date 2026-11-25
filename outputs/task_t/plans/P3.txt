@@ -1,0 +1,5 @@
+Unlabelled-PCA Five-Encoder Gated FiLM Hierarchical Network
+
+We fuse patient-pooled features from all five vision and vision-language pathology encoders with the six clinical variables. Within each training fold, per-encoder PCA subspaces are fitted on training plus 259 unlabelled patients, then integrated through learned encoder gating, clinical FiLM conditioning, and a hierarchical head separating coarse subtypes before resolving LumA versus LumB. Repeated nested cross-validation compares predictions against tuned clinical, simple logistic, and site-excluded baselines. A paired patient bootstrap interval decides whether H&E images improve PAM50 classification.
+
+Rationale: Unlabelled-augmented fold PCA compresses 7,424 dimensions safely (D3), while learned gating fuses visual and language-aligned encoders without selection multiplicity (D9). Clinical FiLM reweights morphology when HER2 is indefinite (D2), and hierarchical classification targets minority Her2 plus LumA versus LumB confusion (D1, D7).

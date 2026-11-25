@@ -1,0 +1,205 @@
+{
+ "task_id": "task_t",
+ "adapter": "cohort_features",
+ "unit": "patient",
+ "summary": {
+  "n_units_with_images": 1061,
+  "n_labelled": 802,
+  "n_unlabelled": 259,
+  "classes": [
+   "LumA",
+   "LumB",
+   "Basal",
+   "Her2"
+  ],
+  "n_slides": 1132,
+  "n_tiles": 135911,
+  "modalities": {
+   "clinical": {
+    "variables": [
+     "age",
+     "stage",
+     "histological_type",
+     "er",
+     "pr",
+     "her2"
+    ]
+   },
+   "image": {
+    "encoders": {
+     "UNI2-h": 1536,
+     "CONCH-Z": 768,
+     "Virchow2": 2560,
+     "MUSK": 1024,
+     "H-Optimus-1": 1536
+    },
+    "levels": [
+     "tile (up to 128 per slide)",
+     "patient mean"
+    ]
+   }
+  },
+  "grouping": {
+   "column": "site",
+   "n_groups": 19
+  }
+ },
+ "dataset_card": {
+  "name": "TCGA-BRCA diagnostic slides with clinical variables",
+  "unit": "patient",
+  "description": "Breast cancer patients with H&E whole-slide images and six clinical variables: age, stage, histological type, and the receptor statuses ER, PR and HER2 from immunohistochemistry. Images are represented by frozen pathology foundation models: five encoders, each giving one feature vector per tile (up to 128 tiles per slide, identical tile positions across encoders) and a mean-pooled vector per patient. The label is the PAM50 intrinsic subtype in four classes. Patients without a label still have images. Each patient has a collection site.",
+  "label_provenance": {
+   "statement": "PAM50 is computed from the tumour's RNA expression. Receptor status is correlated with PAM50 but is a separate clinical measurement and is not equivalent to it (immunohistochemistry surrogates disagree with PAM50 for a substantial share of tumours).",
+   "implication": "No RNA-derived variable may be used as an input. Whether receptors may be used depends on the question asked: they are a legitimate baseline when the question is what images add to clinical information, and a forbidden shortcut when the question is what images alone contain."
+  },
+  "scope_of_inference": "incremental predictive value in this cohort; not an independent biological mechanism",
+  "how_predictions_are_scored": "The evaluator re-runs every method inside its own repeated nested cross-validation on the labelled patients (outer 5 folds repeated 3 times, patient-level; any model or configuration choice happens only inside the training folds) and compares it with a fixed, fully tuned clinical-only model on the same patients and folds.",
+  "rulers": {
+   "floor_clinical": "clinical variables only, fixed and fully tuned by the evaluator; the gain is measured against it",
+   "simple_reference": "clinical variables plus mean-pooled image features in a logistic regression; complex methods are compared with it",
+   "historical_reference": "an earlier project's late fusion reached macro-F1 0.723 on a single 121-patient test split (not ground truth)"
+  },
+  "decision_rule": "Primary metric: paired difference in macro-F1 (image plus clinical minus clinical only) with a patient-level bootstrap 95% interval. Conclusion, from the interval alone: \"improves\" if the lower bound is above 0; \"insufficient evidence\" if the interval contains 0; \"worse\" if the upper bound is below 0. Secondary: log-loss difference, one-vs-rest AUROC difference, per-class recall changes (LumA and LumB in particular), and a site-held-out sensitivity analysis. Both arms must use the same patients and the same missing-value handling.",
+  "deliverable": "The estimated gain with its interval, the three-way conclusion, out-of-fold predictions for both arms, and the per-class changes."
+ },
+ "difficulties": [
+  {
+   "id": "D1",
+   "tag": "class_imbalance",
+   "severity": "high",
+   "evidence": "Class counts among 802 labelled patients: LumA 410, LumB 190, Basal 137, Her2 65. The smallest class is 8.1% of the cohort.",
+   "numbers": {
+    "counts": {
+     "LumA": 410,
+     "LumB": 190,
+     "Basal": 137,
+     "Her2": 65
+    },
+    "smallest_fraction": 0.08104738154613467
+   },
+   "implication": "Use a class-balanced metric and class weighting; an unweighted model can score well while missing the smallest class entirely."
+  },
+  {
+   "id": "D2",
+   "tag": "missingness",
+   "severity": "high",
+   "evidence": "Share of labelled patients without a definite value: er 4.7% (missing 4.5%), pr 5.1% (missing 4.6%), her2 31.8% (missing 15.3%), stage 2.6% (missing 2.6%), histological_type 0.1% (missing 0.1%), age 0.0% (missing 0.0%).",
+   "numbers": {
+    "er": {
+     "missing": 0.04488778054862843,
+     "not_informative": 0.04738154613466334
+    },
+    "pr": {
+     "missing": 0.046134663341645885,
+     "not_informative": 0.05112219451371571
+    },
+    "her2": {
+     "missing": 0.15336658354114713,
+     "not_informative": 0.3179551122194514
+    },
+    "stage": {
+     "missing": 0.026184538653366583,
+     "not_informative": 0.026184538653366583
+    },
+    "histological_type": {
+     "missing": 0.0012468827930174563,
+     "not_informative": 0.0012468827930174563
+    },
+    "age": {
+     "missing": 0.0,
+     "not_informative": 0.0
+    }
+   },
+   "implication": "Handle missing values inside each training fold with an explicit missing level, identically in both comparison arms."
+  },
+  {
+   "id": "D3",
+   "tag": "small_n_large_p",
+   "severity": "high",
+   "evidence": "802 labelled patients against image features of 1536 (UNI2-h), 768 (CONCH-Z), 2560 (Virchow2), 1024 (MUSK), 1536 (H-Optimus-1) dimensions per encoder.",
+   "numbers": {
+    "n": 802,
+    "dims": {
+     "UNI2-h": 1536,
+     "CONCH-Z": 768,
+     "Virchow2": 2560,
+     "MUSK": 1024,
+     "H-Optimus-1": 1536
+    }
+   },
+   "implication": "High-capacity image models overfit easily; regularise, reduce dimension inside folds, and require evidence of convergence and of a gain over a simple reference."
+  },
+  {
+   "id": "D4",
+   "tag": "technical_confounding",
+   "severity": "high",
+   "evidence": "Labelled patients come from 19 collection sites (largest 130 patients, 3 sites with fewer than 10). Image features (UNI2-h) identify the site of a patient with accuracy 0.89 against 0.17 for always guessing the largest site; site and class are associated (Cramer's V = 0.21).",
+   "numbers": {
+    "n_sites": 19,
+    "site_accuracy": 0.8850726552179656,
+    "majority_rate": 0.17173051519154559,
+    "cramers_v": 0.2050459078554903
+   },
+   "implication": "Part of an image-based gain may come from site signatures; a site-held-out sensitivity analysis should accompany the main estimate."
+  },
+  {
+   "id": "D5",
+   "tag": "label_provenance",
+   "severity": "high",
+   "evidence": "PAM50 is computed from the tumour's RNA expression. Receptor status is correlated with PAM50 but is a separate clinical measurement and is not equivalent to it (immunohistochemistry surrogates disagree with PAM50 for a substantial share of tumours).",
+   "numbers": {},
+   "implication": "No RNA-derived variable may be used as an input. Whether receptors may be used depends on the question asked: they are a legitimate baseline when the question is what images add to clinical information, and a forbidden shortcut when the question is what images alone contain."
+  },
+  {
+   "id": "D6",
+   "tag": "hierarchy",
+   "severity": "medium",
+   "evidence": "46 labelled patients have more than one slide; tiles per patient range from 6 to 471 (median 124).",
+   "numbers": {
+    "multi_slide_patients": 46,
+    "tiles_min": 6,
+    "tiles_median": 124,
+    "tiles_max": 471
+   },
+   "implication": "The patient is the unit of analysis: all slides and tiles of a patient must stay on the same side of every split."
+  },
+  {
+   "id": "D7",
+   "tag": "strong_baseline",
+   "severity": "medium",
+   "evidence": "Clinical variables alone reach macro-F1 0.576 in 5-fold cross-validation; recall by class: LumA 0.54, LumB 0.54, Basal 0.82, Her2 0.52. The weakest class is Her2.",
+   "numbers": {
+    "clinical_macro_f1": 0.576104275513265,
+    "recall": {
+     "LumA": 0.5365853658536586,
+     "LumB": 0.5368421052631579,
+     "Basal": 0.8175182481751825,
+     "Her2": 0.5230769230769231
+    }
+   },
+   "implication": "The question is about what images add to this baseline, so the clinical arm must be tuned as carefully as the image arm and evaluated on the same patients."
+  },
+  {
+   "id": "D8",
+   "tag": "statistical_power",
+   "severity": "medium",
+   "evidence": "For a simple image-plus-clinical model against clinical only, the paired macro-F1 difference has a bootstrap standard error of 0.021 with one 5-fold split of 802 patients. The smallest difference detectable with 80% power is about 0.059.",
+   "numbers": {
+    "paired_se": 0.02119697147327593,
+    "minimal_detectable_difference": 0.0593515201251726,
+    "observed_gain_simple": 0.10798197007523158
+   },
+   "implication": "Gains of a few points cannot be established from one split; use repeated cross-validation and report an interval, not only a point estimate."
+  },
+  {
+   "id": "D9",
+   "tag": "multiple_comparisons",
+   "severity": "medium",
+   "evidence": "5 image encoders are available, each usable at tile or patient level with several fusion strategies.",
+   "numbers": {
+    "n_encoders": 5
+   },
+   "implication": "Choosing the best of many configurations on the evaluation folds inflates the reported gain; selection must be nested or counted."
+  }
+ ]
+}

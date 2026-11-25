@@ -1,0 +1,5 @@
+Nested PCA-Reduced Patient-Mean Logistic Fusion
+
+This simple reference plan tests whether mean-pooled H&E features improve four-class PAM50 prediction over the six clinical covariates. Within repeated patient-level nested cross-validation, each fold fits identical missing-level clinical encodings, reduces one inner-selected encoder via PCA, and trains class-balanced logistic regression paired with a tuned clinical-only model. A site-held-out analysis checks site confounding. The paired bootstrap 95% interval for macro-F1 difference determines whether global morphology improves, worsens, or shows insufficient evidence.
+
+Rationale: Foundation embeddings risk overfitting on 802 imbalanced patients alongside informative receptor covariates. Fold-internal PCA with class-balanced L2 logistic regression provides a low-variance linear benchmark under nested encoder selection. Complex tile-level or non-linear models are justified only if they outperform this reference on identical folds.

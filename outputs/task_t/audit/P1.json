@@ -1,0 +1,94 @@
+{
+ "plan_id": "P1",
+ "audited": "2026-11-25T07:06:10-0500",
+ "passed": true,
+ "checks": [
+  {
+   "id": "A1",
+   "check": "no_forbidden_inputs",
+   "statement": "Models use only allowed clinical and frozen H&E inputs, excluding RNA-derived variables and collection-site predictors.",
+   "passed": true,
+   "detail": "all input rules passed; each forbidden input of the objective is covered as follows: [RNA expression or RNA-derived variables] -> rule inputs_from_view: the view offers no such variable for the units to be predicted | [Collection site as a predictive model input] -> rule clinical_variables_allowed: site is a grouping column, not an allowed covariate | [H&E image features in the clinical-only baseline arm] -> enforced by the executor: the clinical-only arm is built from clinical variables alone | [External TCGA molecular, clinical, or pathology annotations outside the provided dataset] -> rule inputs_from_view: the executor can read nothing but the task view | [Evaluation-fold features or labels during preprocessing, missing-value handling, dimensionality reduction, or model selection] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted"
+  },
+  {
+   "id": "A2",
+   "check": "correct_split_unit",
+   "statement": "Cross-validation splits partition strictly at the patient level, keeping all slides and tiles of each patient together.",
+   "passed": true,
+   "detail": "declared split unit: patient; the analysis unit is the patient"
+  },
+  {
+   "id": "A3",
+   "check": "both_arms_same_units",
+   "statement": "Clinical-only and image-plus-clinical arms evaluate identical labelled patients, folds, and fold-internal missing-value handling.",
+   "passed": true,
+   "detail": "both arms were cross-validated on the same labelled patients and folds with in-fold missing-value handling"
+  },
+  {
+   "id": "A4",
+   "check": "selection_nested",
+   "statement": "All encoder, fusion, dimensionality reduction, class-weighting, and hyperparameter choices occur strictly inside inner training folds.",
+   "passed": true,
+   "detail": "configuration selection: nested"
+  },
+  {
+   "id": "A5",
+   "check": "beats_simple_reference",
+   "statement": "Complex multimodal models are benchmarked directly against simple_reference on identical folds to guard against high-dimensional overfitting.",
+   "passed": true,
+   "detail": "compared with the simple reference: +0.0043"
+  },
+  {
+   "id": "A6",
+   "check": "training_converged",
+   "statement": "Iterative optimisation for fitted models demonstrates stable training convergence within each cross-validation fold.",
+   "passed": true,
+   "detail": "share of fits converged: 1.0"
+  },
+  {
+   "id": "A7",
+   "check": "interval_reported",
+   "statement": "Primary paired macro-F1 difference is reported with a patient-level bootstrap confidence interval at the 95% level.",
+   "passed": true,
+   "detail": "interval: [0.05709742001164512, 0.12644783612116048]"
+  },
+  {
+   "id": "A8",
+   "check": "deliverable_complete",
+   "statement": "Deliverables contain finite out-of-fold predictions for both arms, interval estimate, three-way conclusion, per-class changes, and site sensitivity.",
+   "passed": true,
+   "detail": "{\"file\": \"self_validation_oof.npz\", \"complete\": true}"
+  }
+ ],
+ "blocking_failures": [],
+ "review": {
+  "decision": "accept",
+  "issues": [
+   "Gain over the simple reference is +0.0043 with CI [-0.012, 0.022], so it is indistinguishable from zero (A5, gain_over_simple_reference_ci). P1 is essentially the simple reference, so this is expected, not a flaw.",
+   "Per-class recall changes are reported without intervals. The LumB gain of +0.24 is a point estimate only.",
+   "The site-held-out gain is smaller: 0.074, CI [0.033, 0.113], against 0.090 in patient-level CV. Some site-related inflation is possible but does not remove the gain.",
+   "Training convergence (A6) counts 15 reported fits, the outer-fold fits only."
+  ],
+  "conclusion_matches_evidence": true,
+  "wording_limits": [
+   "Must not claim H&E images have standalone predictive value for PAM50",
+   "Must not claim a biological mechanism linking morphology to PAM50 subtype",
+   "Must not claim generalisability to external or non-TCGA clinical cohorts",
+   "Must not claim P1 outperforms the simple mean-pooled logistic reference",
+   "Must not claim per-class improvements (e.g. LumB) are statistically established",
+   "Must not claim site confounding is fully excluded; say only that the gain persisted under site-held-out validation"
+  ],
+  "reason": "All deterministic checks A1–A8 passed: no forbidden inputs, patient-level split, identical patients and folds in both arms, nested selection, full convergence, interval reported, deliverable complete. The paired macro-F1 gain of 0.090 has a 95% CI of [0.057, 0.126], strictly above zero, so 'improves' matches the pre-specified rule. The site-held-out analysis also shows a positive gain with a CI above zero. The gain over the simple reference is null, which is acceptable.",
+  "model": "claude-opus-5-5",
+  "usage": {
+   "input_tokens": 3801,
+   "output_tokens": 837,
+   "thinking_tokens": 193,
+   "list_price_usd": 0.04714,
+   "api_seconds": 8.469
+  },
+  "seconds": 9.7,
+  "cache_key": "26d821288d0a074d37b277e0baac192e"
+ },
+ "tournament_rank": 1
+}

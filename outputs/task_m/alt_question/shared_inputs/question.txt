@@ -1,0 +1,1 @@
+Given only the RNA profile of a cell, can the ATAC profile measured in that same cell be found again among the ATAC profiles of many candidate cells?

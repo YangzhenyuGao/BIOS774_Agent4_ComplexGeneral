@@ -1,0 +1,329 @@
+{
+ "frozen": "2026-11-25T05:15:38-0500",
+ "plan_ids": [
+  "P1",
+  "P2",
+  "P3",
+  "P4",
+  "P5",
+  "P6"
+ ],
+ "selection_report": {
+  "n_candidates": 8,
+  "n_after_dedup": 8,
+  "n_pool": 6,
+  "n_ambitious": 5,
+  "n_simple": 1,
+  "diversity_coverage": {
+   "data": [
+    "clinical + PCA patient-mean single-encoder features",
+    "clinical + Virchow2/H-Optimus-1 tile bags across labelled-train and 259 unlabelled patients (fold-PCA)",
+    "clinical + aligned dual-encoder (UNI2-h, CONCH-Z) tile bags with fold-PCA",
+    "clinical + all-five foundation-model patient-mean embeddings with unlabelled-augmented fold-PCA",
+    "compositional Virchow2/H-Optimus-1 tile-prototype histograms + multi-encoder patient-mean PCA + clinical",
+    "missingness-explicit clinical tokens + aligned vision-language (CONCH-Z, MUSK) tile bags via end-to-end linear projection (no PCA)"
+   ],
+   "model": [
+    "clinical-FiLM modulated gated five-encoder network with hierarchical coarse-to-fine PAM50 head",
+    "contextual tile transformer with multi-head clinical-query cross-attention (conditional_fusion)",
+    "non-neural heterogeneous stack of prototype classifiers, gradient-boosted trees, and clinical anchor",
+    "regularised linear multinomial logistic regression",
+    "self-supervised split-bag pre-adapted gated multihead-attention MIL (ssl_preadapted_mil)",
+    "zero-initialised gated-attention MIL residual network on frozen clinical logits"
+   ],
+   "method": [
+    "early concatenation with nested encoder/PCA grid selection",
+    "fold-internal unlabelled+train split-bag consistency pretraining + balanced early-concat fine-tuning with A5 gating",
+    "multi-scale out-of-fold Super-Learner probability stacking with A5 inner-fold simplicity gating",
+    "receptor-conditioned spatial tile querying with bag mixup/dropout regularisation, 2-fold nested tie-aware parsimony selection, and pooled 19-site LOSO audit",
+    "semi-supervised fold-PCA + end-to-end FiLM conditioning + hierarchical LumA/LumB decomposition under nested CV",
+    "two-stage residual logit-offset learning with out-of-fold clinical offsets and nested CV"
+   ]
+  },
+  "diversity_ok": true,
+  "threshold": 0.75,
+  "pairwise_similarity": {
+   "R0B1C1|R0B2C1": 0.143,
+   "R0B1C1|R0B3C1": 0.5,
+   "R0B1C1|R0B4C1": 0.143,
+   "R0B1C1|R0B5C1": 0.143,
+   "R0B1C1|R0B6C1": 0.286,
+   "R0B2C1|R0B3C1": 0.143,
+   "R0B2C1|R0B4C1": 0.25,
+   "R0B2C1|R0B5C1": 0.286,
+   "R0B2C1|R0B6C1": 0.286,
+   "R0B3C1|R0B4C1": 0.143,
+   "R0B3C1|R0B5C1": 0.143,
+   "R0B3C1|R0B6C1": 0.143,
+   "R0B4C1|R0B5C1": 0.25,
+   "R0B4C1|R0B6C1": 0.25,
+   "R0B5C1|R0B6C1": 0.286
+  },
+  "renamed_from_candidate_ids": {
+   "R0B1C1": "P1",
+   "R0B2C1": "P2",
+   "R0B3C1": "P3",
+   "R0B4C1": "P4",
+   "R0B5C1": "P5",
+   "R0B6C1": "P6"
+  },
+  "invalid_candidates": []
+ },
+ "generation_calls": [
+  {
+   "round": 0,
+   "model": "gemini-4-carbon",
+   "cache_key": "984f48105088aebbf8eb8c3253d14c34",
+   "system_sha256": "66a1f7ee014287746be00c8ba769be9dd502fe0b150444a96ee350e0090bfb7b",
+   "prompt_sha256": "029c6df07814607aa6fd0443f7a3b1a737622544b3ba81342622c12eefa3f9d2",
+   "lessons": [
+    "K6",
+    "K5",
+    "K9",
+    "K1",
+    "K8",
+    "K10",
+    "K3",
+    "K7"
+   ],
+   "seconds": 203.4,
+   "attempts": [
+    {
+     "model": "gemini-4-carbon",
+     "ok": true,
+     "seconds": 203.4
+    }
+   ],
+   "usage": {
+    "input_tokens": 6584,
+    "output_tokens": 1498,
+    "thinking_tokens": 15660,
+    "finish_reason": "STOP"
+   }
+  },
+  {
+   "round": 0,
+   "model": "gemini-4-carbon",
+   "cache_key": "ffcd54902a72597e2cf4c5fa82467078",
+   "system_sha256": "04cc8f2f5c8e60a83cb1aed2b56ce0bd779bafa7dab46de696abd269601410c8",
+   "prompt_sha256": "477460e7698e90ea8c2222a63295642362cd3bf7b2942863e5e1a376282ba12a",
+   "lessons": [
+    "K6",
+    "K5",
+    "K9",
+    "K1",
+    "K8",
+    "K10",
+    "K3",
+    "K7"
+   ],
+   "seconds": 257.3,
+   "attempts": [
+    {
+     "model": "gemini-4-carbon",
+     "ok": true,
+     "seconds": 257.3
+    }
+   ],
+   "usage": {
+    "input_tokens": 6781,
+    "output_tokens": 2100,
+    "thinking_tokens": 17643,
+    "finish_reason": "STOP"
+   }
+  },
+  {
+   "round": 0,
+   "model": "gemini-4-carbon",
+   "cache_key": "30ba4b9ef5e6dc05e6539bf0b4ee89f8",
+   "system_sha256": "f4b4e05af4161e0e8d6137e63f79a5446f251ce658a095668c3669e9c02f17bc",
+   "prompt_sha256": "760fba2a0dcd4a6d6ae9830803dbc9a7ea2a75640f89b3e1cb69a62e26b4ab3f",
+   "lessons": [
+    "K6",
+    "K5",
+    "K9",
+    "K1",
+    "K8",
+    "K10",
+    "K3",
+    "K7"
+   ],
+   "seconds": 338.8,
+   "attempts": [
+    {
+     "model": "gemini-4-carbon",
+     "ok": true,
+     "seconds": 338.8
+    }
+   ],
+   "usage": {
+    "input_tokens": 7013,
+    "output_tokens": 1559,
+    "thinking_tokens": 25105,
+    "finish_reason": "STOP"
+   }
+  },
+  {
+   "round": 0,
+   "model": "gemini-4-carbon",
+   "cache_key": "d288a35b8d02a830c7668bf114a5cb95",
+   "system_sha256": "48a96407205e05131f6e3da39feed655040276c0a69f4b8a04d282a15dcf89d4",
+   "prompt_sha256": "e81e09ee8d8a9e06a43267e1bad5df19176f5b4b880e0fa5b4018c71a5a5e558",
+   "lessons": [
+    "K6",
+    "K5",
+    "K9",
+    "K1",
+    "K8",
+    "K10",
+    "K3",
+    "K7"
+   ],
+   "seconds": 321.7,
+   "attempts": [
+    {
+     "model": "gemini-4-carbon",
+     "ok": true,
+     "seconds": 321.7
+    }
+   ],
+   "usage": {
+    "input_tokens": 7270,
+    "output_tokens": 2029,
+    "thinking_tokens": 25229,
+    "finish_reason": "STOP"
+   }
+  },
+  {
+   "round": 0,
+   "model": "gemini-4-carbon",
+   "cache_key": "ed9b771dcac3c0dc7d5a7c91cd670b00",
+   "system_sha256": "d2f634f1d2795d8aaa5bee8a1c3d3f0ee96d64043887de8324af162032a59cff",
+   "prompt_sha256": "f5a91618aa0f06cf0f5197a47a5699683c01476c02ad18a112171b4b25b783ba",
+   "lessons": [
+    "K6",
+    "K5",
+    "K9",
+    "K1",
+    "K8",
+    "K10",
+    "K3",
+    "K7"
+   ],
+   "seconds": 334.9,
+   "attempts": [
+    {
+     "model": "gemini-4-carbon",
+     "ok": true,
+     "seconds": 334.9
+    }
+   ],
+   "usage": {
+    "input_tokens": 7524,
+    "output_tokens": 1826,
+    "thinking_tokens": 22334,
+    "finish_reason": "STOP"
+   }
+  },
+  {
+   "round": 0,
+   "model": "gemini-4-carbon",
+   "cache_key": "f7f23bb2cb2eac0f20bd5e33dd62e0d8",
+   "system_sha256": "52ef5e3819abae75a720c008776b4de832b960369a4a79f101685bc1c7b71e8b",
+   "prompt_sha256": "7b0f59805c7c234a6169478c8b7d03d8e2958852a5375fc40553274059475adb",
+   "lessons": [
+    "K6",
+    "K5",
+    "K9",
+    "K1",
+    "K8",
+    "K10",
+    "K3",
+    "K7"
+   ],
+   "seconds": 285.1,
+   "attempts": [
+    {
+     "model": "gemini-4-carbon",
+     "ok": true,
+     "seconds": 285.1
+    }
+   ],
+   "usage": {
+    "input_tokens": 7790,
+    "output_tokens": 2116,
+    "thinking_tokens": 22435,
+    "finish_reason": "STOP"
+   }
+  },
+  {
+   "round": 0,
+   "model": "gemini-4-carbon",
+   "cache_key": "33c4ca4ac5fb2304a329d33ffcbe184c",
+   "system_sha256": "a7334a4d1c90d52011f642fedc4c61d8450d4a3887cd72c2305e8a810c9552d1",
+   "prompt_sha256": "b89303b2052d0e85257155e2f602555302130f44625a7a223fc2a87fbeba866d",
+   "lessons": [
+    "K6",
+    "K5",
+    "K9",
+    "K1",
+    "K8",
+    "K10",
+    "K3",
+    "K7"
+   ],
+   "seconds": 681.5,
+   "attempts": [
+    {
+     "model": "gemini-4-carbon",
+     "ok": false,
+     "kind": "timeout",
+     "seconds": 360.1,
+     "error": "ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Read timed out. (read timeout=360)\"))"
+    },
+    {
+     "model": "gemini-4-carbon",
+     "ok": true,
+     "seconds": 311.4
+    }
+   ],
+   "usage": {
+    "input_tokens": 8054,
+    "output_tokens": 2248,
+    "thinking_tokens": 22763,
+    "finish_reason": "STOP"
+   }
+  },
+  {
+   "round": 0,
+   "model": "gemini-4-carbon",
+   "cache_key": "00b216f9284e22caacfff5e6ed332255",
+   "system_sha256": "c1d59f59918e85770a90869a643176acbf9c6150279fd49dbe23e14039c0fee9",
+   "prompt_sha256": "f3ae517bbd62474545dbecbb3108bc761aea9dc6630e954e73d5624d5384d406",
+   "lessons": [
+    "K6",
+    "K5",
+    "K9",
+    "K1",
+    "K8",
+    "K10",
+    "K3",
+    "K7"
+   ],
+   "seconds": 234.6,
+   "attempts": [
+    {
+     "model": "gemini-4-carbon",
+     "ok": true,
+     "seconds": 234.6
+    }
+   ],
+   "usage": {
+    "input_tokens": 8302,
+    "output_tokens": 1894,
+    "thinking_tokens": 20395,
+    "finish_reason": "STOP"
+   }
+  }
+ ]
+}

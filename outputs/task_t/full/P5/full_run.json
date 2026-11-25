@@ -1,0 +1,136 @@
+{
+ "plan_id": "P5",
+ "finished": "2026-11-25T07:27:05-0500",
+ "self_gain": -0.007537680043147328,
+ "self_ci": [
+  -0.04922123203460854,
+  0.034392725617598485
+ ],
+ "conclusion": "insufficient_evidence",
+ "macro_f1_plan": 0.5907222280347649,
+ "macro_f1_clinical": 0.5982599080779123,
+ "n_patients_both_arms": 802,
+ "n_patients_cohort": 802,
+ "n_folds_declared": 15,
+ "n_folds_run": 15,
+ "stopped_for_budget": false,
+ "comparators": {
+  "clinical_only": {
+   "macro_f1": 0.5982599080779123,
+   "tuned": true,
+   "n_configurations": 17,
+   "same_patients_and_folds": true
+  },
+  "simple_reference": {
+   "macro_f1": 0.6869124474104743,
+   "gain_over_clinical": 0.08865253933256194,
+   "gain_over_clinical_ci": [
+    0.05647322632256014,
+    0.1268808629115752
+   ],
+   "same_patients_and_folds": true
+  }
+ },
+ "gain_over_simple_reference": -0.09619021937570926,
+ "gain_over_simple_reference_ci": [
+  -0.12872125029670498,
+  -0.06475045768829765
+ ],
+ "site_held_out": {
+  "design": "5 folds, each holding out whole collection sites",
+  "n_sites": 19,
+  "n_folds_run": 5,
+  "n_patients_scored": 802,
+  "stopped_for_budget": false,
+  "gain": 0.012850672457106471,
+  "ci": [
+   -0.03819829965788256,
+   0.06304880635779098
+  ],
+  "macro_f1_plan": 0.5859774142650854,
+  "macro_f1_clinical": 0.573126741807979,
+  "conclusion": "insufficient_evidence"
+ },
+ "recall_plan": {
+  "LumA": 0.734959349593496,
+  "LumB": 0.5052631578947369,
+  "Basal": 0.7250608272506084,
+  "Her2": 0.47692307692307695
+ },
+ "recall_clinical": {
+  "LumA": 0.6626016260162602,
+  "LumB": 0.4473684210526316,
+  "Basal": 0.8102189781021898,
+  "Her2": 0.5128205128205128
+ },
+ "recall_change": {
+  "LumA": 0.0723577235772358,
+  "LumB": 0.05789473684210528,
+  "Basal": -0.0851581508515814,
+  "Her2": -0.035897435897435825
+ },
+ "validation": {
+  "k": 5,
+  "repeats": 3,
+  "selection": "nested",
+  "inner_k": 2,
+  "clinical_tuned": true,
+  "split_unit": "patient",
+  "repeats_run": 3
+ },
+ "n_configs_image_arm": 3,
+ "training": {
+  "n_fits_reported": 15,
+  "share_converged": 1.0,
+  "median_epochs": 19.0,
+  "median_seconds_per_fit": 11.62,
+  "stopped_by": [
+   "early_stopping"
+  ],
+  "example_curve": {
+   "train_loss": [
+    1.30031,
+    1.06822,
+    1.01891,
+    0.8151,
+    0.83218,
+    0.81462,
+    0.66993,
+    0.63624,
+    0.69058,
+    0.6668,
+    0.61271,
+    0.57538,
+    0.57562,
+    0.56071,
+    0.53684,
+    0.43158
+   ],
+   "val_loss": [
+    1.13135,
+    1.02361,
+    0.9727,
+    0.94637,
+    0.98482,
+    0.99805,
+    1.09903,
+    1.13937,
+    1.13887,
+    1.0997,
+    1.206,
+    1.06565,
+    1.12438,
+    1.2401,
+    1.21642,
+    1.36156
+   ]
+  }
+ },
+ "deliverable": {
+  "file": "self_validation_oof.npz",
+  "complete": true
+ },
+ "seconds_total": 1245.7,
+ "cpus": 12,
+ "scope": "incremental predictive value in this labelled cohort; not an independent biological mechanism"
+}

@@ -1,0 +1,375 @@
+{
+ "task": "task_t",
+ "exported": "2026-11-25T10:59:47-0500",
+ "primary_score": "paired macro-F1 gain over the evaluator's tuned clinical-only model, repeated nested CV",
+ "clinical_floor_macro_f1": 0.6013698464687104,
+ "simple_reference": {
+  "gain": 0.09398465714086768,
+  "ci": [
+   0.05868260782995639,
+   0.13034011238453624
+  ],
+  "macro_f1": 0.6953545036095781,
+  "conclusion": "improves"
+ },
+ "tournament_champion": "P1",
+ "selected_plan": "P1",
+ "best_true_plan": "P3",
+ "selected_true_rank": 2,
+ "n_candidates_scored": 6,
+ "selection_gap": 0.0004522322677448648,
+ "n_candidates_positive_gain": 5,
+ "n_candidates_ci_above_zero": 5,
+ "n_candidates_beating_simple_reference": 2,
+ "conclusion_agreement": {
+  "agent": "improves",
+  "evaluator": "improves",
+  "agree": true
+ },
+ "spearman_tournament_vs_true": 0.8285714285714287,
+ "spearman_pilot_gain_vs_true": 0.942857142857143,
+ "candidates": [
+  {
+   "plan_id": "P1",
+   "name": "Nested PCA-Reduced Patient-Mean Logistic Fusion",
+   "complexity": "simple_reference",
+   "component": "patient_mean_logreg",
+   "tournament_rank": 1,
+   "bt_strength": 4.596534810309453,
+   "self_gain_pilot": 0.07789096436069576,
+   "self_ci_pilot": [
+    0.03572549705272041,
+    0.12493244938288386
+   ],
+   "self_gain_full": 0.0896418317629234,
+   "self_ci_full": [
+    0.05709742001164512,
+    0.12644783612116048
+   ],
+   "self_conclusion": "improves",
+   "true_gain": 0.09698632881254228,
+   "true_ci": [
+    0.06285640624413037,
+    0.13232405426632643
+   ],
+   "true_conclusion": "improves",
+   "macro_f1_plan": 0.6983561752812527,
+   "macro_f1_floor": 0.6013698464687104,
+   "inflation_full": -0.007344497049618884,
+   "inflation_pilot": -0.019095364451846522,
+   "recall_change": {
+    "LumA": 0.03821138211382136,
+    "LumB": 0.25438596491228066,
+    "Basal": 0.02676399026763987,
+    "Her2": 0.09230769230769231
+   },
+   "auroc_gain": {
+    "gain": 0.08204483654679913,
+    "ci_low": 0.06363459733826858,
+    "ci_high": 0.10401042146201812
+   },
+   "neg_log_loss_gain": {
+    "gain": 0.1849195774068357,
+    "ci_low": 0.13052006606509703,
+    "ci_high": 0.23413450113973822
+   },
+   "site_held_out": {
+    "gain": 0.09382500427909957,
+    "ci": [
+     0.05344944825852006,
+     0.13559980583654496
+    ]
+   },
+   "selection": "nested",
+   "converged_folds": "15/15",
+   "cpu_core_hours": 1.97,
+   "audit_passed": true,
+   "true_rank": 2
+  },
+  {
+   "plan_id": "P2",
+   "name": "Residual Logit-Offset Dual-Encoder Tile Attention MIL",
+   "complexity": "ambitious",
+   "component": "incremental_offset",
+   "tournament_rank": 4,
+   "bt_strength": 0.757168013761372,
+   "self_gain_pilot": 0.05260140879951469,
+   "self_ci_pilot": [
+    0.01523226087210668,
+    0.08815249179491792
+   ],
+   "self_gain_full": 0.06841177794511895,
+   "self_ci_full": [
+    0.0394621418567609,
+    0.09654687798035236
+   ],
+   "self_conclusion": "improves",
+   "true_gain": 0.07509219236842919,
+   "true_ci": [
+    0.04940561220052742,
+    0.10228955782329295
+   ],
+   "true_conclusion": "improves",
+   "macro_f1_plan": 0.6764620388371396,
+   "macro_f1_floor": 0.6013698464687104,
+   "inflation_full": -0.006680414423310244,
+   "inflation_pilot": -0.0224907835689145,
+   "recall_change": {
+    "LumA": 0.02764227642276429,
+    "LumB": 0.24035087719298248,
+    "Basal": 0.0024330900243308973,
+    "Her2": 0.07692307692307687
+   },
+   "auroc_gain": {
+    "gain": 0.07825706634932832,
+    "ci_low": 0.06531006753098392,
+    "ci_high": 0.09187787708500286
+   },
+   "neg_log_loss_gain": {
+    "gain": 0.15311680626234123,
+    "ci_low": 0.11194236279441769,
+    "ci_high": 0.18859001162193195
+   },
+   "site_held_out": {
+    "gain": 0.09095043218867427,
+    "ci": [
+     0.05864700573457922,
+     0.12329952289502197
+    ]
+   },
+   "selection": "nested",
+   "converged_folds": "15/15",
+   "cpu_core_hours": 10.97,
+   "audit_passed": null,
+   "true_rank": 3
+  },
+  {
+   "plan_id": "P3",
+   "name": "Unlabelled-PCA Five-Encoder Gated FiLM Hierarchical Network",
+   "complexity": "ambitious",
+   "component": "multi_encoder_fusion",
+   "tournament_rank": 2,
+   "bt_strength": 2.3578019110161494,
+   "self_gain_pilot": 0.08542247152193916,
+   "self_ci_pilot": [
+    0.04407537589001914,
+    0.12460072001729369
+   ],
+   "self_gain_full": 0.10018835745595733,
+   "self_ci_full": [
+    0.06807877004528505,
+    0.13437926077984438
+   ],
+   "self_conclusion": "improves",
+   "true_gain": 0.09743856108028714,
+   "true_ci": [
+    0.06504780669102389,
+    0.13184056254664847
+   ],
+   "true_conclusion": "improves",
+   "macro_f1_plan": 0.6988084075489974,
+   "macro_f1_floor": 0.6013698464687104,
+   "inflation_full": 0.002749796375670188,
+   "inflation_pilot": -0.012016089558347987,
+   "recall_change": {
+    "LumA": 0.039024390243902474,
+    "LumB": 0.25964912280701763,
+    "Basal": 0.05596107055961064,
+    "Her2": 0.04615384615384621
+   },
+   "auroc_gain": {
+    "gain": 0.09189524251897425,
+    "ci_low": 0.07548287665447784,
+    "ci_high": 0.11103455995509824
+   },
+   "neg_log_loss_gain": {
+    "gain": 0.21614211919529405,
+    "ci_low": 0.17607300141798785,
+    "ci_high": 0.25397762645767036
+   },
+   "site_held_out": {
+    "gain": 0.1052252303636243,
+    "ci": [
+     0.06908295782896126,
+     0.14197164163942633
+    ]
+   },
+   "selection": "nested",
+   "converged_folds": "15/15",
+   "cpu_core_hours": 2.55,
+   "audit_passed": null,
+   "true_rank": 1
+  },
+  {
+   "plan_id": "P4",
+   "name": "Multi-Scale Morphological-Prototype and Boosted-Tree Super-Learner",
+   "complexity": "ambitious",
+   "component": "stacking_ensemble",
+   "tournament_rank": 6,
+   "bt_strength": 0.2175551891167625,
+   "self_gain_pilot": 0.03987792335443863,
+   "self_ci_pilot": [
+    -0.04685107317879759,
+    0.12758226250391433
+   ],
+   "self_gain_full": 0.03836555465114172,
+   "self_ci_full": [
+    0.0030370350097959423,
+    0.07368792625066212
+   ],
+   "self_conclusion": "improves",
+   "true_gain": 0.041814101948870475,
+   "true_ci": [
+    0.012864378147083324,
+    0.07218102166159175
+   ],
+   "true_conclusion": "improves",
+   "macro_f1_plan": 0.6431839484175809,
+   "macro_f1_floor": 0.6013698464687104,
+   "inflation_full": -0.0034485472977287546,
+   "inflation_pilot": -0.0019361785944318477,
+   "recall_change": {
+    "LumA": -0.09105691056910559,
+    "LumB": 0.27894736842105267,
+    "Basal": 0.0,
+    "Her2": 0.0923076923076922
+   },
+   "auroc_gain": {
+    "gain": 0.06616681990576838,
+    "ci_low": 0.05206367643948626,
+    "ci_high": 0.08387751079854447
+   },
+   "neg_log_loss_gain": {
+    "gain": 0.08566185800441495,
+    "ci_low": 0.043780778659525656,
+    "ci_high": 0.12495334250921654
+   },
+   "site_held_out": {
+    "gain": 0.05433169845829733,
+    "ci": [
+     0.01707236296381312,
+     0.09097425048236861
+    ]
+   },
+   "selection": "nested",
+   "converged_folds": "15/15",
+   "cpu_core_hours": 28.95,
+   "audit_passed": null,
+   "true_rank": 5
+  },
+  {
+   "plan_id": "P5",
+   "name": "Clinical-Query Cross-Attention Vision-Language Tile Transformer",
+   "complexity": "ambitious",
+   "component": "conditional_fusion",
+   "tournament_rank": 5,
+   "bt_strength": 0.4241238398173783,
+   "self_gain_pilot": -0.025080572786088107,
+   "self_ci_pilot": [
+    -0.07485332672334999,
+    0.023148055867756968
+   ],
+   "self_gain_full": -0.007537680043147328,
+   "self_ci_full": [
+    -0.04922123203460854,
+    0.034392725617598485
+   ],
+   "self_conclusion": "insufficient_evidence",
+   "true_gain": -0.018674575042041026,
+   "true_ci": [
+    -0.06180650959658938,
+    0.026077514338150212
+   ],
+   "true_conclusion": "insufficient_evidence",
+   "macro_f1_plan": 0.5826952714266694,
+   "macro_f1_floor": 0.6013698464687104,
+   "inflation_full": 0.011136894998893698,
+   "inflation_pilot": -0.006405997744047081,
+   "recall_change": {
+    "LumA": 0.003252032520325243,
+    "LumB": 0.13859649122807022,
+    "Basal": -0.12408759124087576,
+    "Her2": -0.056410256410256376
+   },
+   "auroc_gain": {
+    "gain": 0.02208303746317634,
+    "ci_low": -0.004937968134393016,
+    "ci_high": 0.04633120153290498
+   },
+   "neg_log_loss_gain": {
+    "gain": -0.02425694992502762,
+    "ci_low": -0.0908674983944496,
+    "ci_high": 0.037612709051090015
+   },
+   "site_held_out": {
+    "gain": 0.006952846597823248,
+    "ci": [
+     -0.04505969775835904,
+     0.058421469611663925
+    ]
+   },
+   "selection": "nested",
+   "converged_folds": "15/15",
+   "cpu_core_hours": 3.67,
+   "audit_passed": null,
+   "true_rank": 6
+  },
+  {
+   "plan_id": "P6",
+   "name": "Semi-Supervised Split-Bag Pre-Adapted Gigapixel Tile MIL",
+   "complexity": "ambitious",
+   "component": "ssl_preadapted_mil",
+   "tournament_rank": 3,
+   "bt_strength": 1.3207108354521457,
+   "self_gain_pilot": 0.05967795527738595,
+   "self_ci_pilot": [
+    0.00876386360098355,
+    0.11126722690838314
+   ],
+   "self_gain_full": 0.07720908663571824,
+   "self_ci_full": [
+    0.035861369640250634,
+    0.12238343002932693
+   ],
+   "self_conclusion": "improves",
+   "true_gain": 0.059006759839350886,
+   "true_ci": [
+    0.016390783839174517,
+    0.1036366846013485
+   ],
+   "true_conclusion": "improves",
+   "macro_f1_plan": 0.6603766063080613,
+   "macro_f1_floor": 0.6013698464687104,
+   "inflation_full": 0.018202326796367352,
+   "inflation_pilot": 0.000671195438035066,
+   "recall_change": {
+    "LumA": 0.016260162601625994,
+    "LumB": 0.20701754385964927,
+    "Basal": -0.024330900243309084,
+    "Her2": 0.09743589743589742
+   },
+   "auroc_gain": {
+    "gain": 0.06986413964813405,
+    "ci_low": 0.04586210964588343,
+    "ci_high": 0.09550391008417014
+   },
+   "neg_log_loss_gain": {
+    "gain": 0.12839070843886702,
+    "ci_low": 0.06436867946442787,
+    "ci_high": 0.18746480874455912
+   },
+   "site_held_out": {
+    "gain": 0.0972753068553931,
+    "ci": [
+     0.047216517450616564,
+     0.1449994954366542
+    ]
+   },
+   "selection": "nested",
+   "converged_folds": "15/15",
+   "cpu_core_hours": 7.66,
+   "audit_passed": null,
+   "true_rank": 4
+  }
+ ]
+}

@@ -1,0 +1,96 @@
+{
+ "plan_id": "P4",
+ "name": "Denoised-Target Per-Gene Gradient Boosted Residuals over ATAC Cluster Means",
+ "summary": "We decompose per-gene expression into the nested ATAC cluster mean plus a boosted-tree residual predicted from filtered LSI coordinates and log depth. Inner-fit targets pool eight nearest training neighbours, while per-gene trees weight rare ATAC clusters and early-stop on unsmoothed inner residuals. Three nested 70/30 cell holdouts score predictions against unsmoothed binomial-thinned RNA alongside all required comparators. This tests which genes exhibit predictable chromatin-state variation beyond discrete cell identity at 5% FDR.",
+ "complexity": "ambitious",
+ "analysis_unit": "single cell (individual nucleus from the single healthy PBMC donor)",
+ "inputs": {
+  "lsi": {
+   "n_components": 80,
+   "max_peaks": 50000
+  },
+  "depth": {}
+ },
+ "preprocessing": [
+  "Inside each outer 70% training split (and on all 7,288 development cells only for the final held-out refit), select the top 50,000 peaks by training accessibility frequency, binarise fragment counts, fit TF-IDF, and compute 81-component truncated SVD dropping component 1 to obtain 80 LSI features; project unseen validation and held-out cells strictly through frozen training IDF weights and SVD loadings.",
+  "Compute standardized log1p ATAC total fragment depth per cell using inner-training mean and standard deviation only.",
+  "Fit k=20 (frozen baseline cluster count) clustering strictly on inner-training 80D LSI coordinates and assign unseen cells to the nearest training cluster centroid without using unseen ATAC in fitting or WNN labels.",
+  "Split each unseen outer-validation cell's raw RNA UMI counts once via independent binomial thinning (p=0.5) into halves A and B and apply library-size log1p(1e4 * counts / cell_sum) normalisation independently; normalise inner-training RNA identically.",
+  "Split each outer 70% training set 85/15 into inner-fit and inner-early-stopping cells; compute k=20 cluster-mean RNA on inner-fit cells, pool k=8 nearest inner-fit neighbours' RNA to form denoised inner-fit residuals while keeping inner-early-stopping residuals unsmoothed, and compute normalized inverse-sqrt ATAC-cluster sample weights w_i = n_c^(-0.5)."
+ ],
+ "model": {
+  "component": "residual_over_cluster_mean",
+  "params": {
+   "learner": "gbm",
+   "cluster_k": "frozen"
+  }
+ },
+ "fusion": null,
+ "training": {
+  "max_epochs": 150,
+  "early_stopping_patience": 15,
+  "lr": 0.05,
+  "batch_size": null,
+  "weight_decay": 1.0,
+  "target_denoising": "knn_pool (8)",
+  "inner_val_fraction": 0.15,
+  "sample_weighting": "inverse_sqrt_atac_cluster_size",
+  "gbm_tree_params": {
+   "max_depth": 4,
+   "num_leaves": 15,
+   "min_child_samples": 10,
+   "colsample_bytree": 0.75,
+   "subsample": 0.8,
+   "n_jobs_parallel_genes": 32
+  },
+  "convergence_audit": "Log per-round inner-fit and unsmoothed inner-validation MSE curves across 150 boosting rounds for all 11,282 genes, reporting median/IQR loss curves, early-stopping iteration distribution, and zero-residual shrinkage fraction; clip final predictions (cluster_mean + residual) to finite non-negative log-normalised bounds."
+ },
+ "validation": {
+  "scheme": "holdout",
+  "holdout_fraction": 0.3,
+  "split_unit": "cell",
+  "scoring_target": "thinned_half",
+  "n_seeds": 3,
+  "compare_with": [
+   "simple_reference",
+   "floor_1_cell_type",
+   "floor_2_gene_activity",
+   "floor_3_depth",
+   "floor_4_simple_learners",
+   "ceiling",
+   "permutation_null"
+  ],
+  "gene_claim_rule": "Run sanity checks confirming every comparator computes its intended quantity on identical outer-split cells and thinned-half B targets. Partition all 11,282 frozen in-scope genes: (0) unjudgeable if the RNA half-A-to-half-B ceiling fails to exceed the 95th percentile of 1,000 cell permutations; on remaining genes, run 5,000 vectorized paired-cell bootstrap resamples on primary seed 1 (verifying cross-seed spread and empirical CI coverage across seeds 1-3) for empirical two-sided 95% CIs of r_g and delta_r_g = r_model - r_floor1 plus studentized Fisher-z paired-bootstrap one-sided p-values; claim Group 2 (reliably predicted beyond cell type) when delta_r_g > 0 passes Benjamini-Hochberg at 5% FDR across all 11,282 in-scope genes and aggregate mean r exceeds depth and gene-activity floors; assign remaining judgeable genes to Group 1."
+ },
+ "metrics": [
+  "Per-gene Pearson correlation r against unsmoothed binomial-thinned log-normalised RNA (half B) and paired-bootstrap gain delta_r over floor_1_cell_type with empirical two-sided 95% CIs",
+  "Mean and median per-gene Pearson r across all 11,282 in-scope genes and judgeable genes alongside cross-seed spread across the 3 nested 70/30 holdouts",
+  "Gene counts and identities in Group 0 (unjudgeable), Group 1 (not beyond cell type), and Group 2 (reliably predicted beyond cell type at 5% BH FDR across 11,282 genes)",
+  "Ratio of achieved per-gene Pearson r to the RNA-to-RNA noise ceiling across judgeable in-scope genes",
+  "Within-ATAC-cluster and descriptive within-WNN-cell-type Pearson r per gene on development validation splits to audit rare populations including Plasma cells",
+  "Empirical coverage and width of paired-bootstrap 95% confidence intervals across the 3 validation splits"
+ ],
+ "allowed_conclusions": "Entitles selecting exactly one of the four objective conclusions—unjudgeable due to measurement noise, confounded by sequencing depth, no gene predicted beyond cell identity, or specific identified genes predicted beyond cell identity at 5% FDR—strictly for unseen granulocyte-depleted PBMCs of this single donor under the same Multiome assay, without cross-donor or causal regulatory claims.",
+ "budget": {
+  "needs_gpu": false,
+  "pilot_minutes": 10.0,
+  "full_minutes": 85.0,
+  "cpus": 32
+ },
+ "diversity": {
+  "data": "filtered_50k_lsi_80d_plus_standardized_log_depth",
+  "model": "per_gene_early_stopped_gradient_boosted_trees",
+  "method": "cluster_mean_residual_decomposition_with_knn_target_denoising_repeated_70_30_holdout"
+ },
+ "rationale": "Joint models expend capacity relearning dominant cluster means (D6); fitting per-gene boosted residuals defaults noisy genes safely to Floor 1. Training kNN pooling mitigates 85% UMI sparsity (D1), inverse-sqrt cluster weights protect rare states (D2) without WNN leakage (D4), and depth controls confounding (D5).",
+ "difficulties_addressed": [
+  "D1",
+  "D2",
+  "D3",
+  "D4",
+  "D5",
+  "D6",
+  "D7"
+ ],
+ "new_components": []
+}

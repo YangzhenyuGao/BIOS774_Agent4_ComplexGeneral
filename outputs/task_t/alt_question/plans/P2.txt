@@ -1,0 +1,5 @@
+Tile-Aligned Five-Encoder Gated-Attention MIL
+
+Each patient's slides form a spatially aligned tile bag across all five frozen H&E encoders, excluding all clinical and receptor variables. Within nested training folds, per-encoder tile features are standardized and PCA-compressed before a neural network performs per-tile encoder fusion and gated-attention pooling to predict class-weighted PAM50 subtypes. Evaluation uses repeated nested patient-level and site-held-out cross-validation against null baselines and the patient-mean logistic reference. Patient-level, per-class, and site-held-out bootstrap confidence intervals determine whether H&E morphology yields broad, partial, site-confounded, or insufficient PAM50 predictability.
+
+Rationale: Mean pooling dilutes focal tumour cues with stroma, while single encoders capture incomplete morphology. Tile-aligned gating across five encoders with attention MIL isolates diagnostic regions. Fold-internal PCA, balanced class weighting, tile dropout, and seed ensembling counteract high dimensionality, minority Her2 imbalance, and technical site confounding.

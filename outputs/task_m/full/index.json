@@ -1,0 +1,157 @@
+{
+ "created": "2026-11-25T11:48:06-0500",
+ "note": "task_m/full",
+ "n_files": 30,
+ "files": [
+  {
+   "path": "P1/full_run.json",
+   "bytes": 1683,
+   "sha256": "e0625a9f909633a07009b44aab85809b92c749502d0918753bd5e02ea3da162f"
+  },
+  {
+   "path": "P1/gene_claims.json",
+   "bytes": 795363,
+   "sha256": "d3406c548970084580acb828d56279902dcc067d712f41c4ecc70d28f7cf1b5b"
+  },
+  {
+   "path": "P1/pred_hidden.npy",
+   "bytes": 140980000,
+   "sha256": "e61578cca11659ad0a38386b3ba6fef3f461bd0e40b9744437a6101b60e95dcf"
+  },
+  {
+   "path": "P1/self_validation.json",
+   "bytes": 10742,
+   "sha256": "61b045225cce41f73c6bffa1b09f931978773c700cd44a23f63d851a6336c386"
+  },
+  {
+   "path": "P1/self_validation_per_gene.npz",
+   "bytes": 396104,
+   "sha256": "52305d04c34aea48f2e967e96d148827edc5abb1ef541f7c897458813fcb81a7"
+  },
+  {
+   "path": "P2/full_run.json",
+   "bytes": 6543,
+   "sha256": "702985054ed6239caf6d30bb0b93232fa321974cf0f2bd978c3d9f580f7374e7"
+  },
+  {
+   "path": "P2/gene_claims.json",
+   "bytes": 233074,
+   "sha256": "abd1599bdedbd26584eba5cc433f662ea65deba6a4fd3da7542c141e39d8f09f"
+  },
+  {
+   "path": "P2/pred_hidden.npy",
+   "bytes": 140980000,
+   "sha256": "fff52438b625cdf872536116166a5bbd29ac126b778a0523983287aa2f91405e"
+  },
+  {
+   "path": "P2/self_validation.json",
+   "bytes": 48035,
+   "sha256": "c76c7551b8d4283e4385cd4200c912aedf5b07d65502cfeb14618ce7774108d1"
+  },
+  {
+   "path": "P2/self_validation_per_gene.npz",
+   "bytes": 380107,
+   "sha256": "b57e5709ca5a471c5ebf2fcffb92351ec305d74bed701b54f7ecf94720ae9b07"
+  },
+  {
+   "path": "P3/full_run.json",
+   "bytes": 5851,
+   "sha256": "c7e9dbbc7d6c5d8ce9d170a672136d6fa1ddfec0be63cbb902d2ca3da16c1852"
+  },
+  {
+   "path": "P3/gene_claims.json",
+   "bytes": 247723,
+   "sha256": "a4179632e91f7613336da0320ee2dde7d22abf0551775229b1ba05f135562a71"
+  },
+  {
+   "path": "P3/pred_hidden.npy",
+   "bytes": 140980000,
+   "sha256": "b6cef55d2c87a9d6bbce8b20fb32cf1a2291ed747744dbedc494010eb6950c04"
+  },
+  {
+   "path": "P3/self_validation.json",
+   "bytes": 30367,
+   "sha256": "c0dbb3c4705093c0b7c7181668573b8e422ea16e956a6027aa2d9ddf34b77849"
+  },
+  {
+   "path": "P3/self_validation_per_gene.npz",
+   "bytes": 375633,
+   "sha256": "bf92e9a92f9cb1fb90ee4df8b816e9be733079fde20346bc92d896034797f7f9"
+  },
+  {
+   "path": "P4/full_run.json",
+   "bytes": 5462,
+   "sha256": "bf5c6123adbafbaf955de055cbe3c52246b4077027313c64ff1dbe0571411429"
+  },
+  {
+   "path": "P4/gene_claims.json",
+   "bytes": 129755,
+   "sha256": "57425c56b710a3379d5845b5658bad6864c3fd15a9c71bf7668a7f38c0a1a235"
+  },
+  {
+   "path": "P4/pred_hidden.npy",
+   "bytes": 140980000,
+   "sha256": "a2a81ceb0c472dcf203d4ec0ebc4b68305dae4c97c7c01fd174b6560cea0d979"
+  },
+  {
+   "path": "P4/self_validation.json",
+   "bytes": 14485,
+   "sha256": "54a8e421a87706065f9cbefd95a4f8650ec9a9e4dab2fa8c097467fad2f08423"
+  },
+  {
+   "path": "P4/self_validation_per_gene.npz",
+   "bytes": 371220,
+   "sha256": "d3b851c7e3f5e1537381b39f11533d16b1bc2af8d968a18ea29fa61130aa8039"
+  },
+  {
+   "path": "P5/full_run.json",
+   "bytes": 5372,
+   "sha256": "16e1515091b14d1e7074af5e256db6739be442259c80bf2070c32c64e8070596"
+  },
+  {
+   "path": "P5/gene_claims.json",
+   "bytes": 637980,
+   "sha256": "3b6a81d0b187b937fdbeb06d0354e592fab034b3ef821ceb425b1a9ebc770880"
+  },
+  {
+   "path": "P5/pred_hidden.npy",
+   "bytes": 140980000,
+   "sha256": "3990a13905164ad0080aafb18da4db500bb547451f8d88430faafc3cddb9fccd"
+  },
+  {
+   "path": "P5/self_validation.json",
+   "bytes": 39263,
+   "sha256": "0bfdef50b3f16cc6ee8a75442fd5f586dc80926d1832a50beb2912cd65fce8f0"
+  },
+  {
+   "path": "P5/self_validation_per_gene.npz",
+   "bytes": 395004,
+   "sha256": "a9abc2f7a0c930b0e7a3e1b3d702828a1bfc3cdb9ac8196761977bb0a6853d61"
+  },
+  {
+   "path": "P6/full_run.json",
+   "bytes": 11099,
+   "sha256": "bad653c254e461501f913d4ec485a454630a43e9b2518bcb21c6e7f74a61659f"
+  },
+  {
+   "path": "P6/gene_claims.json",
+   "bytes": 948850,
+   "sha256": "8054265366da6020da5f443676fb279ff1029677c0bb460ff609bc8784c9706f"
+  },
+  {
+   "path": "P6/pred_hidden.npy",
+   "bytes": 140980000,
+   "sha256": "ea54d38538bc742e11df8976b74a5b5da9ef7733a4a78a041b4ee7b0da6ab390"
+  },
+  {
+   "path": "P6/self_validation.json",
+   "bytes": 32645,
+   "sha256": "6abb8cd5dc631efb6d967a1eb4abcab602eed6ababa353d4548b94f2e7996513"
+  },
+  {
+   "path": "P6/self_validation_per_gene.npz",
+   "bytes": 397357,
+   "sha256": "4866ed567ba96d067f4f85205f662f246121ea75588b6666430817c6d7375e95"
+  }
+ ]
+}

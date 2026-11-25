@@ -1,0 +1,91 @@
+{
+ "host": "sycamore-login1",
+ "finished": "2026-11-25T03:20:39-0500",
+ "calls": [
+  {
+   "provider": "gemini",
+   "model": "gemini-4-carbon",
+   "timeout": 400,
+   "thinking_level": null,
+   "started": "03:12:02",
+   "status": 200,
+   "seconds": 32.3,
+   "reply": "READY",
+   "tokens": {
+    "promptTokenCount": 38,
+    "candidatesTokenCount": 5,
+    "thoughtsTokenCount": 99
+   }
+  },
+  {
+   "provider": "gemini",
+   "model": "gemini-4-carbon",
+   "timeout": 400,
+   "thinking_level": "low",
+   "started": "03:12:39",
+   "status": 200,
+   "seconds": 17.7,
+   "reply": "READY",
+   "tokens": {
+    "promptTokenCount": 38,
+    "candidatesTokenCount": 5,
+    "thoughtsTokenCount": null
+   }
+  },
+  {
+   "provider": "gemini",
+   "model": "gemini-4-carbon",
+   "timeout": 400,
+   "thinking_level": null,
+   "started": "03:13:02",
+   "status": "timeout",
+   "seconds": 400.1,
+   "error": "ReadTimeout(ReadTimeoutError(\"HTTPSConnectionPool(host='generativelanguage.googleapis.com', port=443): Read timed out. (read timeout=400)\"))"
+  },
+  {
+   "provider": "gemini",
+   "model": "gemini-4-carbon",
+   "timeout": 400,
+   "thinking_level": "low",
+   "started": "03:19:47",
+   "status": 200,
+   "seconds": 4.0,
+   "reply": "READY",
+   "tokens": {
+    "promptTokenCount": 38,
+    "candidatesTokenCount": 5,
+    "thoughtsTokenCount": null
+   }
+  },
+  {
+   "provider": "gemini",
+   "model": "gemini-4-carbon",
+   "timeout": 400,
+   "thinking_level": null,
+   "started": "03:19:56",
+   "status": 200,
+   "seconds": 17.9,
+   "reply": "READY",
+   "tokens": {
+    "promptTokenCount": 38,
+    "candidatesTokenCount": 5,
+    "thoughtsTokenCount": 84
+   }
+  },
+  {
+   "provider": "gemini",
+   "model": "gemini-4-carbon",
+   "timeout": 400,
+   "thinking_level": "low",
+   "started": "03:20:19",
+   "status": 200,
+   "seconds": 14.4,
+   "reply": "READY",
+   "tokens": {
+    "promptTokenCount": 38,
+    "candidatesTokenCount": 5,
+    "thoughtsTokenCount": null
+   }
+  }
+ ]
+}

@@ -1,0 +1,5 @@
+Sparse Cis-Regulatory Peak-to-Gene and Global LSI Neural Network
+
+A sparse peak-to-gene neural network predicts all 11,282 in-scope genes jointly from local chromatin peaks within 250 kb of each TSS, depth-normalised gene activity, and a 100-component full-peak LSI cell state. Preprocessing, baseline clustering, and early-stopped training are strictly nested inside multi-seed 5-fold splits without held-out cells or WNN labels. Paired-bootstrap testing against binomial-thinned RNA Half B at 5% FDR over the cluster-mean floor identifies genes predictable beyond cell identity.
+
+Rationale: Global LSI reflects coarse lineage structure already captured by the cluster-mean baseline (D6) and blurs rare populations (D2). Pairing locus-specific TSS peaks with unpruned 100D LSI models non-linear cis-trans variation within cell types, while depth-normalised inputs block depth confounding (D5).

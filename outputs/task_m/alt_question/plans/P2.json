@@ -1,0 +1,120 @@
+{
+ "plan_id": "P2",
+ "name": "Hard-Negative Dual-View Contrastive Bi-Encoder with Depth Deconfounding",
+ "summary": "We train paired residual neural encoders with symmetric InfoNCE contrastive loss to retrieve an unseen cell's unsmoothed ATAC profile from its RNA counts alone. The ATAC encoder combines sparse TF-IDF peaks and promoter-and-distal gene activity while penalizing sequencing-depth shortcuts. Training uses binomial thinning, unsupervised inverse-cluster weighting, and an intra-cluster hard-negative batch curriculum fitted strictly on inner-training cells. Benchmarking on held-out queries (and an expanded 4,946-cell distractor pool) against required floors, linear CCA, and split-half ceilings determines whether retrieval exceeds cluster resolution.",
+ "complexity": "ambitious",
+ "analysis_unit": "Individual cell (single nucleus with co-measured RNA and ATAC in development splits)",
+ "inputs": {
+  "tfidf_peaks": {
+   "max_peaks": 40000
+  },
+  "gene_activity": {
+   "mode": "promoter_and_distal"
+  },
+  "depth": {}
+ },
+ "preprocessing": [
+  "Partition the 7,288 paired development cells once by cell ID into disjoint inner_train (4,372), inner_val (1,094), and outer_test (1,822) splits; assert zero cell-ID overlap across splits and against the 3,124 held-out ATAC-only distractor cells.",
+  "Restrict RNA counts to the 11,282 in-scope genes; apply per-cell library-size normalization (CP10k) and log1p, then standardize per gene using mean and standard deviation fitted strictly on inner_train.",
+  "Select the top 40,000 accessible ATAC peaks strictly on inner_train; compute sparse TF-IDF using inner_train IDF weights followed by per-cell L2 normalization.",
+  "Aggregate ATAC counts into promoter_and_distal gene_activity over the 11,282 in-scope genes via the 87,029 peak-gene links, normalize by per-cell ATAC depth, apply log1p, and standardize using inner_train statistics.",
+  "Standardize per-cell log RNA UMI depth and log ATAC fragment depth using inner_train statistics solely for training-time depth-orthogonality regularization, depth-leakage auditing, and the Floor 1 comparator.",
+  "Fit unsupervised k=30 k-means on concatenated inner_train RNA PCA(50) and ATAC LSI(50) strictly within inner_train to compute inverse-square-root cluster sample weights and intra-cluster hard-negative neighborhoods without touching WNN annotations."
+ ],
+ "model": {
+  "component": "contrastive_alignment",
+  "params": {
+   "embed_dim": 128,
+   "temperature": 0.07,
+   "learnable_temperature": true,
+   "rna_encoder_hidden": [
+    512,
+    256
+   ],
+   "atac_branch_dim": 256,
+   "atac_encoder_hidden": [
+    512,
+    256
+   ],
+   "residual_blocks": true,
+   "layer_norm": true,
+   "dropout": 0.25,
+   "depth_orthogonal_penalty": 0.1
+  }
+ },
+ "fusion": null,
+ "training": {
+  "max_epochs": 120,
+  "early_stopping_patience": 15,
+  "lr": 0.0005,
+  "batch_size": 256,
+  "weight_decay": 0.0001,
+  "target_denoising": "none",
+  "n_seeds": 3,
+  "warmup_epochs": 25,
+  "batch_curriculum": "epochs 1-25 uniform random inner_train mini-batches; epochs 26-120 50% intra-cluster hard-negative batches sampled from inner_train k=30 k-means neighborhoods",
+  "sample_weighting": "unsupervised inner_train inverse-square-root k=30 cluster frequency weights in symmetric InfoNCE loss",
+  "input_augmentation": "per-epoch stochastic binomial count thinning (keep probability Uniform(0.7, 1.0)) on raw inner_train RNA and ATAC counts before per-cell normalization, plus 15% input feature dropout",
+  "convergence_audit": "record per-epoch train/inner_val InfoNCE loss, learned temperature, depth-embedding correlation, and inner_val MRR; emit loss curves and verify validation MRR plateau before outer_test evaluation"
+ },
+ "validation": {
+  "scheme": "holdout",
+  "split_unit": "cell",
+  "split_sizes": {
+   "inner_train": 4372,
+   "inner_val": 1094,
+   "outer_test": 1822
+  },
+  "candidate_pool_size": 1822,
+  "expanded_distractor_pool_size": 4946,
+  "metrics": [
+   "MRR",
+   "recall@1",
+   "recall@5",
+   "recall@10",
+   "FOSCTTM"
+  ],
+  "scoring_rule": "independent single-query cosine similarity on unsmoothed outer_test profiles with deterministic mid-ranks for ties; evaluate 3-seed L2-normalized embedding ensemble and audit single-seed spread on inner_val",
+  "comparators_on_identical_units": [
+   "Floor 0 (uniform random permutation null)",
+   "Floor 1 (log ATAC fragment depth matched to query log RNA UMI depth)",
+   "Floor 2 (unlearned gene_activity_bridge promoter_and_distal cosine similarity)",
+   "Floor 3 (inner_train k=20 cluster centroid matching)",
+   "Simple linear reference (inner_train cca_latent on RNA PCA and ATAC LSI)",
+   "Noise-ceiling ruler (binomial-thinning unimodal split-half self-retrieval on outer_test)"
+  ],
+  "statistical_inference": "paired nonparametric bootstrap (2,000 resamples over outer_test query cells) 95% CIs for MRR and all comparator deltas on both the 1,822 paired pool and 4,946 distractor-expanded pool; post-hoc WNN-stratified MRR and recall@1 across 19 cell types with Benjamini-Hochberg 5% FDR"
+ },
+ "metrics": [
+  "MRR",
+  "recall@1",
+  "recall@5",
+  "recall@10",
+  "1 - FOSCTTM",
+  "macro_celltype_MRR",
+  "macro_celltype_recall@1",
+  "noise_ceiling_MRR_ratio"
+ ],
+ "allowed_conclusions": "Map paired-bootstrap 95% CIs on outer_test strictly to the four objective conclusion options: claim single-cell resolution only if Recall@1 is substantial and MRR significantly exceeds Floors 0-3 and linear CCA while approaching the split-half ceiling; claim partial sub-cluster resolution if MRR significantly beats Floors 0-3 (and linear CCA for nonlinear superiority) without reliable top-1 recovery; claim cell-type resolution only if MRR beats Floors 0-1 but not Floor 3; otherwise conclude no biological retrieval. Scope is restricted to unseen granulocyte-depleted PBMCs from this single healthy donor at this sequencing depth and pool size.",
+ "budget": {
+  "needs_gpu": false,
+  "pilot_minutes": 6.0,
+  "full_minutes": 30.0,
+  "cpus": 32
+ },
+ "diversity": {
+  "data": "dual_sparse_tfidf_peaks_and_cis_gene_activity",
+  "model": "depth_deconfounded_residual_contrastive_biencoder",
+  "method": "multiseed_holdout_hard_negative_curriculum_with_distractor_pool"
+ },
+ "rationale": "Linear SVD discards non-linear enhancer combinations and remains vulnerable to sequencing-depth shortcuts (D5). Pairing sparse peaks with cis-linked gene activity under binomial thinning counteracts extreme sparsity (D1). Unsupervised inverse-cluster weights and intra-cluster hard negatives address rare populations (D2) and sub-cluster retrieval beyond coarse centroids (D6).",
+ "difficulties_addressed": [
+  "D1",
+  "D2",
+  "D4",
+  "D5",
+  "D6",
+  "D7"
+ ],
+ "new_components": []
+}

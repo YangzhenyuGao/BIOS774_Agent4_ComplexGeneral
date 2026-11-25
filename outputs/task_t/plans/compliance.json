@@ -1,0 +1,296 @@
+[
+ {
+  "plan_id": "P1",
+  "passed": true,
+  "rules": [
+   {
+    "rule": "inputs_from_view",
+    "passed": true,
+    "detail": "input blocks ['clinical', 'image']; unknown blocks []; unknown encoders []"
+   },
+   {
+    "rule": "clinical_variables_allowed",
+    "passed": true,
+    "detail": "declared clinical variables ['age', 'er', 'her2', 'histological_type', 'pr', 'stage']; outside the six covariates: []"
+   },
+   {
+    "rule": "clinical_block_matches_question",
+    "passed": true,
+    "detail": "the question conditions on clinical variables; the plan uses them"
+   },
+   {
+    "rule": "correct_split_unit",
+    "passed": true,
+    "detail": "declared split unit: patient; the analysis unit is the patient"
+   },
+   {
+    "rule": "no_forbidden_inputs",
+    "passed": true,
+    "detail": "all input rules passed; each forbidden input of the objective is covered as follows: [RNA expression or RNA-derived variables] -> rule inputs_from_view: the view offers no such variable for the units to be predicted | [Collection site as a predictive model input] -> rule clinical_variables_allowed: site is a grouping column, not an allowed covariate | [H&E image features in the clinical-only baseline arm] -> enforced by the executor: the clinical-only arm is built from clinical variables alone | [External TCGA molecular, clinical, or pathology annotations outside the provided dataset] -> rule inputs_from_view: the executor can read nothing but the task view | [Evaluation-fold features or labels during preprocessing, missing-value handling, dimensionality reduction, or model selection] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted"
+   },
+   {
+    "rule": "components_executable",
+    "passed": true,
+    "detail": "all components registered"
+   },
+   {
+    "rule": "within_budget",
+    "passed": true,
+    "detail": "declared full run 5.0 min; limit 120 min"
+   }
+  ],
+  "forbidden_input_coverage": {
+   "RNA expression or RNA-derived variables": "rule inputs_from_view: the view offers no such variable for the units to be predicted",
+   "Collection site as a predictive model input": "rule clinical_variables_allowed: site is a grouping column, not an allowed covariate",
+   "H&E image features in the clinical-only baseline arm": "enforced by the executor: the clinical-only arm is built from clinical variables alone",
+   "External TCGA molecular, clinical, or pathology annotations outside the provided dataset": "rule inputs_from_view: the executor can read nothing but the task view",
+   "Evaluation-fold features or labels during preprocessing, missing-value handling, dimensionality reduction, or model selection": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted"
+  },
+  "checked": "2026-11-25T05:27:38-0500"
+ },
+ {
+  "plan_id": "P2",
+  "passed": true,
+  "rules": [
+   {
+    "rule": "inputs_from_view",
+    "passed": true,
+    "detail": "input blocks ['clinical', 'image']; unknown blocks []; unknown encoders []"
+   },
+   {
+    "rule": "clinical_variables_allowed",
+    "passed": true,
+    "detail": "declared clinical variables ['age', 'er', 'her2', 'histological_type', 'pr', 'stage']; outside the six covariates: []"
+   },
+   {
+    "rule": "clinical_block_matches_question",
+    "passed": true,
+    "detail": "the question conditions on clinical variables; the plan uses them"
+   },
+   {
+    "rule": "correct_split_unit",
+    "passed": true,
+    "detail": "declared split unit: patient; the analysis unit is the patient"
+   },
+   {
+    "rule": "no_forbidden_inputs",
+    "passed": true,
+    "detail": "all input rules passed; each forbidden input of the objective is covered as follows: [RNA expression or RNA-derived variables] -> rule inputs_from_view: the view offers no such variable for the units to be predicted | [Collection site as a predictive model input] -> rule clinical_variables_allowed: site is a grouping column, not an allowed covariate | [H&E image features in the clinical-only baseline arm] -> enforced by the executor: the clinical-only arm is built from clinical variables alone | [External TCGA molecular, clinical, or pathology annotations outside the provided dataset] -> rule inputs_from_view: the executor can read nothing but the task view | [Evaluation-fold features or labels during preprocessing, missing-value handling, dimensionality reduction, or model selection] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted"
+   },
+   {
+    "rule": "components_executable",
+    "passed": true,
+    "detail": "all components registered"
+   },
+   {
+    "rule": "within_budget",
+    "passed": true,
+    "detail": "declared full run 75.0 min; limit 120 min"
+   }
+  ],
+  "forbidden_input_coverage": {
+   "RNA expression or RNA-derived variables": "rule inputs_from_view: the view offers no such variable for the units to be predicted",
+   "Collection site as a predictive model input": "rule clinical_variables_allowed: site is a grouping column, not an allowed covariate",
+   "H&E image features in the clinical-only baseline arm": "enforced by the executor: the clinical-only arm is built from clinical variables alone",
+   "External TCGA molecular, clinical, or pathology annotations outside the provided dataset": "rule inputs_from_view: the executor can read nothing but the task view",
+   "Evaluation-fold features or labels during preprocessing, missing-value handling, dimensionality reduction, or model selection": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted"
+  },
+  "checked": "2026-11-25T05:27:38-0500"
+ },
+ {
+  "plan_id": "P3",
+  "passed": true,
+  "rules": [
+   {
+    "rule": "inputs_from_view",
+    "passed": true,
+    "detail": "input blocks ['clinical', 'image']; unknown blocks []; unknown encoders []"
+   },
+   {
+    "rule": "clinical_variables_allowed",
+    "passed": true,
+    "detail": "declared clinical variables ['age', 'er', 'her2', 'histological_type', 'pr', 'stage']; outside the six covariates: []"
+   },
+   {
+    "rule": "clinical_block_matches_question",
+    "passed": true,
+    "detail": "the question conditions on clinical variables; the plan uses them"
+   },
+   {
+    "rule": "correct_split_unit",
+    "passed": true,
+    "detail": "declared split unit: patient; the analysis unit is the patient"
+   },
+   {
+    "rule": "no_forbidden_inputs",
+    "passed": true,
+    "detail": "all input rules passed; each forbidden input of the objective is covered as follows: [RNA expression or RNA-derived variables] -> rule inputs_from_view: the view offers no such variable for the units to be predicted | [Collection site as a predictive model input] -> rule clinical_variables_allowed: site is a grouping column, not an allowed covariate | [H&E image features in the clinical-only baseline arm] -> enforced by the executor: the clinical-only arm is built from clinical variables alone | [External TCGA molecular, clinical, or pathology annotations outside the provided dataset] -> rule inputs_from_view: the executor can read nothing but the task view | [Evaluation-fold features or labels during preprocessing, missing-value handling, dimensionality reduction, or model selection] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted"
+   },
+   {
+    "rule": "components_executable",
+    "passed": true,
+    "detail": "all components registered"
+   },
+   {
+    "rule": "within_budget",
+    "passed": true,
+    "detail": "declared full run 45.0 min; limit 120 min"
+   }
+  ],
+  "forbidden_input_coverage": {
+   "RNA expression or RNA-derived variables": "rule inputs_from_view: the view offers no such variable for the units to be predicted",
+   "Collection site as a predictive model input": "rule clinical_variables_allowed: site is a grouping column, not an allowed covariate",
+   "H&E image features in the clinical-only baseline arm": "enforced by the executor: the clinical-only arm is built from clinical variables alone",
+   "External TCGA molecular, clinical, or pathology annotations outside the provided dataset": "rule inputs_from_view: the executor can read nothing but the task view",
+   "Evaluation-fold features or labels during preprocessing, missing-value handling, dimensionality reduction, or model selection": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted"
+  },
+  "checked": "2026-11-25T05:27:38-0500"
+ },
+ {
+  "plan_id": "P4",
+  "passed": true,
+  "rules": [
+   {
+    "rule": "inputs_from_view",
+    "passed": true,
+    "detail": "input blocks ['clinical', 'image']; unknown blocks []; unknown encoders []"
+   },
+   {
+    "rule": "clinical_variables_allowed",
+    "passed": true,
+    "detail": "declared clinical variables ['age', 'er', 'her2', 'histological_type', 'pr', 'stage']; outside the six covariates: []"
+   },
+   {
+    "rule": "clinical_block_matches_question",
+    "passed": true,
+    "detail": "the question conditions on clinical variables; the plan uses them"
+   },
+   {
+    "rule": "correct_split_unit",
+    "passed": true,
+    "detail": "declared split unit: patient; the analysis unit is the patient"
+   },
+   {
+    "rule": "no_forbidden_inputs",
+    "passed": true,
+    "detail": "all input rules passed; each forbidden input of the objective is covered as follows: [RNA expression or RNA-derived variables] -> rule inputs_from_view: the view offers no such variable for the units to be predicted | [Collection site as a predictive model input] -> rule clinical_variables_allowed: site is a grouping column, not an allowed covariate | [H&E image features in the clinical-only baseline arm] -> enforced by the executor: the clinical-only arm is built from clinical variables alone | [External TCGA molecular, clinical, or pathology annotations outside the provided dataset] -> rule inputs_from_view: the executor can read nothing but the task view | [Evaluation-fold features or labels during preprocessing, missing-value handling, dimensionality reduction, or model selection] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted"
+   },
+   {
+    "rule": "components_executable",
+    "passed": true,
+    "detail": "all components registered"
+   },
+   {
+    "rule": "within_budget",
+    "passed": true,
+    "detail": "declared full run 75.0 min; limit 120 min"
+   }
+  ],
+  "forbidden_input_coverage": {
+   "RNA expression or RNA-derived variables": "rule inputs_from_view: the view offers no such variable for the units to be predicted",
+   "Collection site as a predictive model input": "rule clinical_variables_allowed: site is a grouping column, not an allowed covariate",
+   "H&E image features in the clinical-only baseline arm": "enforced by the executor: the clinical-only arm is built from clinical variables alone",
+   "External TCGA molecular, clinical, or pathology annotations outside the provided dataset": "rule inputs_from_view: the executor can read nothing but the task view",
+   "Evaluation-fold features or labels during preprocessing, missing-value handling, dimensionality reduction, or model selection": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted"
+  },
+  "checked": "2026-11-25T05:27:38-0500"
+ },
+ {
+  "plan_id": "P5",
+  "passed": true,
+  "rules": [
+   {
+    "rule": "inputs_from_view",
+    "passed": true,
+    "detail": "input blocks ['clinical', 'image']; unknown blocks []; unknown encoders []"
+   },
+   {
+    "rule": "clinical_variables_allowed",
+    "passed": true,
+    "detail": "declared clinical variables ['age', 'er', 'her2', 'histological_type', 'pr', 'stage']; outside the six covariates: []"
+   },
+   {
+    "rule": "clinical_block_matches_question",
+    "passed": true,
+    "detail": "the question conditions on clinical variables; the plan uses them"
+   },
+   {
+    "rule": "correct_split_unit",
+    "passed": true,
+    "detail": "declared split unit: patient; the analysis unit is the patient"
+   },
+   {
+    "rule": "no_forbidden_inputs",
+    "passed": true,
+    "detail": "all input rules passed; each forbidden input of the objective is covered as follows: [RNA expression or RNA-derived variables] -> rule inputs_from_view: the view offers no such variable for the units to be predicted | [Collection site as a predictive model input] -> rule clinical_variables_allowed: site is a grouping column, not an allowed covariate | [H&E image features in the clinical-only baseline arm] -> enforced by the executor: the clinical-only arm is built from clinical variables alone | [External TCGA molecular, clinical, or pathology annotations outside the provided dataset] -> rule inputs_from_view: the executor can read nothing but the task view | [Evaluation-fold features or labels during preprocessing, missing-value handling, dimensionality reduction, or model selection] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted"
+   },
+   {
+    "rule": "components_executable",
+    "passed": true,
+    "detail": "all components registered"
+   },
+   {
+    "rule": "within_budget",
+    "passed": true,
+    "detail": "declared full run 100.0 min; limit 120 min"
+   }
+  ],
+  "forbidden_input_coverage": {
+   "RNA expression or RNA-derived variables": "rule inputs_from_view: the view offers no such variable for the units to be predicted",
+   "Collection site as a predictive model input": "rule clinical_variables_allowed: site is a grouping column, not an allowed covariate",
+   "H&E image features in the clinical-only baseline arm": "enforced by the executor: the clinical-only arm is built from clinical variables alone",
+   "External TCGA molecular, clinical, or pathology annotations outside the provided dataset": "rule inputs_from_view: the executor can read nothing but the task view",
+   "Evaluation-fold features or labels during preprocessing, missing-value handling, dimensionality reduction, or model selection": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted"
+  },
+  "checked": "2026-11-25T05:27:38-0500"
+ },
+ {
+  "plan_id": "P6",
+  "passed": true,
+  "rules": [
+   {
+    "rule": "inputs_from_view",
+    "passed": true,
+    "detail": "input blocks ['clinical', 'image']; unknown blocks []; unknown encoders []"
+   },
+   {
+    "rule": "clinical_variables_allowed",
+    "passed": true,
+    "detail": "declared clinical variables ['age', 'er', 'her2', 'histological_type', 'pr', 'stage']; outside the six covariates: []"
+   },
+   {
+    "rule": "clinical_block_matches_question",
+    "passed": true,
+    "detail": "the question conditions on clinical variables; the plan uses them"
+   },
+   {
+    "rule": "correct_split_unit",
+    "passed": true,
+    "detail": "declared split unit: patient; the analysis unit is the patient"
+   },
+   {
+    "rule": "no_forbidden_inputs",
+    "passed": true,
+    "detail": "all input rules passed; each forbidden input of the objective is covered as follows: [RNA expression or RNA-derived variables] -> rule inputs_from_view: the view offers no such variable for the units to be predicted | [Collection site as a predictive model input] -> rule clinical_variables_allowed: site is a grouping column, not an allowed covariate | [H&E image features in the clinical-only baseline arm] -> enforced by the executor: the clinical-only arm is built from clinical variables alone | [External TCGA molecular, clinical, or pathology annotations outside the provided dataset] -> rule inputs_from_view: the executor can read nothing but the task view | [Evaluation-fold features or labels during preprocessing, missing-value handling, dimensionality reduction, or model selection] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted"
+   },
+   {
+    "rule": "components_executable",
+    "passed": true,
+    "detail": "all components registered"
+   },
+   {
+    "rule": "within_budget",
+    "passed": true,
+    "detail": "declared full run 90.0 min; limit 120 min"
+   }
+  ],
+  "forbidden_input_coverage": {
+   "RNA expression or RNA-derived variables": "rule inputs_from_view: the view offers no such variable for the units to be predicted",
+   "Collection site as a predictive model input": "rule clinical_variables_allowed: site is a grouping column, not an allowed covariate",
+   "H&E image features in the clinical-only baseline arm": "enforced by the executor: the clinical-only arm is built from clinical variables alone",
+   "External TCGA molecular, clinical, or pathology annotations outside the provided dataset": "rule inputs_from_view: the executor can read nothing but the task view",
+   "Evaluation-fold features or labels during preprocessing, missing-value handling, dimensionality reduction, or model selection": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted"
+  },
+  "checked": "2026-11-25T05:27:38-0500"
+ }
+]

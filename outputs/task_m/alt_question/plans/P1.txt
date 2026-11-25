@@ -1,0 +1,5 @@
+Nested 5-Fold Linear CCA on RNA PCA and Depth-Filtered ATAC LSI
+
+We align paired single-cell RNA PCA and depth-filtered ATAC LSI spaces using linear canonical correlation analysis across five nested cell-level folds of the 7,288 development cells. Each unseen query RNA profile independently ranks ~1,458 unseen candidate ATAC profiles in its held-out fold by cosine similarity without cross-query matching or WNN labels. Paired-bootstrap MRR is compared against random, depth, gene-activity, and k=20 cluster floors alongside a split-half noise ceiling. This determines the resolution of global linear alignment and anchors all complex benchmarks.
+
+Rationale: Dropping the first LSI component removes technical depth confounding (D5), while five-fold out-of-sample evaluation scores every cell including rare types like the 15 Plasma cells (D2). As a fast, closed-form linear projection, CCA directly tests sub-cluster variation beyond k=20 clusters (D6) and anchors acceptance criterion A7.

@@ -1,0 +1,302 @@
+[
+ {
+  "plan_id": "P1",
+  "passed": true,
+  "rules": [
+   {
+    "rule": "inputs_from_view",
+    "passed": true,
+    "detail": "input representations ['lsi']; not ATAC-derived or not in the catalogue: []"
+   },
+   {
+    "rule": "no_label_inputs",
+    "passed": true,
+    "detail": "the supplied cell-type annotation is not among the model inputs"
+   },
+   {
+    "rule": "scoring_target_allowed",
+    "passed": true,
+    "detail": "declared scoring target: thinned_half; the objective requires measured, unsmoothed, independently thinned values"
+   },
+   {
+    "rule": "correct_split_unit",
+    "passed": true,
+    "detail": "declared split unit: cell; the analysis unit is the cell"
+   },
+   {
+    "rule": "no_forbidden_inputs",
+    "passed": true,
+    "detail": "all input rules passed; each forbidden input of the objective is covered as follows: [Held-out cells' RNA counts (full or thinned halves) during training, tuning, or prediction] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [Held-out cells' ATAC counts during model training, preprocessing, latent-space fitting, clustering, or hyperparameter selection] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [Curated WNN cell-type annotations as model inputs for unseen cells or as evaluation ground truth] -> rule no_label_inputs | [Smoothed, imputed, denoised, or unthinned full-depth RNA expression as the validation scoring target] -> rule scoring_target_allowed | [Validation-split cells' RNA or ATAC during training, feature transformation, baseline clustering, or model selection] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [External donor datasets, atlases, or pretrained model weights outside the provided paired Multiome measurements] -> rule inputs_from_view: the executor can read nothing but the task view"
+   },
+   {
+    "rule": "components_executable",
+    "passed": true,
+    "detail": "all components registered"
+   },
+   {
+    "rule": "within_budget",
+    "passed": true,
+    "detail": "declared full run 12.0 min; limit 120 min"
+   }
+  ],
+  "forbidden_input_coverage": {
+   "Held-out cells' RNA counts (full or thinned halves) during training, tuning, or prediction": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "Held-out cells' ATAC counts during model training, preprocessing, latent-space fitting, clustering, or hyperparameter selection": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "Curated WNN cell-type annotations as model inputs for unseen cells or as evaluation ground truth": "rule no_label_inputs",
+   "Smoothed, imputed, denoised, or unthinned full-depth RNA expression as the validation scoring target": "rule scoring_target_allowed",
+   "Validation-split cells' RNA or ATAC during training, feature transformation, baseline clustering, or model selection": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "External donor datasets, atlases, or pretrained model weights outside the provided paired Multiome measurements": "rule inputs_from_view: the executor can read nothing but the task view"
+  },
+  "checked": "2026-11-25T05:27:38-0500"
+ },
+ {
+  "plan_id": "P2",
+  "passed": true,
+  "rules": [
+   {
+    "rule": "inputs_from_view",
+    "passed": true,
+    "detail": "input representations ['cis_peaks', 'gene_activity', 'lsi']; not ATAC-derived or not in the catalogue: []"
+   },
+   {
+    "rule": "no_label_inputs",
+    "passed": true,
+    "detail": "the supplied cell-type annotation is not among the model inputs"
+   },
+   {
+    "rule": "scoring_target_allowed",
+    "passed": true,
+    "detail": "declared scoring target: thinned_half; the objective requires measured, unsmoothed, independently thinned values"
+   },
+   {
+    "rule": "correct_split_unit",
+    "passed": true,
+    "detail": "declared split unit: cell; the analysis unit is the cell"
+   },
+   {
+    "rule": "no_forbidden_inputs",
+    "passed": true,
+    "detail": "all input rules passed; each forbidden input of the objective is covered as follows: [Held-out cells' RNA counts (full or thinned halves) during training, tuning, or prediction] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [Held-out cells' ATAC counts during model training, preprocessing, latent-space fitting, clustering, or hyperparameter selection] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [Curated WNN cell-type annotations as model inputs for unseen cells or as evaluation ground truth] -> rule no_label_inputs | [Smoothed, imputed, denoised, or unthinned full-depth RNA expression as the validation scoring target] -> rule scoring_target_allowed | [Validation-split cells' RNA or ATAC during training, feature transformation, baseline clustering, or model selection] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [External donor datasets, atlases, or pretrained model weights outside the provided paired Multiome measurements] -> rule inputs_from_view: the executor can read nothing but the task view"
+   },
+   {
+    "rule": "components_executable",
+    "passed": true,
+    "detail": "all components registered"
+   },
+   {
+    "rule": "within_budget",
+    "passed": true,
+    "detail": "declared full run 48.0 min; limit 120 min"
+   }
+  ],
+  "forbidden_input_coverage": {
+   "Held-out cells' RNA counts (full or thinned halves) during training, tuning, or prediction": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "Held-out cells' ATAC counts during model training, preprocessing, latent-space fitting, clustering, or hyperparameter selection": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "Curated WNN cell-type annotations as model inputs for unseen cells or as evaluation ground truth": "rule no_label_inputs",
+   "Smoothed, imputed, denoised, or unthinned full-depth RNA expression as the validation scoring target": "rule scoring_target_allowed",
+   "Validation-split cells' RNA or ATAC during training, feature transformation, baseline clustering, or model selection": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "External donor datasets, atlases, or pretrained model weights outside the provided paired Multiome measurements": "rule inputs_from_view: the executor can read nothing but the task view"
+  },
+  "checked": "2026-11-25T05:27:38-0500"
+ },
+ {
+  "plan_id": "P3",
+  "passed": true,
+  "rules": [
+   {
+    "rule": "inputs_from_view",
+    "passed": true,
+    "detail": "input representations ['depth', 'gene_activity', 'tfidf_peaks']; not ATAC-derived or not in the catalogue: []"
+   },
+   {
+    "rule": "no_label_inputs",
+    "passed": true,
+    "detail": "the supplied cell-type annotation is not among the model inputs"
+   },
+   {
+    "rule": "scoring_target_allowed",
+    "passed": true,
+    "detail": "declared scoring target: thinned_half; the objective requires measured, unsmoothed, independently thinned values"
+   },
+   {
+    "rule": "correct_split_unit",
+    "passed": true,
+    "detail": "declared split unit: cell; the analysis unit is the cell"
+   },
+   {
+    "rule": "no_forbidden_inputs",
+    "passed": true,
+    "detail": "all input rules passed; each forbidden input of the objective is covered as follows: [Held-out cells' RNA counts (full or thinned halves) during training, tuning, or prediction] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [Held-out cells' ATAC counts during model training, preprocessing, latent-space fitting, clustering, or hyperparameter selection] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [Curated WNN cell-type annotations as model inputs for unseen cells or as evaluation ground truth] -> rule no_label_inputs | [Smoothed, imputed, denoised, or unthinned full-depth RNA expression as the validation scoring target] -> rule scoring_target_allowed | [Validation-split cells' RNA or ATAC during training, feature transformation, baseline clustering, or model selection] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [External donor datasets, atlases, or pretrained model weights outside the provided paired Multiome measurements] -> rule inputs_from_view: the executor can read nothing but the task view"
+   },
+   {
+    "rule": "components_executable",
+    "passed": true,
+    "detail": "all components registered"
+   },
+   {
+    "rule": "within_budget",
+    "passed": true,
+    "detail": "declared full run 48.0 min; limit 120 min"
+   }
+  ],
+  "forbidden_input_coverage": {
+   "Held-out cells' RNA counts (full or thinned halves) during training, tuning, or prediction": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "Held-out cells' ATAC counts during model training, preprocessing, latent-space fitting, clustering, or hyperparameter selection": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "Curated WNN cell-type annotations as model inputs for unseen cells or as evaluation ground truth": "rule no_label_inputs",
+   "Smoothed, imputed, denoised, or unthinned full-depth RNA expression as the validation scoring target": "rule scoring_target_allowed",
+   "Validation-split cells' RNA or ATAC during training, feature transformation, baseline clustering, or model selection": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "External donor datasets, atlases, or pretrained model weights outside the provided paired Multiome measurements": "rule inputs_from_view: the executor can read nothing but the task view"
+  },
+  "checked": "2026-11-25T05:27:38-0500"
+ },
+ {
+  "plan_id": "P4",
+  "passed": true,
+  "rules": [
+   {
+    "rule": "inputs_from_view",
+    "passed": true,
+    "detail": "input representations ['depth', 'lsi']; not ATAC-derived or not in the catalogue: []"
+   },
+   {
+    "rule": "no_label_inputs",
+    "passed": true,
+    "detail": "the supplied cell-type annotation is not among the model inputs"
+   },
+   {
+    "rule": "scoring_target_allowed",
+    "passed": true,
+    "detail": "declared scoring target: thinned_half; the objective requires measured, unsmoothed, independently thinned values"
+   },
+   {
+    "rule": "correct_split_unit",
+    "passed": true,
+    "detail": "declared split unit: cell; the analysis unit is the cell"
+   },
+   {
+    "rule": "no_forbidden_inputs",
+    "passed": true,
+    "detail": "all input rules passed; each forbidden input of the objective is covered as follows: [Held-out cells' RNA counts (full or thinned halves) during training, tuning, or prediction] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [Held-out cells' ATAC counts during model training, preprocessing, latent-space fitting, clustering, or hyperparameter selection] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [Curated WNN cell-type annotations as model inputs for unseen cells or as evaluation ground truth] -> rule no_label_inputs | [Smoothed, imputed, denoised, or unthinned full-depth RNA expression as the validation scoring target] -> rule scoring_target_allowed | [Validation-split cells' RNA or ATAC during training, feature transformation, baseline clustering, or model selection] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [External donor datasets, atlases, or pretrained model weights outside the provided paired Multiome measurements] -> rule inputs_from_view: the executor can read nothing but the task view"
+   },
+   {
+    "rule": "components_executable",
+    "passed": true,
+    "detail": "all components registered"
+   },
+   {
+    "rule": "within_budget",
+    "passed": true,
+    "detail": "declared full run 85.0 min; limit 120 min"
+   }
+  ],
+  "forbidden_input_coverage": {
+   "Held-out cells' RNA counts (full or thinned halves) during training, tuning, or prediction": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "Held-out cells' ATAC counts during model training, preprocessing, latent-space fitting, clustering, or hyperparameter selection": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "Curated WNN cell-type annotations as model inputs for unseen cells or as evaluation ground truth": "rule no_label_inputs",
+   "Smoothed, imputed, denoised, or unthinned full-depth RNA expression as the validation scoring target": "rule scoring_target_allowed",
+   "Validation-split cells' RNA or ATAC during training, feature transformation, baseline clustering, or model selection": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "External donor datasets, atlases, or pretrained model weights outside the provided paired Multiome measurements": "rule inputs_from_view: the executor can read nothing but the task view"
+  },
+  "checked": "2026-11-25T05:27:38-0500"
+ },
+ {
+  "plan_id": "P5",
+  "passed": true,
+  "rules": [
+   {
+    "rule": "inputs_from_view",
+    "passed": true,
+    "detail": "input representations ['gene_activity', 'lsi', 'tfidf_peaks']; not ATAC-derived or not in the catalogue: []"
+   },
+   {
+    "rule": "no_label_inputs",
+    "passed": true,
+    "detail": "the supplied cell-type annotation is not among the model inputs"
+   },
+   {
+    "rule": "scoring_target_allowed",
+    "passed": true,
+    "detail": "declared scoring target: thinned_half; the objective requires measured, unsmoothed, independently thinned values"
+   },
+   {
+    "rule": "correct_split_unit",
+    "passed": true,
+    "detail": "declared split unit: cell; the analysis unit is the cell"
+   },
+   {
+    "rule": "no_forbidden_inputs",
+    "passed": true,
+    "detail": "all input rules passed; each forbidden input of the objective is covered as follows: [Held-out cells' RNA counts (full or thinned halves) during training, tuning, or prediction] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [Held-out cells' ATAC counts during model training, preprocessing, latent-space fitting, clustering, or hyperparameter selection] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [Curated WNN cell-type annotations as model inputs for unseen cells or as evaluation ground truth] -> rule no_label_inputs | [Smoothed, imputed, denoised, or unthinned full-depth RNA expression as the validation scoring target] -> rule scoring_target_allowed | [Validation-split cells' RNA or ATAC during training, feature transformation, baseline clustering, or model selection] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [External donor datasets, atlases, or pretrained model weights outside the provided paired Multiome measurements] -> rule inputs_from_view: the executor can read nothing but the task view"
+   },
+   {
+    "rule": "components_executable",
+    "passed": true,
+    "detail": "all components registered"
+   },
+   {
+    "rule": "within_budget",
+    "passed": true,
+    "detail": "declared full run 75.0 min; limit 120 min"
+   }
+  ],
+  "forbidden_input_coverage": {
+   "Held-out cells' RNA counts (full or thinned halves) during training, tuning, or prediction": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "Held-out cells' ATAC counts during model training, preprocessing, latent-space fitting, clustering, or hyperparameter selection": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "Curated WNN cell-type annotations as model inputs for unseen cells or as evaluation ground truth": "rule no_label_inputs",
+   "Smoothed, imputed, denoised, or unthinned full-depth RNA expression as the validation scoring target": "rule scoring_target_allowed",
+   "Validation-split cells' RNA or ATAC during training, feature transformation, baseline clustering, or model selection": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "External donor datasets, atlases, or pretrained model weights outside the provided paired Multiome measurements": "rule inputs_from_view: the executor can read nothing but the task view"
+  },
+  "checked": "2026-11-25T05:27:38-0500"
+ },
+ {
+  "plan_id": "P6",
+  "passed": true,
+  "rules": [
+   {
+    "rule": "inputs_from_view",
+    "passed": true,
+    "detail": "input representations ['cis_peaks', 'depth', 'gene_activity', 'lsi', 'tfidf_peaks']; not ATAC-derived or not in the catalogue: []"
+   },
+   {
+    "rule": "no_label_inputs",
+    "passed": true,
+    "detail": "the supplied cell-type annotation is not among the model inputs"
+   },
+   {
+    "rule": "scoring_target_allowed",
+    "passed": true,
+    "detail": "declared scoring target: thinned_half; the objective requires measured, unsmoothed, independently thinned values"
+   },
+   {
+    "rule": "correct_split_unit",
+    "passed": true,
+    "detail": "declared split unit: cell; the analysis unit is the cell"
+   },
+   {
+    "rule": "no_forbidden_inputs",
+    "passed": true,
+    "detail": "all input rules passed; each forbidden input of the objective is covered as follows: [Held-out cells' RNA counts (full or thinned halves) during training, tuning, or prediction] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [Held-out cells' ATAC counts during model training, preprocessing, latent-space fitting, clustering, or hyperparameter selection] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [Curated WNN cell-type annotations as model inputs for unseen cells or as evaluation ground truth] -> rule no_label_inputs | [Smoothed, imputed, denoised, or unthinned full-depth RNA expression as the validation scoring target] -> rule scoring_target_allowed | [Validation-split cells' RNA or ATAC during training, feature transformation, baseline clustering, or model selection] -> enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted | [External donor datasets, atlases, or pretrained model weights outside the provided paired Multiome measurements] -> rule inputs_from_view: the executor can read nothing but the task view"
+   },
+   {
+    "rule": "components_executable",
+    "passed": true,
+    "detail": "all components registered"
+   },
+   {
+    "rule": "within_budget",
+    "passed": true,
+    "detail": "declared full run 85.0 min; limit 120 min"
+   }
+  ],
+  "forbidden_input_coverage": {
+   "Held-out cells' RNA counts (full or thinned halves) during training, tuning, or prediction": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "Held-out cells' ATAC counts during model training, preprocessing, latent-space fitting, clustering, or hyperparameter selection": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "Curated WNN cell-type annotations as model inputs for unseen cells or as evaluation ground truth": "rule no_label_inputs",
+   "Smoothed, imputed, denoised, or unthinned full-depth RNA expression as the validation scoring target": "rule scoring_target_allowed",
+   "Validation-split cells' RNA or ATAC during training, feature transformation, baseline clustering, or model selection": "enforced by the executor: every transform and model is fitted inside the training units of a split; other units are only predicted",
+   "External donor datasets, atlases, or pretrained model weights outside the provided paired Multiome measurements": "rule inputs_from_view: the executor can read nothing but the task view"
+  },
+  "checked": "2026-11-25T05:27:38-0500"
+ }
+]

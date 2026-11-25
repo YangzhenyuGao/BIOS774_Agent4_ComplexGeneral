@@ -1,0 +1,90 @@
+{
+ "plan_id": "P1",
+ "name": "Nested LSI Multi-Output Ridge Reference",
+ "summary": "Each cell's ATAC profile is projected into a depth-filtered Latent Semantic Indexing space fitted strictly on training cells, and ridge regression predicts expression across all 11,282 target genes. Using nested five-fold cross-validation over three seeds, predictions on unseen cells are scored against binomial-thinned RNA alongside technical floors, the ATAC cluster-mean baseline, and an RNA noise ceiling. Paired bootstraps with false-discovery control identify which judgeable genes exceed cell identity. This simple reference quantifies what global linear chromatin state achieves alone.",
+ "complexity": "simple_reference",
+ "analysis_unit": "single cell",
+ "inputs": {
+  "lsi": {
+   "n_components": 50,
+   "max_peaks": 108377
+  }
+ },
+ "preprocessing": [
+  "Binarise ATAC peak fragment counts, fit TF-IDF inverse-document-frequency weights across all 108,377 peaks, and fit 51-component truncated SVD strictly on outer/inner training-fold development cells; drop component 1 (sequencing-depth axis) to retain 50 L2-normalised LSI features, projecting unseen validation and held-out cells out-of-sample without refitting.",
+  "Normalise training-fold raw RNA UMI counts per cell via log1p(1e4 * UMI / total_cell_UMI) using total UMI summed across all 13,536 measured genes, then slice target columns to the frozen 11,282 in-scope genes.",
+  "For unseen validation cells only, split raw RNA UMI counts via independent Binomial(UMI, 0.5) thinning into half A (solely for the RNA-to-RNA noise ceiling input) and half B, computing unsmoothed log1p(1e4 * half_B / total_half_B_UMI) on the frozen 11,282 genes as the evaluation target.",
+  "Exclude held-out cells' ATAC and curated WNN labels from all fitting, clustering, and tuning steps, verify comparator sanity on synthetic known-answer checks, and set Pearson r = 0.0 identically across all arms whenever predicted or observed variance is zero."
+ ],
+ "model": {
+  "component": "latent_ridge",
+  "params": {
+   "alpha": 100.0
+  }
+ },
+ "fusion": null,
+ "training": {
+  "target_denoising": "none",
+  "inner_cv_folds": 4,
+  "alpha_grid": [
+   1.0,
+   10.0,
+   50.0,
+   100.0,
+   500.0,
+   1000.0,
+   5000.0
+  ],
+  "record_tuning_curve": true,
+  "final_refit_scope": "all_7288_development_cells_only"
+ },
+ "validation": {
+  "scheme": "kfold",
+  "k": 5,
+  "split_unit": "cell",
+  "scoring_target": "thinned_half",
+  "n_seeds": 3,
+  "compare_with": [
+   "floor_1_cell_type",
+   "floor_2_gene_activity",
+   "floor_3_depth",
+   "floor_4_simple_learners",
+   "ceiling",
+   "permutation_null"
+  ],
+  "comparator_details": "Fit k='frozen' (k=20) cluster_mean, promoter_and_distal gene_activity_score, log-ATAC-depth OLS, latent_knn, latent_pls, and RNA-to-RNA ridge ceiling (half A to half B) strictly inside each outer training fold; evaluate all arms on identical out-of-fold cells and identical thinned half B targets.",
+  "bootstrap_resamples": 1000,
+  "gene_claim_rule": "Assign in-scope genes whose RNA-to-RNA ceiling fails to beat the 1,000-shuffle cell-permutation null (one-sided p >= 0.05) to group 0 (unjudgeable); for remaining judgeable genes, compute 1,000 paired cell-bootstrap resamples of delta_r = r_model - r_floor1, apply Benjamini-Hochberg across all 11,282 in-scope genes at 5% FDR, and call genes with BH q < 0.05 and delta_r > 0 group 2 (reliably predicted beyond cell type), otherwise group 1 (not beyond cell type), auditing seed-to-seed stability."
+ },
+ "metrics": [
+  "Per-gene and mean Pearson correlation r against unsmoothed binomial-thinned log-normalised RNA (half B) across unseen out-of-fold cells",
+  "Per-gene paired-bootstrap correlation gain (delta_r = r_model - r_floor1) and empirical two-sided 95% confidence intervals for both r_model and delta_r",
+  "Gene counts and identities partitioned into (0) unjudgeable, (1) not-beyond-cell-type, and (2) reliably-predicted-beyond-cell-type at 5% BH-FDR across 11,282 genes",
+  "Ratio of achieved correlation to the RNA-to-RNA noise ceiling (r_model / r_ceiling) across judgeable in-scope genes",
+  "Within-cluster per-gene Pearson r across frozen ATAC clusters and descriptive development WNN cell types (including rare Plasma cells) alongside pooled r",
+  "Empirical 95% CI coverage/width across folds, 3-seed selection spread, and automated A1-A8 verification of finite 3,124 x 11,282 held-out predictions"
+ ],
+ "allowed_conclusions": "Select strictly one of the four objective-defined conclusions supported by nested validation (unjudgeable due to noise, confounded by depth, no gene beyond cell identity, or a specific 5%-FDR gene set predicted beyond cell identity by linear global chromatin state), scoped exclusively to unseen granulocyte-depleted PBMCs of this single healthy donor under the same Multiome assay with no cross-donor, granulocyte, causal, or non-linear optimality claims.",
+ "budget": {
+  "needs_gpu": false,
+  "pilot_minutes": 2.0,
+  "full_minutes": 12.0,
+  "cpus": 32
+ },
+ "diversity": {
+  "data": "global_lsi_depth_dropped",
+  "model": "closed_form_linear_ridge",
+  "method": "single_global_linear_nested_5fold_cv"
+ },
+ "rationale": "Closed-form ridge regression on depth-filtered LSI establishes how much continuous RNA variation beyond discrete ATAC clusters is already linearly encoded in global chromatin state. Nested cross-validation against binomial-thinned counts provides a fast, leak-free yardstick that every ambitious model must justify exceeding.",
+ "difficulties_addressed": [
+  "D1",
+  "D2",
+  "D3",
+  "D4",
+  "D5",
+  "D6",
+  "D7"
+ ],
+ "new_components": []
+}

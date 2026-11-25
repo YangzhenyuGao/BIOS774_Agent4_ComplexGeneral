@@ -1,0 +1,5 @@
+Cluster-Reweighted Negative Binomial Chromatin-to-Count Translation Network
+
+We predict RNA expression from 50,000 TF-IDF chromatin peaks, promoter activity, and log ATAC depth using an encoder-decoder network trained with a Negative Binomial likelihood on raw UMI counts. Training RNA library size enters as an offset while ATAC-cluster weights protect rare states without joint labels. Predicted relative rates map to log-normalised expression and are scored against binomial-thinned RNA halves in nested 3-fold cross-validation. Paired-bootstrap testing at 5% FDR identifies which judgeable genes exceed the ATAC cluster-mean baseline.
+
+Rationale: Negative Binomial count modelling with a library offset separates UMI dropout (D1) and depth confounding (D5) from true transcription without smoothing out rare states (D2). High-dimensional TF-IDF peaks with non-linear decoding capture trans-regulatory interactions missed by linear LSI or local cis-windows (D6).

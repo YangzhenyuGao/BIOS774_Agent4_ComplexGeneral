@@ -1,0 +1,68 @@
+{
+ "task_m": {
+  "objective": {
+   "replayed": true,
+   "matches": true
+  },
+  "plans": {
+   "replayed": true,
+   "matches": true
+  },
+  "tournament": {
+   "replayed": true,
+   "matches": true
+  },
+  "audit": {
+   "replayed": true,
+   "matches": true
+  },
+  "report_prose": {
+   "replayed": true,
+   "matches": true
+  },
+  "alt_objective": {
+   "replayed": true,
+   "matches": true
+  },
+  "alt_plans": {
+   "replayed": true,
+   "matches": true
+  },
+  "llm_answers_served_from_cache": 50,
+  "live_calls": 0
+ },
+ "task_t": {
+  "objective": {
+   "replayed": true,
+   "matches": true
+  },
+  "plans": {
+   "replayed": true,
+   "matches": true
+  },
+  "tournament": {
+   "replayed": true,
+   "matches": true
+  },
+  "audit": {
+   "replayed": true,
+   "matches": true
+  },
+  "report_prose": {
+   "replayed": true,
+   "matches": true
+  },
+  "alt_objective": {
+   "replayed": true,
+   "matches": true
+  },
+  "alt_plans": {
+   "replayed": true,
+   "matches": true
+  },
+  "llm_answers_served_from_cache": 50,
+  "live_calls": 0
+ },
+ "all_replayed": true,
+ "all_match": true
+}

@@ -1,0 +1,354 @@
+[
+ {
+  "plan_id": "R0B7C1",
+  "name": "Whitened Single-Encoder Virchow2 Sub-Compartment Multi-Head Attention MIL",
+  "reason": "pool is full",
+  "plan": {
+   "plan_id": "R0B7C1",
+   "name": "Whitened Single-Encoder Virchow2 Sub-Compartment Multi-Head Attention MIL",
+   "summary": "This patient-level design estimates standalone PAM50 predictability from single-encoder Virchow2 H&E tile bags without multi-encoder feature inflation. Within each nested fold, labelled and unlabelled tiles fit a whitened PCA subspace before a multi-head attention MIL classifier trains with fixed-size sub-bag resampling, tile dropout, and manifold mixup. Fold-internal temperature and class-threshold calibration address subtype imbalance. Evaluating repeated patient and site-held-out cross-validation against null and patient-mean baselines tests whether spatial morphology yields unconfounded subtype predictability.",
+   "complexity": "ambitious",
+   "analysis_unit": "patient",
+   "inputs": {
+    "image": {
+     "encoders": [
+      "Virchow2"
+     ],
+     "level": "tile",
+     "reduce": {
+      "type": "pca",
+      "dim": 192
+     }
+    },
+    "clinical": {
+     "variables": [],
+     "use": false
+    }
+   },
+   "preprocessing": [
+    "Exclude all clinical, immunohistochemistry receptor (er, pr, her2), histological_type, age, stage, RNA-derived, and site variables from model inputs and preprocessing; retain all 802 labelled patients grouped strictly by patient_id across multi-slide bags (A1, A2, A7)",
+    "Pool all slides of each patient into a single patient-level tile bag (range 6 to 471 tiles) and L2-normalise each 2560-dimensional Virchow2 dual class-plus-patch tile vector",
+    "Inside each training fold, combine tile vectors from training-fold labelled patients and the 259 unlabelled TCGA-BRCA patients (never scored) to fit a fold-internal whitened PCA basis (192 components, unit-variance scaling per retained axis with epsilon=1e-5) that equalises dominant stain-intensity axes without accessing evaluation folds or site labels (A3, D3, D4)",
+    "Project outer-fold or inner-validation patient tile bags onto the training-fold whitened PCA basis without refitting"
+   ],
+   "model": {
+    "component": "attention_mil",
+    "params": {
+     "aggregator": "multihead_attention",
+     "heads": 4,
+     "layers": 1,
+     "embed_dim": 192,
+     "dropout": 0.35,
+     "head": "flat"
+    }
+   },
+   "fusion": "none",
+   "training": {
+    "optimizer": "AdamW",
+    "lr_schedule": "cosine_annealing_with_5_epoch_warmup",
+    "max_epochs": 55,
+    "min_epochs": 12,
+    "early_stopping_patience": 10,
+    "early_stopping_metric": "inner_val_macro_f1",
+    "lr": 0.0005,
+    "weight_decay": 0.01,
+    "class_weighting": "balanced",
+    "augmentation": {
+     "tile_resample": 64,
+     "mixup_alpha": 0.4,
+     "tile_dropout": 0.25
+    },
+    "bag_size_equalisation_inference": "For patient bags exceeding 64 tiles at evaluation, average logits across 5 deterministic stratified sub-bag draws of 64 tiles so softmax attention entropy matches training bag cardinality",
+    "posthoc_calibration": "Fit temperature scaling followed by coordinate-ascent class-multiplier weights maximising four-class macro-F1 on inner-fold out-of-fold probabilities strictly inside each outer training fold",
+    "convergence_verification": "Record per-epoch training loss and inner validation macro-F1; confirm trailing 8-epoch relative training-loss slope stabilisation (<0.005) and validation plateau before termination (A6)",
+    "n_seeds_ensemble": 3,
+    "tuning": {
+     "selection_metric": "inner_oof_macro_f1",
+     "tie_breaking_rule": "Apply one-standard-error parsimony rule across inner folds preferring stronger dropout and weight_decay when differences lie within inner-fold spread (K1)",
+     "grid": [
+      {
+       "heads": 4,
+       "embed_dim": 192,
+       "dropout": 0.35,
+       "mixup_alpha": 0.4,
+       "weight_decay": 0.01
+      },
+      {
+       "heads": 8,
+       "embed_dim": 192,
+       "dropout": 0.45,
+       "mixup_alpha": 0.4,
+       "weight_decay": 0.02
+      },
+      {
+       "heads": 4,
+       "embed_dim": 128,
+       "dropout": 0.25,
+       "mixup_alpha": 0.2,
+       "weight_decay": 0.005
+      }
+     ]
+    }
+   },
+   "validation": {
+    "scheme": "repeated_kfold",
+    "k": 5,
+    "repeats": 3,
+    "stratified": true,
+    "split_unit": "patient",
+    "selection": "nested",
+    "inner_k": 3,
+    "clinical_comparator": {
+     "tuned": false
+    },
+    "required_comparators": [
+     "Majority-class null classifier fit on identical training folds (verified on synthetic known-prior check per K8)",
+     "Stratified class-prior null baseline fit on identical training folds",
+     "Simple image-only reference: inner-tuned class-weighted regularised multinomial logistic regression (patient_mean_logreg) on single-encoder patient-mean H&E features across identical outer folds"
+    ],
+    "site_held_out_sensitivity": {
+     "scheme": "grouped_kfold",
+     "group_column": "site",
+     "n_groups": 19,
+     "split_unit": "patient",
+     "selection": "nested",
+     "inner_k": 3
+    },
+    "interval": "bootstrap",
+    "bootstrap_resamples": 10000,
+    "bootstrap_unit": "patient"
+   },
+   "metrics": [
+    "Out-of-fold four-class macro-F1 across 5x3 repeated nested patient-level CV with 95% patient-level bootstrap CI",
+    "Paired out-of-fold macro-F1 difference above majority-class and stratified class-prior null floors with 95% patient-level bootstrap CIs",
+    "Paired out-of-fold macro-F1 difference against the nested single-encoder patient-mean logistic regression reference with 95% patient-level bootstrap CI",
+    "Proportion of class-prior multi-class Shannon entropy (log-loss deviance) explained out-of-fold with 95% patient-level bootstrap CI",
+    "Macro and per-class one-vs-rest AUROC (LumA, LumB, Basal, Her2) with 95% patient-level bootstrap CIs",
+    "Per-class recall, precision, and F1 across LumA, LumB, Basal, and Her2 with 95% patient-level bootstrap CIs",
+    "19-site held-out grouped cross-validation macro-F1 and paired macro-F1 gain over chance floors with 95% patient-level bootstrap CI",
+    "Fold-level training curve and convergence diagnostic summary"
+   ],
+   "allowed_conclusions": "Entitled to draw exactly one pre-specified conclusion from 95% patient-level bootstrap CIs: Broad predictability (macro-F1 beats chance in both patient and 19-site CV and all four subtype F1 scores beat chance), Partial predictability (overall macro-F1 beats chance in both CVs but at least one subtype fails to beat chance), Site-confounded predictability (macro-F1 beats chance in patient CV but 19-site paired gain CI over chance includes or falls below zero), or Insufficient evidence of predictability (patient-CV paired gain CI over chance includes or falls below zero); strictly scoped to standalone TCGA-BRCA H&E predictability without claiming incremental value over clinical variables or biological causality.",
+   "budget": {
+    "needs_gpu": false,
+    "pilot_minutes": 8.0,
+    "full_minutes": 85.0,
+    "cpus": 16
+   },
+   "diversity": {
+    "data": "single_encoder_virchow2_tiles_unlabelled_whitened_pca",
+    "model": "multihead_subcompartment_attention_mil",
+    "method": "bag_equalised_tile_dropout_manifold_mixup_with_threshold_calibration"
+   },
+   "rationale": "Unlabelled-augmented whitened PCA on single-encoder Virchow2 tiles curbs 2560-dimensional overfitting (D3) and dampens high-variance staining axes tied to site shifts (D4). Equalised sub-bag sampling corrects 6-to-471 tile-count skew (D6), while manifold mixup and inner threshold calibration protect rare Her2 detection (D1).",
+   "difficulties_addressed": [
+    "D1",
+    "D3",
+    "D4",
+    "D5",
+    "D6",
+    "D8",
+    "D9"
+   ],
+   "new_components": []
+  }
+ },
+ {
+  "plan_id": "R0B8C1",
+  "name": "Canonical Tile Unbalanced-Sinkhorn Optimal Transport and Slide-Centered Covariance Network",
+  "reason": "pool is full",
+  "plan": {
+   "plan_id": "R0B8C1",
+   "name": "Canonical Tile Unbalanced-Sinkhorn Optimal Transport and Slide-Centered Covariance Network",
+   "summary": "Unreduced five-encoder tile bags are aligned inside each fold via unsupervised Generalized CCA on training and unlabelled patients, yielding canonical tile embeddings and slide-centered residuals. Our network pairs Unbalanced Sinkhorn Optimal Transport over morphological anchors with matrix-square-root covariance pooling of centered residuals, trained with logit-adjusted cosine and surrogate macro-F1 losses. Repeated nested patient CV and 19-site grouped CV against chance baselines and simple logistic regression establish standalone H&E predictability and site-shift robustness.",
+   "complexity": "ambitious",
+   "analysis_unit": "patient",
+   "inputs": {
+    "image": {
+     "encoders": [
+      "UNI2-h",
+      "CONCH-Z",
+      "Virchow2",
+      "MUSK",
+      "H-Optimus-1"
+     ],
+     "level": "tile",
+     "reduce": {
+      "type": "none",
+      "dim": null
+     }
+    },
+    "clinical": {
+     "variables": [],
+     "use": false
+    }
+   },
+   "preprocessing": [
+    "Pool all slides and aligned 5-encoder tile tuples by patient_id into one bag per patient so multi-slide patients never split across train, inner-validation, outer-test, or bootstrap sets (A2).",
+    "Verify zero clinical, IHC receptor, histological_type, RNA, or site variables enter any feature or transformation step (A1).",
+    "Inside each inner/outer training fold, L2-normalise and center per-encoder tile vectors using training-fold labelled patients plus allowed unlabelled patients (excluding unlabelled patients from held-out sites during site-grouped CV), then fit Ridge-Whitened MAXVAR Generalized CCA (r=160 per encoder, ridge=0.01, top d_cca shared canonical components) to map aligned 5-encoder tiles into canonical tile states Z_i.",
+    "Decompose each patient bag Z_i without site metadata into (1) L2-normalised canonical tile vectors for optimal-transport phenotype matching and (2) slide-centered intra-patient deviations (Z_i minus patient bag mean) that cancel additive scanner/staining offsets."
+   ],
+   "model": {
+    "component": "unbalanced_sinkhorn_isqrt_cov_net",
+    "params": {
+     "d_cca": 128,
+     "ot_dim": 64,
+     "n_anchors": 24,
+     "sinkhorn_iters": 5,
+     "sinkhorn_eps": 0.1,
+     "unbalanced_tau": 0.5,
+     "anchor_proj_dim": 16,
+     "cov_dim": 32,
+     "cov_shrinkage": 0.01,
+     "newton_schulz_iters": 3,
+     "embed_dim": 128,
+     "dropout": 0.25,
+     "cosine_scale": 12.0,
+     "logit_adjust_tau": 1.0,
+     "surrogate_f1_weight": 0.35,
+     "anchor_ortho_reg": 0.05,
+     "head": "flat"
+    }
+   },
+   "fusion": "none",
+   "training": {
+    "optimizer": "adamw",
+    "max_epochs": 65,
+    "batch_size": 64,
+    "early_stopping_patience": 12,
+    "lr": 0.0008,
+    "lr_schedule": "cosine_warmup_5",
+    "grad_clip_norm": 1.0,
+    "weight_decay": 0.01,
+    "class_weighting": "balanced",
+    "loss": "prior_logit_adjusted_ce_plus_smooth_macro_f1",
+    "augmentation": {
+     "tile_resample": 128,
+     "mixup_alpha": 0.0,
+     "tile_dropout": 0.2
+    },
+    "n_seeds_ensemble": 2,
+    "convergence_check": "Log per-epoch training loss, gradient norm, and inner validation macro-F1; require early-stopping stabilisation or trailing 10-epoch training-loss slope < 1e-3 of initial loss drop before scoring (A6).",
+    "tie_break_rule": "If inner-fold macro-F1 configurations lie within 1 inner-fold SE, choose the lower-capacity / higher-weight_decay setting (K1).",
+    "tuning": {
+     "grid": [
+      {
+       "d_cca": 96,
+       "n_anchors": 16,
+       "logit_adjust_tau": 1.0,
+       "weight_decay": 0.02
+      },
+      {
+       "d_cca": 128,
+       "n_anchors": 24,
+       "logit_adjust_tau": 1.0,
+       "weight_decay": 0.01
+      },
+      {
+       "d_cca": 128,
+       "n_anchors": 24,
+       "logit_adjust_tau": 1.25,
+       "weight_decay": 0.02
+      },
+      {
+       "d_cca": 96,
+       "n_anchors": 24,
+       "logit_adjust_tau": 0.75,
+       "weight_decay": 0.03
+      }
+     ]
+    }
+   },
+   "validation": {
+    "scheme": "repeated_kfold",
+    "k": 5,
+    "repeats": 3,
+    "stratified": true,
+    "split_unit": "patient",
+    "selection": "nested",
+    "inner_k": 3,
+    "clinical_comparator": {
+     "tuned": false
+    },
+    "null_comparators": [
+     "majority_class_null",
+     "stratified_class_prior_null"
+    ],
+    "simple_reference": {
+     "component": "patient_mean_logreg",
+     "clinical_use": false,
+     "nested_grid": {
+      "encoders": [
+       "UNI2-h",
+       "CONCH-Z",
+       "Virchow2",
+       "MUSK",
+       "H-Optimus-1"
+      ],
+      "n_pca": [
+       64,
+       128
+      ],
+      "C": [
+       0.01,
+       0.1,
+       1.0,
+       10.0
+      ],
+      "class_weight": "balanced"
+     }
+    },
+    "site_sensitivity_cv": {
+     "scheme": "stratified_group_kfold",
+     "group_by": "site",
+     "n_groups": 19,
+     "k": 5,
+     "selection": "nested",
+     "inner_k": 3,
+     "exclude_heldout_site_unlabelled": true
+    },
+    "interval": "bootstrap",
+    "bootstrap_replicates": 2000,
+    "scored_units": "exact_802_labelled_patients_identical_folds_unlabelled_excluded"
+   },
+   "metrics": [
+    "Out-of-fold four-class macro-F1 and paired macro-F1 gain over majority-class and stratified class-prior null baselines with 95% patient-level bootstrap CIs",
+    "Paired out-of-fold macro-F1 difference against nested single-encoder patient-mean balanced logistic regression reference with 95% patient-level bootstrap CI",
+    "Proportion of class-prior multi-class Shannon entropy (log-loss deviance) explained out-of-fold with 95% patient-level bootstrap CI",
+    "Macro and per-class one-vs-rest AUROC across LumA, LumB, Basal, and Her2 with 95% patient-level bootstrap CIs",
+    "Per-class precision, recall, F1, and paired per-class F1 gain over chance (explicitly auditing Her2 recall and LumA-versus-LumB confusion) with 95% bootstrap CIs",
+    "19-site grouped nested CV macro-F1, per-class F1, and paired gain over chance with 95% patient-level bootstrap CIs",
+    "Fold-level convergence pass rate and null-comparator sanity verification checks"
+   ],
+   "allowed_conclusions": "Gated on verified training convergence (A6) and comparator sanity checks, select exactly one of the four compiled-objective conclusions from the 95% patient-level bootstrap CIs: (1) Broad predictability if macro-F1 beats chance in both patient-level and 19-site grouped CV and all four PAM50 classes beat chance; (2) Partial predictability if macro-F1 beats chance in both CVs but at least one class fails to beat chance; (3) Site-confounded predictability if patient-level CV beats chance but site-held-out paired gain includes or falls below zero; or (4) Insufficient evidence if patient-level paired gain over chance includes or falls below zero. Separately state whether Wasserstein-covariance MIL improves over simple patient-mean logistic regression via its paired 95% CI. Scope is strictly standalone H&E prediction in TCGA-BRCA using these five frozen encoders, not incremental value over clinical receptors or biological mechanism.",
+   "budget": {
+    "needs_gpu": false,
+    "pilot_minutes": 7.0,
+    "full_minutes": 52.0,
+    "cpus": 16
+   },
+   "diversity": {
+    "data": "five_encoder_unreduced_tiles_gcca_plus_slide_centered_residuals",
+    "model": "unbalanced_sinkhorn_ot_and_isqrt_covariance_hyperspherical_net",
+    "method": "unsupervised_canonical_alignment_wasserstein_second_order_logit_adjusted_f1"
+   },
+   "rationale": "Cross-encoder CCA removes model-specific noise (D3), while slide-centered covariance cancels additive staining offsets behind site confounding (D4) without using site labels. Unbalanced Sinkhorn transport prevents attention collapse across variable bag sizes (D6), and hyperspherical logit adjustment widens minority Her2 margins without gradient inflation (D1).",
+   "difficulties_addressed": [
+    "D1",
+    "D3",
+    "D4",
+    "D5",
+    "D6",
+    "D8",
+    "D9"
+   ],
+   "new_components": [
+    {
+     "name": "unbalanced_sinkhorn_isqrt_cov_net",
+     "description": "Dual-geometry set-distribution classifier over canonical patient tile bags. Inputs: padded canonical tile vectors (B, T, d_cca), slide-centered residual tiles (B, T, d_cca), and boolean tile mask (B, T). What it computes: (1) Branch 1 maps canonical tiles via LayerNorm-GELU to L2-normalised d_ot=64 states and runs 5 log-domain Unbalanced Sinkhorn-Knopp iterations (entropy eps=0.1, column KL relaxation tau=0.5) against M learnable L2-normalised morphological anchors, outputting phenotype transport masses (M) concatenated with projected anchor-relative barycentric displacements (M * 16); (2) Branch 2 projects centered intra-slide residuals to d_cov=32, forms degree-normalised shrinkage covariance, trace-normalises, runs 3 Newton-Schulz iterative matrix square-root steps (iSQRT-COV), and extracts the 528-dim upper triangle; (3) concatenates both branches through a gated LayerNorm-GELU-Dropout bottleneck (embed_dim=128) into L2-normalised embeddings scored by a temperature-scaled (12.0) hyperspherical cosine head. Outputs: 4-class PAM50 logits and softmax probabilities. Training: AdamW with cosine LR, minimising prior logit-adjusted cross-entropy (logits + logit_adjust_tau * log_prior during training; raw cosine logits at inference) plus 0.35 * smooth batch macro-F1 loss and 0.05 * anchor orthogonality penalty."
+    }
+   ]
+  }
+ }
+]

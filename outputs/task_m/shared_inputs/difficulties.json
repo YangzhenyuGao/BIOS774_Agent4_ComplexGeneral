@@ -1,0 +1,80 @@
+[
+ {
+  "id": "D1",
+  "tag": "measurement_noise",
+  "severity": "high",
+  "evidence": "RNA counts are 85.3% zeros (median 3800 UMIs per cell). Splitting each cell's reads into two independent halves, a gene's value in one half correlates with the other half at a median r of 0.111 across 11282 in-scope genes (90th percentile 0.306).",
+  "numbers": {
+   "fraction_zero": 0.8534380530643333,
+   "split_half_r_median": 0.11138884990155365,
+   "split_half_r_q90": 0.30607675377164084,
+   "split_half_r_q10": 0.025046961488204723
+  },
+  "implication": "Per-gene correlation with a single noisy reading is bounded well below 1; scores must be read against a noise ceiling, and validating against smoothed or full-depth targets overstates accuracy."
+ },
+ {
+  "id": "D2",
+  "tag": "class_imbalance",
+  "severity": "high",
+  "evidence": "The provided annotation has 19 cell types in the development set, from 1936 cells (CD14 Mono) down to 15 (Plasma).",
+  "numbers": {
+   "n_types": 19,
+   "largest": 1936,
+   "smallest": 15
+  },
+  "implication": "Rare populations contribute little to a pooled correlation and are easy to underfit; within-cluster correlation should be reported alongside the pooled one."
+ },
+ {
+  "id": "D3",
+  "tag": "multiple_comparisons",
+  "severity": "high",
+  "evidence": "11282 genes are in scope and each gets its own test.",
+  "numbers": {
+   "n_genes": 11282
+  },
+  "implication": "Gene-level claims need false-discovery-rate control across all in-scope genes."
+ },
+ {
+  "id": "D4",
+  "tag": "label_provenance",
+  "severity": "high",
+  "evidence": "The cell-type annotation supplied with the development cells was produced by clustering both modalities jointly (weighted nearest neighbours) and curating the clusters by hand. It is not an independent measurement.",
+  "numbers": {},
+  "implication": "The annotation may describe the data but must not be used as a model input for held-out cells (it cannot be known without their RNA) and must not serve as evaluation truth."
+ },
+ {
+  "id": "D5",
+  "tag": "technical_confounding",
+  "severity": "medium",
+  "evidence": "ATAC depth and RNA depth are correlated across cells (r = 0.36 on the log scale). A model that sees only ATAC depth reaches a mean per-gene r of 0.032.",
+  "numbers": {
+   "depth_correlation": 0.35576986458394827,
+   "depth_only_mean_r": 0.03151802037271391
+  },
+  "implication": "Report a depth-only baseline; a predictor must beat it before its signal is called biological."
+ },
+ {
+  "id": "D6",
+  "tag": "strong_baseline",
+  "severity": "medium",
+  "evidence": "Predicting each cell by the mean expression of its ATAC cluster (k = 20, chosen by cross-validation inside the development set) gives a mean per-gene r of 0.130; ridge regression on the ATAC latent space gives 0.143; the RNA-to-RNA noise ceiling is 0.194.",
+  "numbers": {
+   "cluster_k": 20,
+   "cluster_mean_r": 0.13021179989485238,
+   "ridge_r": 0.14313962977088823,
+   "ceiling_r": 0.1939099901797915
+  },
+  "implication": "Most predictable variation is cell identity. A plan answers the question only through what it predicts beyond the cluster-mean baseline, gene by gene, on the same cells."
+ },
+ {
+  "id": "D7",
+  "tag": "statistical_power",
+  "severity": "low",
+  "evidence": "With thousands of cells a correlation as small as 0.037 already exceeds 95% of the permutation null (3124 held-out cells will be scored).",
+  "numbers": {
+   "null_r_q95": 0.03665802255272865,
+   "n_scored_cells": 3124
+  },
+  "implication": "Significance against zero is nearly automatic and cannot be the headline; effect size and the comparison with the cell-type baseline carry the conclusion."
+ }
+]

@@ -1,0 +1,52 @@
+# Static experience library (README 6.6): failure records of the three earlier course projects.
+# Read-only during a run. Entries are retrieved by difficulty tag and shown to the plan generator.
+- id: K1
+  tags: [statistical_power, multiple_comparisons]
+  source: Project 1, first version
+  lesson: Two runs with identical inputs selected different methods because the deciding margin was smaller than run-to-run variation (a sub-second runtime difference broke the tie).
+  practice: Before ranking, measure the spread of the selection signal across seeds or resamples; treat differences inside that spread as ties.
+- id: K2
+  tags: [statistical_power]
+  source: Project 2, first version
+  lesson: A decision threshold of 0.01 was applied to a score whose seed-to-seed standard deviation was about 0.25.
+  practice: Derive thresholds from the measured noise of the score, never from a round number.
+- id: K3
+  tags: [small_n_large_p, measurement_noise]
+  source: Project 2, first version
+  lesson: Four generative models were trained for about one minute in total; their samples were noise, and the negative conclusion followed from the tiny budget, not from the data.
+  practice: A complex model needs a training curve and a convergence statement before its score is read; an unconverged model is evidence about the budget only.
+- id: K4
+  tags: [measurement_noise, strong_baseline]
+  source: Project 3
+  lesson: MultiVI was trained for 50 epochs without early stopping and with logging disabled, so convergence could not be audited afterwards.
+  practice: Train latent-variable models with early stopping on held-out reconstruction and keep the loss history.
+- id: K5
+  tags: [strong_baseline, label_provenance]
+  source: Project 3
+  lesson: The objective required the joint representation to preserve structure at least as well as the best single modality; the selected model had a clustering ARI of 0.528 against 0.613 for RNA alone, and nobody checked.
+  practice: Turn every requirement in the objective into an explicit check that runs before a result is reported.
+- id: K6
+  tags: [label_provenance, technical_confounding]
+  source: Project 3
+  lesson: Fusion that included ER/PR/HER2 scored macro-F1 0.723, image only 0.645, and fusion without receptors 0.583. Which number answers the question depends on whether receptors are part of the question.
+  practice: Decide allowed and forbidden inputs from the question, and compare the arms the question names.
+- id: K7
+  tags: [class_imbalance]
+  source: Project 3
+  lesson: A fusion head trained with unweighted cross-entropy recalled 0 of 10 patients of the smallest class while its macro score still looked acceptable.
+  practice: Weight classes, use a class-balanced metric, and report recall for every class.
+- id: K8
+  tags: [strong_baseline, multiple_comparisons]
+  source: Project 3
+  lesson: A baseline labelled as an ATAC decoder actually returned RNA principal components, and a re-implemented method overlapped the reference implementation at only 0.195.
+  practice: Check each baseline does what its name says on a case with a known answer before using it as a comparator.
+- id: K9
+  tags: [hierarchy, technical_confounding]
+  source: Project 3
+  lesson: Patients with several slides and site-specific staining make random tile- or slide-level splits optimistic.
+  practice: Split by patient; add a site-held-out analysis when sites differ in class mix.
+- id: K10
+  tags: [multiple_comparisons, statistical_power]
+  source: Projects 1-3
+  lesson: Planning was a rule-based filter over methods; alternatives were never compared as whole analysis designs, and the reports listed numbers without a conclusion.
+  practice: Compare complete plans (inputs, model, validation, permitted conclusion) and end with a stated conclusion and its limits.

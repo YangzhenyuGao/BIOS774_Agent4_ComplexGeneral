@@ -1,0 +1,95 @@
+{
+ "plan_id": "P3",
+ "name": "Cluster-Reweighted Negative Binomial Chromatin-to-Count Translation Network",
+ "summary": "We predict RNA expression from 50,000 TF-IDF chromatin peaks, promoter activity, and log ATAC depth using an encoder-decoder network trained with a Negative Binomial likelihood on raw UMI counts. Training RNA library size enters as an offset while ATAC-cluster weights protect rare states without joint labels. Predicted relative rates map to log-normalised expression and are scored against binomial-thinned RNA halves in nested 3-fold cross-validation. Paired-bootstrap testing at 5% FDR identifies which judgeable genes exceed the ATAC cluster-mean baseline.",
+ "complexity": "ambitious",
+ "analysis_unit": "single cell (individual nucleus from the single healthy PBMC donor)",
+ "inputs": {
+  "tfidf_peaks": {
+   "max_peaks": 50000
+  },
+  "gene_activity": {
+   "mode": "promoter"
+  },
+  "depth": {}
+ },
+ "preprocessing": [
+  "Strictly inside each outer training fold (excluding outer-validation and all 3,124 held-out cells), select the top 50,000 accessible peaks by training-cell fragment frequency and fit TF-IDF inverse-document-frequency weights on binarised peaks.",
+  "Compute depth-normalised log1p promoter gene_activity across the 11,282 frozen in-scope genes and standardise promoter features plus scalar log1p total ATAC fragment depth using inner-training mean and standard deviation.",
+  "Fit an inner-training 50-component ATAC LSI (dropping component 1) and k-means clustering with frozen k=20 solely on training ATAC to derive inverse-square-root cluster-size cell weights (clipped to [0.25, 4.0], mean-normalised to 1.0) and fit LSI-based floor comparators.",
+  "Keep training cells' raw unsmoothed RNA UMI counts for the 11,282 frozen in-scope genes alongside observed total RNA UMI library size as exposure offset; never touch WNN labels during preprocessing or training.",
+  "For untouched outer-validation cells, split raw RNA UMI counts via independent Binomial(n, 0.5) thinning into half A (solely for the RNA-to-RNA ceiling comparator) and half B, log-normalising half B as log1p(1e4 * half_B / max(sum(half_B), 1))."
+ ],
+ "model": {
+  "component": "translation_network",
+  "params": {
+   "encoder_hidden": [
+    1024,
+    256
+   ],
+   "latent_dim": 64,
+   "decoder": "mlp",
+   "likelihood": "nb",
+   "dropout": 0.25
+  }
+ },
+ "fusion": null,
+ "training": {
+  "max_epochs": 150,
+  "early_stopping_patience": 15,
+  "lr": 0.001,
+  "batch_size": 128,
+  "weight_decay": 0.0001,
+  "target_denoising": "none",
+  "internal_val_fraction": 0.15,
+  "cell_weighting": "inverse_sqrt_atac_cluster_size_k20_clipped_0.25_to_4.0",
+  "exposure_handling": "multiply predicted per-gene relative expression rates by observed RNA UMI library size during NB training; output log1p(1e4 * relative_rate) for ATAC-only cells at prediction time",
+  "convergence_audit": "log per-epoch train and 15% inner-validation NB deviance and mean per-gene Pearson r, verifying loss plateau before outer-fold scoring"
+ },
+ "validation": {
+  "scheme": "kfold",
+  "k": 3,
+  "split_unit": "cell",
+  "scoring_target": "thinned_half",
+  "n_seeds": 2,
+  "compare_with": [
+   "simple_reference",
+   "floor_1_cell_type",
+   "floor_2_gene_activity",
+   "floor_3_depth",
+   "floor_4_simple_learners",
+   "ceiling",
+   "permutation_null"
+  ],
+  "gene_claim_rule": "Score all models and comparators on identical outer-fold cells and identical thinned log-normalised RNA half B with zero-variance predictions set to r=0. Assign genes whose RNA-to-RNA ceiling fails to exceed the 95th percentile of 1,000 cell-permuted correlations to Group 0 (unjudgeable, p=1.0). Across judgeable genes, compute 2,000 fold-stratified paired-bootstrap cell resamples of r_model - r_floor1; if aggregate mean r beats floor_2_gene_activity and floor_3_depth, assign genes with r_model > r_floor1 and Benjamini-Hochberg q < 0.05 across all 11,282 in-scope genes to Group 2 (reliably predicted beyond cell type), else Group 1."
+ },
+ "metrics": [
+  "Primary: Per-gene Pearson correlation r against unsmoothed binomial-thinned log-normalised RNA (half B), mean per-gene r, and paired-bootstrap correlation gain over floor_1_cell_type with two-sided 95% confidence intervals.",
+  "Gene partition counts and gene lists across Group 0 (unjudgeable), Group 1 (not-beyond-cell-type), and Group 2 (reliably-predicted-beyond-cell-type at 5% BH FDR across 11,282 genes).",
+  "Ratio of achieved per-gene Pearson r to the RNA-to-RNA noise ceiling across judgeable in-scope genes.",
+  "Within-cluster per-gene Pearson r alongside pooled r across inner-fitted ATAC clusters and post-hoc development WNN cell types to audit rare populations such as Plasma cells.",
+  "Empirical width and cross-fold coverage of 2,000-draw paired-bootstrap 95% confidence intervals, plus multi-seed spread of mean r and Group 2 Jaccard stability."
+ ],
+ "allowed_conclusions": "Select strictly one of the four objective conclusion options based on nested validation evidence: unjudgeable if no gene ceiling beats permutation noise; depth-confounded if mean r fails floor_3_depth; no gene beyond cell identity if floors 2-3 are beaten but Group 2 is empty at 5% FDR; or specific identified Group 2 genes predicted beyond cell identity (adopting this model over simple_reference only if its gain exceeds multi-seed variation after confirmed NB convergence). Scope applies strictly to unseen granulocyte-depleted PBMCs from this single healthy donor under 10x Multiome, with no generalisation to other donors, tissues, granulocytes, or causal regulation.",
+ "budget": {
+  "needs_gpu": false,
+  "pilot_minutes": 8.0,
+  "full_minutes": 48.0,
+  "cpus": 32
+ },
+ "diversity": {
+  "data": "high_dim_50k_tfidf_peaks_plus_promoter_activity_and_log_depth",
+  "model": "negative_binomial_count_encoder_decoder_mlp",
+  "method": "atac_cluster_reweighted_generative_count_translation_nested_3fold_cv"
+ },
+ "rationale": "Negative Binomial count modelling with a library offset separates UMI dropout (D1) and depth confounding (D5) from true transcription without smoothing out rare states (D2). High-dimensional TF-IDF peaks with non-linear decoding capture trans-regulatory interactions missed by linear LSI or local cis-windows (D6).",
+ "difficulties_addressed": [
+  "D1",
+  "D2",
+  "D3",
+  "D4",
+  "D5",
+  "D6"
+ ],
+ "new_components": []
+}

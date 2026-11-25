@@ -1,0 +1,59 @@
+task_id: task_m
+view_dir: outputs/task_m/agent_view
+question: >-
+  Using the paired RNA and ATAC measurements, learn the cross-modal relationship. For cells of the same donor
+  that took no part in training and for which only ATAC is provided, for which genes can the variation in RNA
+  expression be predicted reliably?
+question_original_zh: >-
+  利用配对的 RNA 和 ATAC 数据学习跨模态关系。对于同一供者中未参与训练、仅提供 ATAC 的细胞，哪些基因的 RNA 表达变化能够被可靠预测？
+alternative_question: >-
+  Given only the RNA profile of a cell, can the ATAC profile measured in that same cell be found again among
+  the ATAC profiles of many candidate cells?
+
+dataset_card:
+  name: 10x Genomics Multiome, PBMC from one healthy donor (granulocytes removed, about 10k cells)
+  unit: cell
+  description: >-
+    Each development cell has two count vectors measured in the same nucleus: RNA (UMI counts per gene) and
+    ATAC (fragment counts per accessibility peak). Held-out cells of the same donor provide ATAC only.
+    A peak annotation links each peak to nearby genes with the distance to the transcription start site and
+    a promoter/distal flag. Gene start coordinates are available.
+  label_provenance:
+    statement: >-
+      The cell-type annotation supplied with the development cells was produced by clustering both modalities
+      jointly (weighted nearest neighbours) and curating the clusters by hand. It is not an independent measurement.
+    implication: >-
+      The annotation may describe the data but must not be used as a model input for held-out cells (it cannot be
+      known without their RNA) and must not serve as evaluation truth.
+  scope_of_inference: cells of the same donor that were not used for training; nothing about other donors
+  how_predictions_are_scored: >-
+    The evaluator holds the RNA of the held-out cells. Each held-out cell's RNA reads were split at random into
+    two independent halves, A and B (binomial thinning). Every method is scored against half B after
+    log-normalisation: for each gene, the Pearson correlation r between predicted and observed values across
+    held-out cells. Genes in scope and the cluster number of the cell-type baseline were frozen from development
+    cells only and are part of the view.
+  rulers:
+    ceiling: an RNA-to-RNA model that sees half A of the held-out cells and predicts half B; it marks what measurement noise allows
+    floor_1_cell_type: cluster cells on ATAC, predict each cell by its cluster's mean expression (cluster number frozen from development cells)
+    floor_2_gene_activity: sum of ATAC counts over the promoter and nearby peaks of the gene, no learning
+    floor_3_depth: prediction from ATAC sequencing depth alone
+    floor_4_simple_learners: ridge, k-nearest-neighbour and partial-least-squares regression on the ATAC latent space
+  decision_rule: >-
+    "Reliably predicted" means predicted beyond cell identity. Each in-scope gene is placed in one of three groups:
+    (0) cannot be judged - the ceiling itself is not above the permutation null for this gene;
+    (1) not beyond the cell-type baseline - the method's r is not significantly above the cluster-mean baseline's r;
+    (2) predicts variation beyond cell type - the method's r is significantly above the cluster-mean baseline's r
+    (paired bootstrap over cells, Benjamini-Hochberg across all in-scope genes, false discovery rate 5%).
+    Thresholds come from the data by these rules; only the 5% false discovery rate and the 95% confidence level are conventions.
+    An answer of "few or no genes are predicted beyond cell type" is acceptable if that is what the evidence shows.
+  deliverable: >-
+    A prediction matrix (held-out cells x in-scope genes, log-normalised scale), the list of genes the method claims
+    to predict beyond cell type, and its own estimate of each gene's correlation with an interval.
+
+limits:
+  n_plans: 6
+  min_ambitious: 4
+  n_candidates_requested: 8
+  plans_per_call: 1
+  full_run_minutes: 120
+  cpus_per_job: 32

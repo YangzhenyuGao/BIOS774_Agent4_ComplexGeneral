@@ -1,0 +1,5 @@
+Nested LSI Multi-Output Ridge Reference
+
+Each cell's ATAC profile is projected into a depth-filtered Latent Semantic Indexing space fitted strictly on training cells, and ridge regression predicts expression across all 11,282 target genes. Using nested five-fold cross-validation over three seeds, predictions on unseen cells are scored against binomial-thinned RNA alongside technical floors, the ATAC cluster-mean baseline, and an RNA noise ceiling. Paired bootstraps with false-discovery control identify which judgeable genes exceed cell identity. This simple reference quantifies what global linear chromatin state achieves alone.
+
+Rationale: Closed-form ridge regression on depth-filtered LSI establishes how much continuous RNA variation beyond discrete ATAC clusters is already linearly encoded in global chromatin state. Nested cross-validation against binomial-thinned counts provides a fast, leak-free yardstick that every ambitious model must justify exceeding.

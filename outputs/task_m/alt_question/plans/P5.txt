@@ -1,0 +1,5 @@
+Chromosomal Syntenic Multi-Vector Transformer with Thinning Distillation and Training-CSLS Retrieval
+
+Using gene start coordinates and peak annotations, we partition the genome into 64 contiguous chromosomal tokens pairing RNA expression with promoter, distal, and cis-peak accessibility. Twin depth-orthogonalized transformers model trans-chromosomal context while outputting 64 precision-gated vectors per cell, trained via inner-split thinning distillation and cluster hard negatives. Nested 3-fold evaluation scores each unsmoothed query independently using training-anchor CSLS late interaction against all floors, linear CCA, and the split-half ceiling. This establishes whether locus-resolved alignment identifies individual cells beyond cell type.
+
+Rationale: Single-vector embeddings collapse onto major cell types (D6, D2) and depth (D5), while individual genes suffer dropout (D1). Syntenic chromosomal tokens with precision-gated multi-vector matching, thinning distillation, inverse-density weighting, depth orthogonalization, and training-anchor CSLS isolate within-cluster regulatory variation without smoothing evaluation cells.

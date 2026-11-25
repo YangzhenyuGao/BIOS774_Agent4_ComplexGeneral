@@ -1,0 +1,11 @@
+{
+ "frozen": "2026-11-25T05:29:36-0500",
+ "note": "Prompts used by the formal run. Any later change to these files changes the cache keys and would force new LLM calls.",
+ "templates": {
+  "audit_system.txt": "74830eea4bafe58ba756e74a71c94e651087ce1c47104c0d92e53f4c7a475a3e",
+  "judge_system.txt": "243ca17b16d89fe97e11bf31099c08a7b601c029ea67cf88636d589a703a9415",
+  "objective_system.txt": "ef7c3228062bfb37e086e840462a65e8b121d641e5689b471e7e4b374935180f",
+  "plans_system.txt": "02934721c67264eeba32e04150390216789fc2564ca40a85d4b195b4e5492f2d"
+ },
+ "report_system_prompt": "b6594d68317d0946380724f5ccf49c03aae7b231d25fe22c5522b1d221dd09b7"
+}

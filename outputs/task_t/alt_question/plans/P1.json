@@ -1,0 +1,145 @@
+{
+ "plan_id": "P1",
+ "name": "Nested Single-Encoder Patient-Mean Balanced Logistic Reference",
+ "summary": "This simple reference estimates how much PAM50 subtype information is linearly recoverable from patient-mean H&E features alone, excluding all clinical, receptor, RNA, and site variables. Within repeated nested patient-level cross-validation, inner folds select a single foundation encoder, PCA rank, and L2 penalty for class-weighted multinomial logistic regression, benchmarked against majority-class and class-prior null baselines. Parallel site-held-out cross-validation across 19 sites audits institutional confounding, establishing the required linear benchmark and testing broad, partial, or site-confounded predictability.",
+ "complexity": "simple_reference",
+ "analysis_unit": "patient",
+ "inputs": {
+  "image": {
+   "encoders": [
+    "UNI2-h",
+    "CONCH-Z",
+    "Virchow2",
+    "MUSK",
+    "H-Optimus-1"
+   ],
+   "level": "patient",
+   "reduce": {
+    "type": "pca",
+    "dim": 128
+   }
+  },
+  "clinical": {
+   "variables": [],
+   "use": false
+  }
+ },
+ "preprocessing": [
+  "Exclude all forbidden clinical, immunohistochemistry receptor (er, pr, her2), histological_type, age, stage, RNA-derived, and site variables from predictor matrices; assert zero non-image features before fitting.",
+  "Restrict supervised modelling and scoring to the 802 PAM50-labelled patients (excluding the 259 unlabelled patients), pooling multi-slide patients into a single tile-count-weighted patient-mean embedding per encoder so every patient is one row.",
+  "Within each inner and outer training fold independently, apply feature-wise z-score standardisation followed by truncated SVD PCA (n_pca <= 256, strictly below inner-fold sample size ~427) and transform held-out patients using training-fold parameters only.",
+  "Compute inverse-frequency balanced class weights strictly from training-fold subtype counts (LumA, LumB, Basal, Her2) and fit training-fold majority-class and stratified class-prior null baselines on identical fold assignments.",
+  "Retain collection site (19 groups) strictly as an external split-grouping index for the secondary site-held-out cross-validation sensitivity audit."
+ ],
+ "model": {
+  "component": "patient_mean_logreg",
+  "params": {
+   "grid": {
+    "encoder": [
+     "UNI2-h",
+     "CONCH-Z",
+     "Virchow2",
+     "MUSK",
+     "H-Optimus-1"
+    ],
+    "n_pca": [
+     32,
+     64,
+     128,
+     256
+    ],
+    "C": [
+     0.01,
+     0.1,
+     1.0,
+     10.0
+    ]
+   },
+   "solver": "lbfgs",
+   "max_iter": 1000,
+   "tol": 0.0001
+  }
+ },
+ "fusion": "none",
+ "training": {
+  "max_epochs": 1000,
+  "early_stopping_patience": null,
+  "lr": null,
+  "weight_decay": null,
+  "class_weighting": "balanced",
+  "augmentation": null,
+  "n_seeds_ensemble": 1,
+  "tuning": {
+   "selection_metric": "macro_f1",
+   "tie_break_rule": "within_inner_se_prefer_smaller_n_pca_then_smaller_C",
+   "grid": [
+    {
+     "C": 0.01,
+     "class_weighting": "balanced"
+    },
+    {
+     "C": 0.1,
+     "class_weighting": "balanced"
+    },
+    {
+     "C": 1.0,
+     "class_weighting": "balanced"
+    },
+    {
+     "C": 10.0,
+     "class_weighting": "balanced"
+    }
+   ]
+  }
+ },
+ "validation": {
+  "scheme": "repeated_kfold",
+  "k": 5,
+  "repeats": 3,
+  "split_unit": "patient",
+  "selection": "nested",
+  "inner_k": 3,
+  "clinical_comparator": {
+   "tuned": false
+  },
+  "null_comparators": [
+   "majority_class",
+   "stratified_class_prior"
+  ],
+  "site_sensitivity_scheme": "5_fold_site_grouped_nested_cv_over_19_sites_pooled_oof",
+  "interval": "bootstrap",
+  "bootstrap_resamples": 2000,
+  "bootstrap_unit": "patient"
+ },
+ "metrics": [
+  "Out-of-fold four-class macro-F1 and paired macro-F1 difference versus majority-class and stratified class-prior null baselines with 95% patient-level bootstrap CIs across 3x5 repeated nested CV",
+  "Proportion of training class-prior multi-class log-loss (Shannon entropy) explained out-of-fold with 95% patient-level bootstrap CI",
+  "Macro and per-class one-vs-rest AUROC (LumA, LumB, Basal, Her2) with 95% patient-level bootstrap CIs",
+  "Per-class precision, recall, and F1 for LumA, LumB, Basal, and Her2 with 95% bootstrap CIs versus class-prior chance (explicitly auditing Her2 minority recall and LumA-vs-LumB confusion)",
+  "Site-held-out grouped CV (19 collection sites) out-of-fold macro-F1 and paired macro-F1 gain over chance with 95% patient-level bootstrap CI",
+  "L-BFGS solver convergence verification rate (gradient tolerance <= 1e-4 before max_iter) and inner-fold encoder selection stability across the 15 outer folds"
+ ],
+ "allowed_conclusions": "Entitled to conclude broad predictability, partial predictability, site-confounded predictability, or insufficient evidence among TCGA-BRCA patients using frozen single-encoder patient-mean H&E features alone, determined strictly by whether 95% patient-level bootstrap intervals for macro-F1 gain over chance exclude zero in patient-level nested CV, 19-site grouped CV, and all four subtypes; also defines the A5 simple image-only reference benchmark. Cannot claim incremental value over clinical/receptor variables, causal biology, or external clinical utility.",
+ "budget": {
+  "needs_gpu": false,
+  "pilot_minutes": 2.0,
+  "full_minutes": 10.0,
+  "cpus": 16
+ },
+ "diversity": {
+  "data": "single_encoder_patient_mean_pca",
+  "model": "regularised_multinomial_logreg",
+  "method": "nested_selected_linear_reference"
+ },
+ "rationale": "With 802 labelled patients, 768 to 2560 features, and 65 Her2 cases, fold-internal PCA with balanced L2 logistic regression curbs overfitting and minority collapse. Nested encoder tuning prevents selection bias and provides the required A5 ruler for judging complex models.",
+ "difficulties_addressed": [
+  "D1",
+  "D3",
+  "D4",
+  "D5",
+  "D6",
+  "D8",
+  "D9"
+ ],
+ "new_components": []
+}

@@ -1,0 +1,86 @@
+{
+ "plan_id": "P6",
+ "scale": "pilot",
+ "items": [
+  {
+   "id": "P6-E1",
+   "kind": "self_score",
+   "text": "Self-reported score: mean per-gene Pearson r = 0.1349 (SD 0.0003 over 2 splits), on 1500 genes; 2000 distinct validation cells enter the gene-level tests.",
+   "value": 0.13489228252621577
+  },
+  {
+   "id": "P6-E2",
+   "kind": "ruler",
+   "text": "Required comparators on the same training and validation cells, genes and scoring target: noise ceiling (RNA-to-RNA) 0.1686; cluster-mean baseline 0.1211, ridge 0.1357, partial least squares 0.1366, k-nearest neighbours 0.0638, gene activity 0.0343, depth only 0.0298. The plan reaches 80% of the ceiling.",
+   "value": {
+    "ceiling": 0.1685996089356518,
+    "cluster_mean": 0.12110726665564941,
+    "ridge": 0.13569278346664299,
+    "pls": 0.13656519575722426,
+    "knn": 0.06375465068744507,
+    "gene_activity": 0.03429822427444987,
+    "depth_only": 0.029798359312911686
+   }
+  },
+  {
+   "id": "P6-E3",
+   "kind": "ruler",
+   "text": "Margin over the cluster-mean baseline: mean per-gene difference in r = +0.0114 (95% interval +0.0100 to +0.0130, bootstrap over cells); margin over the best simple learner (ridge, PLS, k-NN) -0.0017.",
+   "value": 0.011362146047250566
+  },
+  {
+   "id": "P6-E4",
+   "kind": "self_score",
+   "text": "Three-way gene classification by the evaluator's rule, applied inside the development set: 261 genes cannot be judged (ceiling not above the permutation null), 963 are not beyond the cell-type baseline, 276 are predicted beyond cell type (paired bootstrap against the cluster-mean baseline, FDR 5%; 22.3% of judgeable genes). Genes with r above the permutation null: 1133.",
+   "value": 276
+  },
+  {
+   "id": "P6-E5",
+   "kind": "convergence",
+   "text": "Training: fit 0: early_stopping after 59 epochs, converged=True (Stacked cluster_mean, residual_over_cluster_mean, cis_regulatory, multitask_lowrank over 3 out-of-fold splits. cluster_mean: Closed-form or non-iterative fit; nothing to converge. | residual_over_cluster_mean: Early stopping fired after 17 epochs: the validation mean per-gene correlation had stopped improving. | cis_regulatory: Early stopping fired after 56 epochs: the validation mean per-gene correlation had stopped improving. | multitask_lowrank: Early stopping fired after 59 epochs: the validation mean per-gene correlation had stopped improving.); fit 1: early_stopping after 64 epochs, converged=True (Stacked cluster_mean, residual_over_cluster_mean, cis_regulatory, multitask_lowrank over 3 out-of-fold splits. cluster_mean: Closed-form or non-iterative fit; nothing to converge. | residual_over_cluster_mean: Early stopping fired after 20 epochs: the validation mean per-gene correlation had stopped improving. | cis_regulatory: Early stopping fired after 62 epochs: the validation mean per-gene correlation had stopped improving. | multitask_lowrank: Early stopping fired after 64 epochs: the validation mean per-gene correlation had stopped improving.).",
+   "value": {
+    "all_converged": true
+   }
+  },
+  {
+   "id": "P6-E6",
+   "kind": "validation_design",
+   "text": "Validation design: split unit cell; 3-fold cross-validation; 3 seed(s); scored against an independent half of each validation cell's reads (unsmoothed, same as the evaluator). Early stopping used a separate split carved from the training cells.",
+   "value": {
+    "scheme": "kfold",
+    "k": 3,
+    "fraction": 0.2,
+    "target": "thinned_half",
+    "n_seeds": 3
+   }
+  },
+  {
+   "id": "P6-E7",
+   "kind": "validation_design",
+   "text": "Scale of this run: pilot; 2 of the 9 declared train/validation splits were run (3000 development cells, 1500 genes; the full problem has 7288 cells and 11282 genes).",
+   "value": null
+  },
+  {
+   "id": "P6-E8",
+   "kind": "cost",
+   "text": "Cost: 781 s of model fitting on 32 CPU cores (cpu); declared budget for the full run 85.0 min, needs GPU: False.",
+   "value": 780.7
+  },
+  {
+   "id": "P6-E9",
+   "kind": "compliance",
+   "text": "Compliance checks: inputs_from_view passed; no_label_inputs passed; scoring_target_allowed passed; correct_split_unit passed; no_forbidden_inputs passed; components_executable passed; within_budget passed.",
+   "value": true
+  },
+  {
+   "id": "P6-E10",
+   "kind": "note",
+   "text": "Fields of the plan the executor has no implementation for (its defaults were used; some of these are descriptive text rather than settings): ['member1:training.convergence_audit', 'member1:training.inner_val_fraction', 'member1:training.meta_ridge_alphas', 'member2:training.convergence_audit', 'member2:training.inner_val_fraction', 'member2:training.meta_ridge_alphas', 'member3:training.convergence_audit', 'member3:training.inner_val_fraction', 'member3:training.meta_ridge_alphas'].",
+   "value": null
+  }
+ ],
+ "raw_files": [
+  "self_validation.json",
+  "self_validation_per_gene.npz"
+ ]
+}

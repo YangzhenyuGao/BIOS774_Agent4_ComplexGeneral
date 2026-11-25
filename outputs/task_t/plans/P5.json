@@ -1,0 +1,154 @@
+{
+ "plan_id": "P5",
+ "name": "Clinical-Query Cross-Attention Vision-Language Tile Transformer",
+ "summary": "Each patient's H&E tiles from compact vision-language encoders (CONCH-Z, MUSK) pass through a learned linear bottleneck and shallow tile transformer, then undergo cross-attention queried by the six clinical variables including explicit missing receptor states. Conditioning tile selection on clinical status focuses spatial attention on invasive subregions relevant to LumA versus LumB separation or missing HER2 cases. Paired 5x3 nested cross-validation, 19-site held-out testing, and a 95% patient bootstrap interval quantify incremental PAM50 value.",
+ "complexity": "ambitious",
+ "analysis_unit": "patient",
+ "inputs": {
+  "clinical": {
+   "use": true,
+   "variables": [
+    "age",
+    "stage",
+    "histological_type",
+    "er",
+    "pr",
+    "her2"
+   ]
+  },
+  "image": {
+   "encoders": [
+    "CONCH-Z",
+    "MUSK"
+   ],
+   "level": "tile",
+   "reduce": {
+    "type": "linear_projection",
+    "dim": 96
+   }
+  }
+ },
+ "preprocessing": [
+  "Pool all diagnostic slide tiles per patient (up to 128 tiles per slide) into a single patient bag while keeping patient IDs strictly disjoint across every outer, inner, and site-held-out split; exclude all RNA-derived variables and exclude collection site from predictive inputs (A1, A2, D6).",
+  "Inside each training fold identically for floor_clinical, simple_reference, and conditional_fusion arms, z-score standardise age using training-fold mean/SD and one-hot encode stage, histological_type, er, pr, and her2 with explicit Missing and Equivocal/Indeterminate levels so evaluation-fold unseen states map without leakage (A3, D2).",
+  "Inside each training fold, L2-normalise frozen CONCH-Z (768-d) and MUSK (1024-d) tile embeddings and standardise per channel using training-fold statistics only, replacing unsupervised PCA with an end-to-end regularised linear projection so stain- and site-dominated variance axes do not discard subtype morphology (D3, D4).",
+  "Run a pre-evaluation sanity audit verifying floor_clinical accesses only the six clinical covariates, achieves non-zero recall on minority Her2 under class weighting, and matches patient/fold indexing of simple_reference (K7, K8)."
+ ],
+ "model": {
+  "component": "conditional_fusion",
+  "params": {
+   "mode": "cross_attention",
+   "aggregator": "transformer",
+   "encoder_fusion": "gated",
+   "embed_dim": 96,
+   "heads": 4,
+   "layers": 1,
+   "dropout": 0.25,
+   "head": "flat"
+  }
+ },
+ "fusion": "cross_attention",
+ "training": {
+  "optimizer": "adamw",
+  "scheduler": "cosine_annealing",
+  "max_epochs": 50,
+  "min_epochs_before_stopping": 15,
+  "early_stopping_patience": 12,
+  "lr": 0.0005,
+  "weight_decay": 0.01,
+  "max_grad_norm": 1.0,
+  "class_weighting": "balanced",
+  "augmentation": {
+   "tile_resample": 64,
+   "mixup_alpha": 0.2,
+   "tile_dropout": 0.2
+  },
+  "n_seeds_ensemble": 1,
+  "convergence_check": "Log per-epoch training and inner-validation loss curves for every fold; require trailing 5-epoch mean loss update to be under 2% of total fold loss reduction before scoring, extending up to 80 epochs if plateau is not reached (A6, K3).",
+  "tuning": {
+   "grid": [
+    {
+     "encoders": [
+      "CONCH-Z"
+     ],
+     "embed_dim": 64,
+     "dropout": 0.25,
+     "weight_decay": 0.01,
+     "tile_dropout": 0.2
+    },
+    {
+     "encoders": [
+      "CONCH-Z",
+      "MUSK"
+     ],
+     "embed_dim": 96,
+     "dropout": 0.25,
+     "weight_decay": 0.01,
+     "tile_dropout": 0.2
+    },
+    {
+     "encoders": [
+      "CONCH-Z",
+      "MUSK"
+     ],
+     "embed_dim": 96,
+     "dropout": 0.35,
+     "weight_decay": 0.03,
+     "tile_dropout": 0.3
+    }
+   ]
+  }
+ },
+ "validation": {
+  "scheme": "repeated_kfold",
+  "k": 5,
+  "repeats": 3,
+  "split_unit": "patient",
+  "stratify_by": "PAM50",
+  "selection": "nested",
+  "inner_k": 2,
+  "selection_metric": "macro_f1",
+  "tie_and_reference_rule": "Select configuration maximising inner-fold validation macro-F1; if within 0.005 inner-fold spread prefer the lower-capacity single-encoder CONCH-Z setting (K1), and enforce A5 by benchmarking directly against fold-matched simple_reference on inner folds before adoption (A4, A5).",
+  "clinical_comparator": {
+   "tuned": true
+  },
+  "interval": "bootstrap",
+  "bootstrap_n": 10000,
+  "bootstrap_unit": "patient_id_across_802_labelled_patients",
+  "site_sensitivity": "19-fold leave-one-site-out grouped CV using site strictly for split grouping, pooling out-of-site predictions across all 802 labelled patients to compute paired macro-F1 difference and 95% patient-bootstrap CI (D4, K9)."
+ },
+ "metrics": [
+  "Paired out-of-fold macro-F1 difference (image-plus-clinical minus floor_clinical) across 5x3 repeated nested CV with 95% patient-level bootstrap CI",
+  "Paired out-of-fold multiclass log-loss difference (image-plus-clinical minus floor_clinical)",
+  "Paired out-of-fold macro one-vs-rest AUROC difference (image-plus-clinical minus floor_clinical)",
+  "Per-class out-of-fold recall and paired recall differences for LumA, LumB, Basal, and minority Her2",
+  "Paired out-of-fold macro-F1 difference against simple_reference on identical folds",
+  "Pooled 19-site leave-one-site-out paired macro-F1 difference (image-plus-clinical minus floor_clinical) with 95% patient-level bootstrap CI",
+  "Per-fold training/validation convergence diagnostics and inner-fold A5 comparison rate against simple_reference"
+ ],
+ "allowed_conclusions": "Select strictly one of 'improves' (95% patient-bootstrap CI for paired macro-F1 difference strictly above 0), 'insufficient evidence' (95% CI contains 0), or 'worse' (95% CI strictly below 0), scoped solely to incremental four-class PAM50 prediction over the six clinical variables in this TCGA-BRCA cohort without claiming standalone H&E performance, biological causality, or external generalisability, qualified by 19-site leave-one-site-out attenuation for site confounding.",
+ "budget": {
+  "needs_gpu": false,
+  "pilot_minutes": 10.0,
+  "full_minutes": 100.0,
+  "cpus": 16
+ },
+ "diversity": {
+  "data": "missingness-explicit clinical tokens + aligned vision-language (CONCH-Z, MUSK) tile bags via end-to-end linear projection (no PCA)",
+  "model": "contextual tile transformer with multi-head clinical-query cross-attention (conditional_fusion)",
+  "method": "receptor-conditioned spatial tile querying with bag mixup/dropout regularisation, 2-fold nested tie-aware parsimony selection, and pooled 19-site LOSO audit"
+ },
+ "rationale": "Relevant H&E morphology depends on clinical context: ER+ cases require proliferative tiles to separate LumA and LumB, whereas indeterminate HER2 cases require receptor-associated cues (D2, D5, D7). Learned bottlenecks and clinical cross-attention bypass stain-dominated PCA directions (D3, D4, D6).",
+ "difficulties_addressed": [
+  "D1",
+  "D2",
+  "D3",
+  "D4",
+  "D5",
+  "D6",
+  "D7",
+  "D8",
+  "D9"
+ ],
+ "new_components": []
+}

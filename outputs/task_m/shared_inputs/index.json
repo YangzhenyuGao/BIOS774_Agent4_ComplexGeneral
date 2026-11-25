@@ -1,0 +1,37 @@
+{
+ "created": "2026-11-25T11:48:04-0500",
+ "note": "task_m/shared_inputs",
+ "n_files": 6,
+ "files": [
+  {
+   "path": "constraints.json",
+   "bytes": 2143,
+   "sha256": "684958f8e876ff4156ea5bacd741204550fc7e4a048a0eb0e7c00ac2f06bffdc"
+  },
+  {
+   "path": "difficulties.json",
+   "bytes": 3642,
+   "sha256": "218f21ff4e196b4520a15c934e144940f0838fd6a2801db2c669e2837dc4791b"
+  },
+  {
+   "path": "objective.json",
+   "bytes": 9040,
+   "sha256": "40884c94155984e572cbce830a428983a1872d0aba9de3fc3448693e6e7c09f7"
+  },
+  {
+   "path": "objective_provenance.json",
+   "bytes": 185,
+   "sha256": "f41a56b2c0d1fb84fa92f1e4b70287b9f1fe5ebaf5db096d0876cfe9fc58e7c3"
+  },
+  {
+   "path": "profile.json",
+   "bytes": 7616,
+   "sha256": "f0566b4a819744e713228575bdc8e9c8b5703bc596c693a863867bd45f516aba"
+  },
+  {
+   "path": "question.txt",
+   "bytes": 250,
+   "sha256": "bd57109fba2653d3710192244e2497a3957c285b85c4c43274ffec122c40b7a2"
+  }
+ ]
+}

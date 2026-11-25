@@ -1,0 +1,99 @@
+{
+ "plan_id": "P1",
+ "finished": "2026-11-25T07:05:41-0500",
+ "self_gain": 0.0896418317629234,
+ "self_ci": [
+  0.05709742001164512,
+  0.12644783612116048
+ ],
+ "conclusion": "improves",
+ "macro_f1_plan": 0.6882311176716357,
+ "macro_f1_clinical": 0.5985892859087124,
+ "n_patients_both_arms": 802,
+ "n_patients_cohort": 802,
+ "n_folds_declared": 15,
+ "n_folds_run": 15,
+ "stopped_for_budget": false,
+ "comparators": {
+  "clinical_only": {
+   "macro_f1": 0.5985892859087124,
+   "tuned": true,
+   "n_configurations": 17,
+   "same_patients_and_folds": true
+  },
+  "simple_reference": {
+   "macro_f1": 0.683980520812595,
+   "gain_over_clinical": 0.08539123490388263,
+   "gain_over_clinical_ci": [
+    0.04892690547175356,
+    0.12297623114342052
+   ],
+   "same_patients_and_folds": true
+  }
+ },
+ "gain_over_simple_reference": 0.00425059685904076,
+ "gain_over_simple_reference_ci": [
+  -0.01240531613401784,
+  0.021536752042973697
+ ],
+ "site_held_out": {
+  "design": "5 folds, each holding out whole collection sites",
+  "n_sites": 19,
+  "n_folds_run": 5,
+  "n_patients_scored": 802,
+  "stopped_for_budget": false,
+  "gain": 0.07381779327143201,
+  "ci": [
+   0.033392648598292364,
+   0.11338283989323834
+  ],
+  "macro_f1_plan": 0.6459475765090154,
+  "macro_f1_clinical": 0.5721297832375833,
+  "conclusion": "improves"
+ },
+ "recall_plan": {
+  "LumA": 0.7674796747967481,
+  "LumB": 0.6035087719298246,
+  "Basal": 0.8467153284671532,
+  "Her2": 0.5897435897435898
+ },
+ "recall_clinical": {
+  "LumA": 0.7154471544715447,
+  "LumB": 0.36666666666666664,
+  "Basal": 0.8102189781021898,
+  "Her2": 0.5282051282051281
+ },
+ "recall_change": {
+  "LumA": 0.052032520325203335,
+  "LumB": 0.2368421052631579,
+  "Basal": 0.03649635036496346,
+  "Her2": 0.06153846153846165
+ },
+ "validation": {
+  "k": 5,
+  "repeats": 3,
+  "selection": "nested",
+  "inner_k": 3,
+  "clinical_tuned": true,
+  "split_unit": "patient",
+  "repeats_run": 3
+ },
+ "n_configs_image_arm": 60,
+ "training": {
+  "n_fits_reported": 15,
+  "share_converged": 1.0,
+  "median_epochs": null,
+  "median_seconds_per_fit": 0.66,
+  "stopped_by": [
+   "None"
+  ],
+  "example_curve": null
+ },
+ "deliverable": {
+  "file": "self_validation_oof.npz",
+  "complete": true
+ },
+ "seconds_total": 1824.4,
+ "cpus": 12,
+ "scope": "incremental predictive value in this labelled cohort; not an independent biological mechanism"
+}

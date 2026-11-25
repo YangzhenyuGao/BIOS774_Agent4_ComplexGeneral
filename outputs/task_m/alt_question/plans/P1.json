@@ -1,0 +1,85 @@
+{
+ "plan_id": "P1",
+ "name": "Nested 5-Fold Linear CCA on RNA PCA and Depth-Filtered ATAC LSI",
+ "summary": "We align paired single-cell RNA PCA and depth-filtered ATAC LSI spaces using linear canonical correlation analysis across five nested cell-level folds of the 7,288 development cells. Each unseen query RNA profile independently ranks ~1,458 unseen candidate ATAC profiles in its held-out fold by cosine similarity without cross-query matching or WNN labels. Paired-bootstrap MRR is compared against random, depth, gene-activity, and k=20 cluster floors alongside a split-half noise ceiling. This determines the resolution of global linear alignment and anchors all complex benchmarks.",
+ "complexity": "simple_reference",
+ "analysis_unit": "Individual cell (single nucleus with co-measured RNA and ATAC in development splits)",
+ "inputs": {
+  "lsi": {
+   "n_components": 64,
+   "max_peaks": 50000
+  }
+ },
+ "preprocessing": [
+  "Partition the 7,288 paired development cells into 5 disjoint outer folds (~1,458 cells/fold, seed=42) strictly by cell ID without using WNN annotations; split each outer training set (85% inner-train, 15% inner-val) by cell ID for hyperparameter selection.",
+  "RNA per-cell preprocessing and projection: restrict to the 11,282 frozen in-scope genes, normalise per-cell UMI counts to CP10K and apply log1p (no cross-cell smoothing), z-score genes using inner-train mean/std, and fit 64-component truncated PCA strictly on inner-train cells with inner-train component standardization.",
+  "ATAC LSI preprocessing and projection: select top 50,000 peaks ranked by nonzero cell frequency in inner-train only, binarise counts, compute per-cell TF multiplied by inner-train IDF, fit 65-component truncated SVD on inner-train, drop component 1 (technical sequencing depth) to retain 64 LSI components, and standardize using inner-train mean/std.",
+  "Freeze all scalers, IDF weights, PCA/SVD bases, k=20 ATAC cluster centroids, and peak-to-gene sums on each outer training fold before projecting unseen outer-fold query RNA and candidate ATAC profiles."
+ ],
+ "model": {
+  "component": "cca_latent",
+  "params": {
+   "n_components": 30
+  }
+ },
+ "fusion": null,
+ "training": {
+  "target_denoising": "none",
+  "solver": "svd_whitened_cca",
+  "max_iter": 500,
+  "tol": 1e-06,
+  "inner_tuning": "Grid-search cca_latent n_components over [15, 30, 50, 64] across 3 inner-validation resamples; measure selection spread across resamples and select the smallest n_components within 1 SE of peak inner-val MRR (Lesson K1), then refit on the full outer training fold and log singular-value spectrum check."
+ },
+ "validation": {
+  "scheme": "kfold",
+  "n_splits": 5,
+  "split_unit": "cell",
+  "candidate_pool_size": 1458,
+  "metrics": [
+   "MRR",
+   "recall@1",
+   "recall@5",
+   "recall@10",
+   "FOSCTTM"
+  ],
+  "scoring_protocol": "Score each unseen outer-fold query RNA profile independently via cosine similarity against all ~1,458 unseen outer-fold candidate ATAC profiles in canonical space (no cross-query bijection constraints), converting similarities to ranks via deterministic mid-ranks for ties.",
+  "comparators_on_identical_splits": [
+   "Floor 0 (permutation null): uniform random ranking of each outer fold's candidate ATAC pool verified against analytical harmonic expectation.",
+   "Floor 1 (sequencing depth): rank unseen candidate ATAC profiles by closeness to inner-train OLS-predicted log1p ATAC fragment count from query log1p RNA UMI count.",
+   "Floor 2 (unlearned gene activity): cosine similarity between query log1p(CP10K) RNA and candidate promoter_and_distal log1p(CP10K) ATAC gene-activity sums across in-scope genes.",
+   "Floor 3 (coarse cell-type cluster, k=20): inner-train k=20 k-means on ATAC LSI mapped to inner-train paired cluster mean RNA profiles; rank candidates by cosine similarity to assigned cluster centroids with deterministic mid-ranks.",
+   "Noise-ceiling ruler: 10-draw binomial thinning (p=0.5) split-half self-retrieval on the identical outer-fold evaluation cells for both RNA-to-RNA (PCA cosine) and ATAC-to-ATAC (LSI cosine)."
+  ],
+  "audit_checks": "Automated pre-report assertions verifying zero train/eval cell-ID overlap (A2), zero WNN/test-label leakage (A1/A3), unsmoothed evaluation inputs (A4), identical query/candidate sets across all arms (A5), and identity self-match MRR=1.0 unit test on each comparator pipeline (Lesson K8)."
+ },
+ "metrics": [
+  "Primary: Out-of-sample Mean Reciprocal Rank (MRR) with deterministic mid-ranks across all 7,288 unseen query cells and paired nonparametric bootstrap 95% CIs (2,000 cell resamples) for point estimates and paired differences against Floors 0-3.",
+  "Exact top-1 retrieval rate (Recall@1), Recall@5, and Recall@10 across unseen query cells.",
+  "1 - FOSCTTM across unseen query cells.",
+  "Ratio of cross-modal MRR to the unimodal binomial-thinning split-half self-retrieval noise ceiling on the exact same query cells.",
+  "Post-hoc stratified within-population and macro-averaged MRR and Recall@1 across the 19 development WNN cell types, with Benjamini-Hochberg 5% FDR control on paired-bootstrap gains over Floor 3."
+ ],
+ "allowed_conclusions": "Entitled to select among the four objective conclusions strictly by paired-bootstrap 95% CIs on unseen cells of this single donor at ~1,458-candidate pool size: (1) single-cell resolution if MRR and Recall@1 significantly beat Floors 0-3 and approach the split-half ceiling; (2) sub-cluster neighborhood resolution if MRR significantly beats Floor 3 (95% CI > 0) while Recall@1 remains low due to count sparsity; (3) cell-type resolution only if MRR beats Floors 0-1 but not Floor 3; (4) no biological retrieval if MRR fails to beat Floor 0 or Floor 1. Establishes the linear alignment reference required by A7; generalises solely to granulocyte-depleted PBMCs from this donor.",
+ "budget": {
+  "needs_gpu": false,
+  "pilot_minutes": 3.0,
+  "full_minutes": 12.0,
+  "cpus": 32
+ },
+ "diversity": {
+  "data": "global_pca_and_depth_filtered_lsi",
+  "model": "closed_form_linear_cca",
+  "method": "nested_5fold_independent_cosine_retrieval"
+ },
+ "rationale": "Dropping the first LSI component removes technical depth confounding (D5), while five-fold out-of-sample evaluation scores every cell including rare types like the 15 Plasma cells (D2). As a fast, closed-form linear projection, CCA directly tests sub-cluster variation beyond k=20 clusters (D6) and anchors acceptance criterion A7.",
+ "difficulties_addressed": [
+  "D1",
+  "D2",
+  "D3",
+  "D4",
+  "D5",
+  "D6",
+  "D7"
+ ],
+ "new_components": []
+}

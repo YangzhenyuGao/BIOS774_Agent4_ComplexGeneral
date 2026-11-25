@@ -1,0 +1,20 @@
+{
+ "limits": {
+  "n_plans": 6,
+  "min_ambitious": 4,
+  "n_candidates_requested": 8,
+  "plans_per_call": 1,
+  "full_run_minutes": 120,
+  "cpus_per_job": 32
+ },
+ "decision_rule": "\"Reliably predicted\" means predicted beyond cell identity. Each in-scope gene is placed in one of three groups: (0) cannot be judged - the ceiling itself is not above the permutation null for this gene; (1) not beyond the cell-type baseline - the method's r is not significantly above the cluster-mean baseline's r; (2) predicts variation beyond cell type - the method's r is significantly above the cluster-mean baseline's r (paired bootstrap over cells, Benjamini-Hochberg across all in-scope genes, false discovery rate 5%). Thresholds come from the data by these rules; only the 5% false discovery rate and the 95% confidence level are conventions. An answer of \"few or no genes are predicted beyond cell type\" is acceptable if that is what the evidence shows.",
+ "rulers": {
+  "ceiling": "an RNA-to-RNA model that sees half A of the held-out cells and predicts half B; it marks what measurement noise allows",
+  "floor_1_cell_type": "cluster cells on ATAC, predict each cell by its cluster's mean expression (cluster number frozen from development cells)",
+  "floor_2_gene_activity": "sum of ATAC counts over the promoter and nearby peaks of the gene, no learning",
+  "floor_3_depth": "prediction from ATAC sequencing depth alone",
+  "floor_4_simple_learners": "ridge, k-nearest-neighbour and partial-least-squares regression on the ATAC latent space"
+ },
+ "scope_of_inference": "cells of the same donor that were not used for training; nothing about other donors",
+ "how_predictions_are_scored": "The evaluator holds the RNA of the held-out cells. Each held-out cell's RNA reads were split at random into two independent halves, A and B (binomial thinning). Every method is scored against half B after log-normalisation: for each gene, the Pearson correlation r between predicted and observed values across held-out cells. Genes in scope and the cluster number of the cell-type baseline were frozen from development cells only and are part of the view."
+}

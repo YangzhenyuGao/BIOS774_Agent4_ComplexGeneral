@@ -1,0 +1,348 @@
+[
+ {
+  "plan_id": "R0B7C1",
+  "name": "Clinical-Prior Variational PoE Network on Site-Cancelled Tile Residuals",
+  "reason": "pool is full",
+  "plan": {
+   "plan_id": "R0B7C1",
+   "name": "Clinical-Prior Variational PoE Network on Site-Cancelled Tile Residuals",
+   "summary": "Each patient's clinical profile defines a learned latent prior over PAM50 biology, which is updated via Bayesian Product-of-Experts using pure-histology foundation tile bags decomposed into global morphology and site-cancelled within-patient tile residuals. Precision-weighted gating relies on H&E hotspots mainly when clinical receptors are missing, equivocal, or ambiguous between Luminal A and B, while unlabelled patients align the cross-modal space inside each training fold. Paired repeated nested cross-validation against a tuned clinical-only baseline determines whether H&E morphology improves, worsens, or provides insufficient evidence for cohort PAM50 prediction.",
+   "complexity": "ambitious",
+   "analysis_unit": "patient",
+   "inputs": {
+    "clinical": {
+     "use": true,
+     "variables": [
+      "age",
+      "stage",
+      "histological_type",
+      "er",
+      "pr",
+      "her2"
+     ]
+    },
+    "image": {
+     "encoders": [
+      "UNI2-h",
+      "Virchow2",
+      "H-Optimus-1"
+     ],
+     "level": "tile",
+     "reduce": {
+      "type": "pca",
+      "dim": 64
+     }
+    }
+   },
+   "preprocessing": [
+    "Pool all slides and up to 128 tiles per slide into one patient-level bag using patient_id; keep every patient strictly on one side of every outer, inner, and site split, excluding all RNA-derived variables and excluding site as a predictor.",
+    "Inside each training fold (identically across floor_clinical, simple_reference, and multimodal arms), standardize age with training-fold mean/SD and one-hot encode stage, histological_type, er, pr, and her2 with an explicit missing_or_indeterminate level.",
+    "Inside each training fold (using fold-training labelled plus allowed unlabelled patients, and excluding held-out-site unlabelled patients during 19-site LOSO sensitivity), L2-normalize tile vectors for UNI2-h, Virchow2, and H-Optimus-1 and fit per-encoder 64-dim whitened PCA, concatenating into 192-dim aligned tile embeddings.",
+    "Decompose each patient's 192-dim tile bag into a global mean vector plus site-cancelled within-patient centered tile residuals (tile minus patient mean) and per-dimension residual SD and 90th-10th interdecile range to remove additive slide/site staining shifts."
+   ],
+   "model": {
+    "component": "clinical_prior_poe_vib",
+    "params": {
+     "latent_dim": 32,
+     "embed_dim": 64,
+     "aggregator": "gated_attention",
+     "dropout": 0.25,
+     "logvar_bounds": [
+      -3.0,
+      1.4
+     ],
+     "beta_kl": 0.15,
+     "aux_clinical_weight": 0.2,
+     "clinical_prior_sup_weight": 0.5,
+     "uses_unlabelled": true,
+     "head": "flat"
+    }
+   },
+   "fusion": "offset",
+   "training": {
+    "optimizer": "AdamW",
+    "max_epochs": 120,
+    "batch_size": 64,
+    "early_stopping_patience": 20,
+    "kl_warmup_epochs": 20,
+    "lr": 0.001,
+    "lr_schedule": "cosine_to_1e-5",
+    "grad_clip_norm": 1.0,
+    "weight_decay": 0.01,
+    "class_weighting": "balanced",
+    "augmentation": {
+     "tile_resample": 96,
+     "mixup_alpha": 0.0,
+     "tile_dropout": 0.2
+    },
+    "n_seeds_ensemble": 3,
+    "convergence_check": "Log per-epoch total, supervised, and KL losses per fold; verify trailing 10-epoch loss change is below 1% of total fold loss reduction before reading predictions (A6).",
+    "tuning": {
+     "grid": [
+      {
+       "beta_kl": 0.05,
+       "latent_dim": 32,
+       "aux_clinical_weight": 0.2
+      },
+      {
+       "beta_kl": 0.15,
+       "latent_dim": 32,
+       "aux_clinical_weight": 0.2
+      },
+      {
+       "beta_kl": 0.3,
+       "latent_dim": 16,
+       "aux_clinical_weight": 0.0
+      }
+     ]
+    }
+   },
+   "validation": {
+    "scheme": "repeated_kfold",
+    "k": 5,
+    "repeats": 3,
+    "split_unit": "patient",
+    "stratify_by": "PAM50",
+    "selection": "nested",
+    "inner_k": 3,
+    "selection_metric": "macro_f1",
+    "tie_rule": "If grid candidates fall within 1 inner-fold standard error, choose the stronger bottleneck setting (higher beta_kl, smaller latent_dim) per K1.",
+    "simplicity_gate_A5": "Evaluate fold-matched simple_reference (patient_mean_logreg) on identical inner folds; adopt clinical_prior_poe_vib in an outer fold only when its mean inner-fold macro-F1 strictly exceeds simple_reference, while logging ungated complex OOF curves alongside gated OOF predictions.",
+    "clinical_comparator": {
+     "component": "clinical_only",
+     "tuned": true,
+     "identical_folds_and_missingness": true
+    },
+    "simple_reference_comparator": {
+     "component": "patient_mean_logreg",
+     "identical_folds_and_missingness": true
+    },
+    "site_sensitivity": {
+     "scheme": "leave_one_site_out",
+     "group_column": "site",
+     "n_groups": 19,
+     "inner_k": 2,
+     "exclude_held_out_site_unlabelled": true
+    },
+    "interval": "bootstrap",
+    "bootstrap_samples": 10000,
+    "bootstrap_unit": "patient",
+    "confidence_level": 0.95
+   },
+   "metrics": [
+    "Paired out-of-fold four-class PAM50 macro-F1 difference (image-plus-clinical minus floor_clinical) across 5x3 repeated nested CV with 10,000-resample patient-cluster 95% bootstrap CI",
+    "Paired out-of-fold multiclass log-loss difference (image-plus-clinical minus floor_clinical)",
+    "Paired out-of-fold macro one-vs-rest AUROC difference (image-plus-clinical minus floor_clinical)",
+    "Per-class out-of-fold recall differences for LumA, LumB, Basal, and minority Her2",
+    "Paired out-of-fold macro-F1 difference against simple_reference on identical folds",
+    "Site-held-out paired macro-F1 difference (image-plus-clinical minus floor_clinical) across 19 collection sites",
+    "Per-fold loss/KL convergence diagnostics and mean PoE visual gate weight stratified by definite versus indeterminate/missing HER2"
+   ],
+   "allowed_conclusions": "Select strictly one option from the patient-level 95% bootstrap CI for paired OOF macro-F1 difference versus floor_clinical: 'improves' if lower bound > 0; 'insufficient evidence' if 0 lies inside the CI; 'worse' if upper bound < 0. Scope applies only to incremental PAM50 prediction in this TCGA-BRCA cohort, contextualised by 19-site held-out sensitivity, without claiming standalone H&E accuracy, biological causation, or external generalisability.",
+   "budget": {
+    "needs_gpu": false,
+    "pilot_minutes": 5.0,
+    "full_minutes": 45.0,
+    "cpus": 16
+   },
+   "diversity": {
+    "data": "clinical + pure-histology trio global-plus-within-patient residual tile bags (train+unlabelled)",
+    "model": "clinical-prior variational information bottleneck with Bayesian Product-of-Experts precision gating",
+    "method": "semi-supervised clinical-prior variational Bayes with patient-specific precision gating and KL incremental-information bottleneck"
+   },
+   "rationale": "Clinical receptors already identify Basal tumours well but leave 31.8% indeterminate HER2 cases and ER+/HER2- Luminal A/B proliferation unresolved. Precision-weighted Product-of-Experts opens the visual gate selectively when clinical uncertainty is high, while within-patient tile residuals and KL regularisation suppress site staining signatures and high-dimensional overfitting.",
+   "difficulties_addressed": [
+    "D1",
+    "D2",
+    "D3",
+    "D4",
+    "D6",
+    "D7",
+    "D8",
+    "D9"
+   ],
+   "new_components": [
+    {
+     "name": "clinical_prior_poe_vib",
+     "description": "Computes: A semi-supervised Clinical-Prior Variational Information Bottleneck with analytical Bayesian Product-of-Experts (PoE) precision gating. A clinical MLP maps fold-encoded clinical covariates c to a diagonal Gaussian prior N(mu_c, sigma_c^2). A visual branch applies gated attention over within-patient centered tile residuals concatenated with global bag mean and residual dispersion (SD, interdecile range) to output visual Gaussian parameters (mu_x, sigma_x^2) with clamped log-variance [-3.0, 1.4] and high-variance initialization so initial visual precision Lambda_x is near zero. Closed-form PoE sets Lambda_cx = Lambda_c + Lambda_x and mu_cx = mu_c + (Lambda_x / Lambda_cx) * (mu_x - mu_c), updating clinical representations selectively on uncertain dimensions. Inputs: Fold-encoded clinical matrix, 192-dim global mean, 384-dim residual dispersion stats, and 192-dim within-patient residual tile bags for labelled fold-train and 259 unlabelled patients. Outputs: Four-class PAM50 probabilities from deterministic MAP latent mu_cx (3-seed outer ensemble), per-patient incremental KL divergence, and epoch loss traces. Training: AdamW on balanced PAM50 cross-entropy from reparameterized z_cx plus clinical_prior_sup_weight balanced PAM50 loss on z_c (labelled train), beta_kl closed-form KL(q(z|c,x) || p(z|c)) with 20-epoch linear warmup, and aux_clinical_weight masked clinical-attribute reconstruction from mu_x across fold-train and unlabelled patients."
+    }
+   ]
+  }
+ },
+ {
+  "plan_id": "R0B8C1",
+  "name": "Decoupled Coarse-to-Fine Five-Encoder Tile-MIL Hierarchy",
+  "reason": "pool is full",
+  "plan": {
+   "plan_id": "R0B8C1",
+   "name": "Decoupled Coarse-to-Fine Five-Encoder Tile-MIL Hierarchy",
+   "summary": "Each patient's slides form a five-encoder tile bag compressed inside each training fold alongside fold-encoded clinical covariates. A decoupled two-stage hierarchical classifier first fuses clinical and gated multi-encoder tile streams to separate Luminal, Basal, and Her2 lineages, then applies a dedicated tile-attention specialist to distinguish LumA from LumB tumours. Performance is benchmarked against tuned clinical-only and logistic patient-mean models under 5x3 patient-level nested cross-validation and 19-site held-out validation. The patient-level 95% bootstrap interval for paired macro-F1 difference determines incremental H&E value.",
+   "complexity": "ambitious",
+   "analysis_unit": "patient",
+   "inputs": {
+    "clinical": {
+     "use": true,
+     "variables": [
+      "age",
+      "stage",
+      "histological_type",
+      "er",
+      "pr",
+      "her2"
+     ]
+    },
+    "image": {
+     "encoders": [
+      "UNI2-h",
+      "CONCH-Z",
+      "Virchow2",
+      "MUSK",
+      "H-Optimus-1"
+     ],
+     "level": "tile",
+     "reduce": {
+      "type": "pca",
+      "dim": 32
+     }
+    }
+   },
+   "preprocessing": [
+    "Assert exclusion of RNA-derived variables and collection-site predictors across all feature matrices (A1), and pool all slides of multi-slide patients into one patient-level tile bag (A2).",
+    "Inside each outer and inner training fold, impute age by training-fold median with z-score scaling and one-hot encode stage, histological_type, er, pr, and her2 with explicit missing and equivocal levels applied identically to clinical_only, simple_reference, and hierarchical arms (A3).",
+    "Apply per-tile per-encoder L2 spherical normalisation to attenuate global staining-intensity shifts without accessing collection site.",
+    "Fit per-encoder 32-dimensional PCA strictly on labelled training-fold tiles weighted inversely by patient bag size (so multi-slide 471-tile patients do not dominate 6-tile patients), followed by training-fold variance standardisation applied to aligned 5-encoder validation tiles.",
+    "Verify baseline integrity (K8) and exact probability simplex normalisation (sum to 1.0 across LumA, LumB, Basal, Her2 via law of total probability) before computing fold metrics."
+   ],
+   "model": {
+    "component": "hierarchical",
+    "params": {
+     "groups": [
+      [
+       "LumA",
+       "LumB"
+      ],
+      [
+       "Basal"
+      ],
+      [
+       "Her2"
+      ]
+     ],
+     "fine_inputs": "image",
+     "head": "hierarchical",
+     "encoder_fusion": "gated",
+     "aggregator": "gated_attention",
+     "embed_dim": 64,
+     "dropout": 0.35,
+     "image_branch": {
+      "level": "tile",
+      "encoder_fusion": "gated",
+      "aggregator": "gated_attention",
+      "heads": 4,
+      "layers": 1,
+      "embed_dim": 64,
+      "dropout": 0.35
+     }
+    }
+   },
+   "fusion": "late_average",
+   "training": {
+    "optimizer": "AdamW",
+    "lr_schedule": "cosine_annealing_after_20_epoch_burn_in",
+    "max_epochs": 60,
+    "early_stopping_patience": 12,
+    "lr": 0.0005,
+    "weight_decay": 0.01,
+    "class_weighting": "balanced",
+    "augmentation": {
+     "tile_resample": 64,
+     "mixup_alpha": 0.0,
+     "tile_dropout": 0.25
+    },
+    "n_seeds_ensemble": 1,
+    "convergence_rule": "Log Stage-1 coarse (Luminal/Basal/Her2) and Stage-2 fine (LumA/LumB) train and validation loss curves per fold; require trailing 5-epoch mean loss update below 2% of total fold loss reduction before scoring (A6, K3).",
+    "tuning": {
+     "grid": [
+      {
+       "fine_inputs": "image",
+       "embed_dim": 64,
+       "dropout": 0.35,
+       "weight_decay": 0.01
+      },
+      {
+       "fine_inputs": "image+clinical",
+       "embed_dim": 64,
+       "dropout": 0.3,
+       "weight_decay": 0.01
+      },
+      {
+       "fine_inputs": "image",
+       "embed_dim": 96,
+       "dropout": 0.45,
+       "weight_decay": 0.03
+      }
+     ]
+    }
+   },
+   "validation": {
+    "scheme": "repeated_kfold",
+    "k": 5,
+    "repeats": 3,
+    "split_unit": "patient",
+    "stratify_by": "PAM50",
+    "selection": "nested",
+    "inner_k": 2,
+    "selection_metric": "macro_f1",
+    "tie_rule": "1-SE parsimony rule across inner folds: select fine_inputs='image' and smaller embed_dim when within one standard error of peak inner macro-F1 (K1).",
+    "simplicity_gate": "Adopt the hierarchical configuration in an outer fold only when its pooled inner-fold macro-F1 strictly exceeds the fold-matched simple_reference (patient_mean_logreg) inner-fold macro-F1; otherwise fall back to simple_reference for that fold (A5).",
+    "clinical_comparator": {
+     "tuned": true,
+     "component": "clinical_only",
+     "identical_folds_and_missingness": true
+    },
+    "simple_reference_comparator": {
+     "component": "patient_mean_logreg",
+     "identical_folds_and_missingness": true
+    },
+    "interval": "bootstrap",
+    "bootstrap_resamples": 10000,
+    "bootstrap_unit": "patient",
+    "confidence_level": 0.95,
+    "site_sensitivity": "Companion 19-site leave-one-site-out patient-disjoint cross-validation comparing floor_clinical and hierarchical arms using site strictly for split grouping, never as a feature."
+   },
+   "metrics": [
+    "Paired out-of-fold four-class macro-F1 difference (hierarchical minus floor_clinical) across 5x3 repeated nested CV with 10,000-resample patient-level 95% bootstrap CI (primary)",
+    "Paired out-of-fold multiclass log-loss difference (hierarchical minus floor_clinical) with patient-level 95% bootstrap CI",
+    "Paired out-of-fold macro one-vs-rest AUROC difference (hierarchical minus floor_clinical) with patient-level 95% bootstrap CI",
+    "Per-class out-of-fold recall changes for LumA, LumB, Basal, and minority Her2",
+    "Paired out-of-fold macro-F1 difference against simple_reference (patient_mean_logreg) on identical folds",
+    "19-site leave-one-site-out paired macro-F1 difference (hierarchical minus floor_clinical) site-confounding sensitivity estimate"
+   ],
+   "allowed_conclusions": "Map strictly from the patient-level 95% bootstrap CI of paired out-of-fold macro-F1 difference (verified converged per A6 and gated per A5): conclude 'improves' if lower bound > 0, 'insufficient evidence' if interval spans 0, or 'worse' if upper bound < 0. Inference is restricted to incremental PAM50 prediction over the six clinical covariates in this TCGA-BRCA cohort, qualified by the 19-site sensitivity delta, without claiming standalone image utility, biological causality, or external clinical generalisability.",
+   "budget": {
+    "needs_gpu": false,
+    "pilot_minutes": 8.0,
+    "full_minutes": 95.0,
+    "cpus": 16
+   },
+   "diversity": {
+    "data": "clinical + all-five aligned foundation-model tile bags with L2-normalised patient-balanced fold-PCA",
+    "model": "decoupled two-stage coarse-to-fine hierarchical classifier with gated five-encoder tile-attention MIL specialists",
+    "method": "law-of-total-probability coarse-lineage late-average anchoring + dedicated intra-Luminal tile MIL under 2-fold 1-SE nested CV"
+   },
+   "rationale": "Clinical receptors separate Basal well but falter on LumA-versus-LumB proliferation and missing-HER2 minority cases (D1, D2, D5, D7). Decoupling late-fused coarse lineage routing from a dedicated Luminal five-encoder tile-attention specialist focuses morphological capacity on focal proliferative hotspots while curbing overfitting (D3, D6).",
+   "difficulties_addressed": [
+    "D1",
+    "D2",
+    "D3",
+    "D4",
+    "D5",
+    "D6",
+    "D7",
+    "D8",
+    "D9"
+   ],
+   "new_components": []
+  }
+ }
+]

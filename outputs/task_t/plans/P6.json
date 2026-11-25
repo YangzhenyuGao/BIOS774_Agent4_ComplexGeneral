@@ -1,0 +1,141 @@
+{
+ "plan_id": "P6",
+ "name": "Semi-Supervised Split-Bag Pre-Adapted Gigapixel Tile MIL",
+ "summary": "We represent each patient by six clinical variables (with explicit missing levels) and Virchow2 plus H-Optimus-1 tile bags. Inside every fold, we apply PCA and pretrain a multihead attention aggregator via self-supervised split-bag agreement across training and 259 unlabelled patients before balanced multimodal fine-tuning. Repeated nested patient cross-validation, inner benchmarking against simple_reference, and a 19-site audit control overfitting and confounding. The paired 95% bootstrap macro-F1 interval determines whether H&E improves PAM50 prediction.",
+ "complexity": "ambitious",
+ "analysis_unit": "patient",
+ "inputs": {
+  "clinical": {
+   "use": true,
+   "variables": [
+    "age",
+    "stage",
+    "histological_type",
+    "er",
+    "pr",
+    "her2"
+   ]
+  },
+  "image": {
+   "encoders": [
+    "Virchow2",
+    "H-Optimus-1"
+   ],
+   "level": "tile",
+   "reduce": {
+    "type": "pca",
+    "dim": 128
+   }
+  }
+ },
+ "preprocessing": [
+  "Pool all slides and up to 128 aligned tiles per slide into one bag per patient ID (keeping all slides of the 46 multi-slide patients together); strip any RNA-derived columns and exclude collection site from all model inputs (A1, A2, D5, D6).",
+  "Inside each training split (inner, outer, and site-held-out), fit identical clinical transformations for floor_clinical, simple_reference, and ssl_preadapted_mil: z-score age using training-split statistics and one-hot encode stage, histological_type, er, pr, and her2 with an explicit missing_or_indeterminate level (A3, D2).",
+  "Inside each training split, L2-normalise tile vectors per encoder and fit randomized PCA (dim=128) strictly on tiles from that split's labelled training patients plus the 259 unlabelled patients, projecting validation tiles without accessing held-out patients or labels (A4, D3).",
+  "Verify baseline sanity and strict modality isolation on a pilot split for floor_clinical and simple_reference prior to full nested cross-validation execution (K8)."
+ ],
+ "model": {
+  "component": "ssl_preadapted_mil",
+  "params": {
+   "pretrain_epochs": 25,
+   "uses_unlabelled": true,
+   "encoder_fusion": "gated",
+   "aggregator": "multihead_attention",
+   "heads": 4,
+   "layers": 1,
+   "embed_dim": 128,
+   "dropout": 0.3,
+   "head": "flat"
+  }
+ },
+ "fusion": "early_concat",
+ "training": {
+  "max_epochs": 45,
+  "early_stopping_patience": 10,
+  "lr": 0.0005,
+  "weight_decay": 0.01,
+  "class_weighting": "balanced",
+  "augmentation": {
+   "tile_resample": 64,
+   "mixup_alpha": 0.2,
+   "tile_dropout": 0.25
+  },
+  "n_seeds_ensemble": 1,
+  "ssl_split_cache": "Run Stage-1 split-bag consistency pre-adaptation (two disjoint random 32-tile sub-bags per patient) once per fold training split on labelled-train plus 259 unlabelled bags, then evaluate Stage-2 supervised configurations.",
+  "convergence_criterion": "Record per-epoch Stage-1 consistency loss and Stage-2 class-balanced cross-entropy loss in every fold; confirm trailing 5-epoch mean loss change is <2% of total fold loss reduction before reading scores (A6, K3).",
+  "tuning": {
+   "grid": [
+    {
+     "lr": 0.0002,
+     "weight_decay": 0.03,
+     "dropout": 0.4,
+     "augmentation": {
+      "tile_resample": 64,
+      "mixup_alpha": 0.0,
+      "tile_dropout": 0.35
+     }
+    },
+    {
+     "lr": 0.0005,
+     "weight_decay": 0.01,
+     "dropout": 0.25,
+     "augmentation": {
+      "tile_resample": 64,
+      "mixup_alpha": 0.2,
+      "tile_dropout": 0.2
+     }
+    }
+   ]
+  }
+ },
+ "validation": {
+  "scheme": "repeated_kfold",
+  "k": 5,
+  "repeats": 3,
+  "split_unit": "patient",
+  "stratify_by": "PAM50",
+  "selection": "nested",
+  "inner_k": 2,
+  "selection_metric": "macro_f1",
+  "tie_and_simplicity_rule": "Treat inner-fold macro-F1 differences <0.005 as ties in favour of stronger regularisation (K1); adopt ssl_preadapted_mil over fold-matched simple_reference in outer fold only when inner-fold macro-F1 strictly exceeds simple_reference (A5), while also archiving ungated ssl_preadapted_mil OOF predictions.",
+  "clinical_comparator": {
+   "tuned": true
+  },
+  "site_held_out_sensitivity": "19-split Leave-One-Site-Out cross-validation grouped strictly by collection site (never using site as a predictor), pooling out-of-site predictions across all 802 labelled patients to compute paired macro-F1 difference against site-held-out floor_clinical (D4, K9).",
+  "interval": "bootstrap",
+  "bootstrap_details": "10,000 patient-level cluster bootstrap resamples of the 802 labelled patients across paired repeat-wise out-of-fold predictions to compute the 95% confidence interval (A7, D8)."
+ },
+ "metrics": [
+  "Paired out-of-fold four-class macro-F1 difference (image-plus-clinical minus floor_clinical) with 95% patient-level bootstrap confidence interval",
+  "Paired out-of-fold multiclass log-loss difference (image-plus-clinical minus floor_clinical)",
+  "Paired out-of-fold macro one-vs-rest AUROC difference (image-plus-clinical minus floor_clinical)",
+  "Per-class out-of-fold recall differences for LumA, LumB, Basal, and minority Her2",
+  "Site-held-out paired macro-F1 difference (image-plus-clinical minus floor_clinical) pooled across the 19 collection sites",
+  "Paired out-of-fold macro-F1 difference against simple_reference on identical folds"
+ ],
+ "allowed_conclusions": "Map the 95% patient-level bootstrap CI for paired macro-F1 difference strictly to: 'improves' (lower bound > 0), 'insufficient evidence' (interval contains 0), or 'worse' (upper bound < 0), scoped solely to incremental patient-level PAM50 prediction over clinical plus IHC variables in this TCGA-BRCA cohort and contextualised by 19-site LOSO sensitivity without claiming standalone H&E utility or causal biology.",
+ "budget": {
+  "needs_gpu": false,
+  "pilot_minutes": 10.0,
+  "full_minutes": 90.0,
+  "cpus": 16
+ },
+ "diversity": {
+  "data": "clinical + Virchow2/H-Optimus-1 tile bags across labelled-train and 259 unlabelled patients (fold-PCA)",
+  "model": "self-supervised split-bag pre-adapted gated multihead-attention MIL (ssl_preadapted_mil)",
+  "method": "fold-internal unlabelled+train split-bag consistency pretraining + balanced early-concat fine-tuning with A5 gating"
+ },
+ "rationale": "Supervised tile attention on high-dimensional ViTs easily overfits 65 Her2 cases and outlier tiles (D1, D3, D6). Split-bag self-supervision across training and 259 unlabelled patients learns reproducible tumour morphology without labels. Joint concatenation with missing-explicit receptors compensates when HER2 immunohistochemistry is equivocal (D2, D7).",
+ "difficulties_addressed": [
+  "D1",
+  "D2",
+  "D3",
+  "D4",
+  "D5",
+  "D6",
+  "D7",
+  "D8",
+  "D9"
+ ],
+ "new_components": []
+}

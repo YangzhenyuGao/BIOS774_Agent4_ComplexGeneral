@@ -1,0 +1,110 @@
+{
+ "plan_id": "P1",
+ "scale": "pilot",
+ "finished": "2026-11-25T06:01:27-0500",
+ "validation": {
+  "scheme": "kfold",
+  "k": 5,
+  "fraction": 0.2,
+  "target": "thinned_half",
+  "n_seeds": 3
+ },
+ "n_cells": 3000,
+ "n_genes": 1500,
+ "n_splits_declared": 15,
+ "n_splits_run": 2,
+ "n_cells_in_gene_tests": 1200,
+ "self_score_mean_r": 0.13700640809146536,
+ "self_score_sd": 0.003786345606277587,
+ "rulers_mean_r": {
+  "ceiling": 0.17280642324388126,
+  "cluster_mean": 0.12231567258269543,
+  "ridge": 0.1366208553380444,
+  "pls": 0.1375636583896631,
+  "knn": 0.07075379721637311,
+  "gene_activity": 0.03504866364927082,
+  "depth_only": 0.03296574922706176
+ },
+ "fraction_of_ceiling": 0.7928316871538309,
+ "margin_over_cluster_mean": 0.014064258289453756,
+ "margin_ci": [
+  0.012561205681413412,
+  0.01601232187822461
+ ],
+ "ceiling_computed": true,
+ "n_cannot_judge": 318,
+ "n_judgeable": 1182,
+ "n_not_beyond_cell_type": 1070,
+ "n_genes_claimed_beyond_cell_type": 112,
+ "share_claimed": 0.09475465313028765,
+ "n_genes_above_zero": 1066,
+ "null_r_q95": 0.048000890761613846,
+ "per_split": [
+  {
+   "split": 0,
+   "seed": 0,
+   "n_train": 2400,
+   "n_val": 600,
+   "plan_mean_r": 0.13968375874558014,
+   "cluster_mean_mean_r": 0.12369524156348952,
+   "ridge_mean_r": 0.1390917236777534,
+   "pls_mean_r": 0.1401624464886778,
+   "knn_mean_r": 0.07398632535894416,
+   "gene_activity_mean_r": 0.03450466922995658,
+   "depth_only_mean_r": 0.03427227823964063,
+   "ceiling_mean_r": 0.17393394030045534
+  },
+  {
+   "split": 1,
+   "seed": 0,
+   "n_train": 2400,
+   "n_val": 600,
+   "plan_mean_r": 0.1343290574373506,
+   "cluster_mean_mean_r": 0.12093610360190137,
+   "ridge_mean_r": 0.13414998699833544,
+   "pls_mean_r": 0.1349648702906484,
+   "knn_mean_r": 0.06752126907380206,
+   "gene_activity_mean_r": 0.035592658068585054,
+   "depth_only_mean_r": 0.031659220214482885,
+   "ceiling_mean_r": 0.1716789061873072
+  }
+ ],
+ "fit_reports": [
+  {
+   "seconds": 6.85,
+   "device": "cpu",
+   "epochs": 0,
+   "stopped_by": "closed_form",
+   "converged": true,
+   "convergence_note": "Closed-form or non-iterative fit; nothing to converge.",
+   "curves": {},
+   "n_parameters": 0
+  },
+  {
+   "seconds": 6.58,
+   "device": "cpu",
+   "epochs": 0,
+   "stopped_by": "closed_form",
+   "converged": true,
+   "convergence_note": "Closed-form or non-iterative fit; nothing to converge.",
+   "curves": {},
+   "n_parameters": 0
+  }
+ ],
+ "fit_seconds": 16.0,
+ "wall_seconds": 54.8,
+ "cpus": 32,
+ "all_converged": true,
+ "resolved_config": {
+  "component": "latent_ridge",
+  "seed": 1,
+  "scale": "pilot",
+  "n_genes": 1500,
+  "lsi": {
+   "n_components": 50,
+   "max_peaks": 108377
+  },
+  "alpha": 100.0
+ },
+ "ignored_params": []
+}

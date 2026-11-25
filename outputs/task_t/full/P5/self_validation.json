@@ -1,0 +1,199 @@
+{
+ "plan_id": "P5",
+ "scale": "full",
+ "finished": "2026-11-25T07:22:46-0500",
+ "validation": {
+  "k": 5,
+  "repeats": 3,
+  "selection": "nested",
+  "inner_k": 2,
+  "clinical_tuned": true,
+  "split_unit": "patient",
+  "repeats_run": 3
+ },
+ "n_patients": 802,
+ "n_patients_cohort": 802,
+ "n_folds_declared": 15,
+ "n_folds_run": 15,
+ "n_complete_repeats": 3,
+ "stopped_for_budget": false,
+ "macro_f1_plan": 0.5907222280347649,
+ "macro_f1_clinical": 0.5982599080779123,
+ "macro_f1_simple_reference": 0.6869124474104743,
+ "self_gain": -0.007537680043147328,
+ "self_ci": [
+  -0.04922123203460854,
+  0.034392725617598485
+ ],
+ "self_se": 0.021384375247425362,
+ "self_conclusion": "insufficient_evidence",
+ "gain_over_simple_reference": -0.09619021937570926,
+ "gain_over_simple_reference_ci": [
+  -0.12872125029670498,
+  -0.06475045768829765
+ ],
+ "simple_reference_gain": 0.08865253933256194,
+ "simple_reference_gain_ci": [
+  0.05647322632256014,
+  0.1268808629115752
+ ],
+ "recall_plan": {
+  "LumA": 0.734959349593496,
+  "LumB": 0.5052631578947369,
+  "Basal": 0.7250608272506084,
+  "Her2": 0.47692307692307695
+ },
+ "recall_clinical": {
+  "LumA": 0.6626016260162602,
+  "LumB": 0.4473684210526316,
+  "Basal": 0.8102189781021898,
+  "Her2": 0.5128205128205128
+ },
+ "recall_change": {
+  "LumA": 0.0723577235772358,
+  "LumB": 0.05789473684210528,
+  "Basal": -0.0851581508515814,
+  "Her2": -0.035897435897435825
+ },
+ "n_configs_image_arm": 3,
+ "n_configs_clinical_arm": 17,
+ "chosen_configs": [
+  [
+   2,
+   1,
+   2,
+   0,
+   1
+  ],
+  [
+   0,
+   0,
+   1,
+   1,
+   0
+  ],
+  [
+   0,
+   2,
+   0,
+   0,
+   2
+  ]
+ ],
+ "n_fits": 105,
+ "plan_seconds": 748.9,
+ "cpus": 12,
+ "training": {
+  "n_fits_reported": 15,
+  "share_converged": 1.0,
+  "median_epochs": 19.0,
+  "median_seconds_per_fit": 11.62,
+  "stopped_by": [
+   "early_stopping"
+  ],
+  "example_curve": {
+   "train_loss": [
+    1.30031,
+    1.06822,
+    1.01891,
+    0.8151,
+    0.83218,
+    0.81462,
+    0.66993,
+    0.63624,
+    0.69058,
+    0.6668,
+    0.61271,
+    0.57538,
+    0.57562,
+    0.56071,
+    0.53684,
+    0.43158
+   ],
+   "val_loss": [
+    1.13135,
+    1.02361,
+    0.9727,
+    0.94637,
+    0.98482,
+    0.99805,
+    1.09903,
+    1.13937,
+    1.13887,
+    1.0997,
+    1.206,
+    1.06565,
+    1.12438,
+    1.2401,
+    1.21642,
+    1.36156
+   ]
+  }
+ },
+ "resolved_config": {
+  "component": "conditional_fusion",
+  "encoders": [
+   "CONCH-Z",
+   "MUSK"
+  ],
+  "level": "tile",
+  "reduce_type": "raw",
+  "reduce_dim": 96,
+  "max_tiles": 256,
+  "clinical_use": true,
+  "clinical_variables": [
+   "age",
+   "stage",
+   "histological_type",
+   "er",
+   "pr",
+   "her2"
+  ],
+  "fusion": "cross_attention",
+  "aggregator": "transformer",
+  "encoder_fusion": "gated",
+  "embed_dim": 96,
+  "clin_dim": 32,
+  "dropout": 0.25,
+  "heads": 4,
+  "layers": 1,
+  "head": "flat",
+  "groups": null,
+  "fine_inputs": "image+clinical",
+  "init_zero": true,
+  "clinical_C": 1.0,
+  "pretrain_epochs": 0,
+  "uses_unlabelled": true,
+  "temperature": 0.2,
+  "n_prototypes": 32,
+  "classifier": "logreg",
+  "proto_pca": 32,
+  "C": 1.0,
+  "n_pca": 16,
+  "max_iter": 100,
+  "learning_rate": 0.05,
+  "max_depth": 3,
+  "members": [],
+  "inner_k": 3,
+  "meta_C": 1.0,
+  "max_epochs": 50,
+  "patience": 12,
+  "lr": 0.0005,
+  "weight_decay": 0.01,
+  "class_weighting": "balanced",
+  "batch_size": 64,
+  "tile_resample": 64,
+  "mixup_alpha": 0.2,
+  "tile_dropout": 0.2,
+  "n_seeds_ensemble": 1,
+  "val_fraction": 0.15,
+  "notes": []
+ },
+ "ignored_params": [
+  "training.convergence_check",
+  "training.max_grad_norm",
+  "training.min_epochs_before_stopping",
+  "training.optimizer",
+  "training.scheduler"
+ ]
+}

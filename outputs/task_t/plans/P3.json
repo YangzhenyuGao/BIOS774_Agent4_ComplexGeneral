@@ -1,0 +1,142 @@
+{
+ "plan_id": "P3",
+ "name": "Unlabelled-PCA Five-Encoder Gated FiLM Hierarchical Network",
+ "summary": "We fuse patient-pooled features from all five vision and vision-language pathology encoders with the six clinical variables. Within each training fold, per-encoder PCA subspaces are fitted on training plus 259 unlabelled patients, then integrated through learned encoder gating, clinical FiLM conditioning, and a hierarchical head separating coarse subtypes before resolving LumA versus LumB. Repeated nested cross-validation compares predictions against tuned clinical, simple logistic, and site-excluded baselines. A paired patient bootstrap interval decides whether H&E images improve PAM50 classification.",
+ "complexity": "ambitious",
+ "analysis_unit": "patient",
+ "inputs": {
+  "clinical": {
+   "use": true,
+   "variables": [
+    "age",
+    "stage",
+    "histological_type",
+    "er",
+    "pr",
+    "her2"
+   ]
+  },
+  "image": {
+   "encoders": [
+    "UNI2-h",
+    "CONCH-Z",
+    "Virchow2",
+    "MUSK",
+    "H-Optimus-1"
+   ],
+   "level": "patient",
+   "reduce": {
+    "type": "pca",
+    "dim": 64
+   }
+  }
+ },
+ "preprocessing": [
+  "Pool all tiles across all slides of each patient into one patient-level mean feature vector per encoder (UNI2-h, CONCH-Z, Virchow2, MUSK, H-Optimus-1), keeping all data of a patient within the same split.",
+  "Inside each inner and outer training fold, one-hot encode stage, histological_type, er, pr, and her2 with an explicit missing/indeterminate level (capturing 31.8% indefinite her2) and standardize age using training-fold statistics (median-imputed if missing), identically across floor_clinical, simple_reference, and multimodal arms.",
+  "Inside each inner and outer training fold, standardize and fit 64-component whitened PCA independently for each of the five encoders using training-fold labelled patients combined with the 259 unlabelled patients (excluding unlabelled patients from the held-out site during site-held-out evaluation), without accessing evaluation-fold patients or labels.",
+  "Verify strict exclusion of RNA-derived variables and collection site from all model feature matrices."
+ ],
+ "model": {
+  "component": "multi_encoder_fusion",
+  "params": {
+   "level": "patient",
+   "encoder_fusion": "gated",
+   "embed_dim": 64,
+   "dropout": 0.35,
+   "head": "hierarchical"
+  }
+ },
+ "fusion": "film",
+ "training": {
+  "max_epochs": 80,
+  "early_stopping_patience": 15,
+  "lr": 0.001,
+  "weight_decay": 0.01,
+  "class_weighting": "balanced",
+  "augmentation": {
+   "mixup_alpha": 0.2
+  },
+  "n_seeds_ensemble": 3,
+  "convergence_check": "Log per-fold training and inner-validation loss curves; verify trailing 5-epoch mean loss update is under 1% of total fold loss reduction before checkpoint adoption.",
+  "tuning": {
+   "grid": [
+    {
+     "encoder_fusion": "gated",
+     "head": "hierarchical",
+     "dropout": 0.35,
+     "weight_decay": 0.01
+    },
+    {
+     "encoder_fusion": "attention",
+     "head": "hierarchical",
+     "dropout": 0.35,
+     "weight_decay": 0.01
+    },
+    {
+     "encoder_fusion": "gated",
+     "head": "flat",
+     "dropout": 0.35,
+     "weight_decay": 0.01
+    },
+    {
+     "encoder_fusion": "gated",
+     "head": "hierarchical",
+     "dropout": 0.5,
+     "weight_decay": 0.03
+    }
+   ]
+  }
+ },
+ "validation": {
+  "scheme": "repeated_kfold",
+  "k": 5,
+  "repeats": 3,
+  "split_unit": "patient",
+  "stratify_by": "PAM50",
+  "selection": "nested",
+  "inner_k": 3,
+  "tie_rule": "Select on inner-fold validation macro-F1; prefer stronger regularisation or flat head when differences lie within 1 seed-ensemble standard error, and adopt complex model over fold-matched simple_reference on outer folds only when inner-fold macro-F1 exceeds simple_reference.",
+  "clinical_comparator": {
+   "tuned": true
+  },
+  "simple_reference_comparator": true,
+  "site_sensitivity": "19-fold leave-one-site-out nested cross-validation grouped by site (site never used as predictor; held-out site excluded from unlabelled PCA pool), evaluating pooled out-of-site paired predictions across all 802 labelled patients.",
+  "interval": "bootstrap",
+  "bootstrap_resamples": 10000
+ },
+ "metrics": [
+  "Paired out-of-fold macro-F1 difference (image-plus-clinical minus floor_clinical) across repeated nested CV with 95% patient-level bootstrap confidence interval",
+  "Paired out-of-fold multiclass log-loss difference (image-plus-clinical minus floor_clinical)",
+  "Paired out-of-fold macro one-vs-rest AUROC difference (image-plus-clinical minus floor_clinical)",
+  "Per-class out-of-fold recall differences for LumA, LumB, Basal, and Her2",
+  "Paired out-of-fold macro-F1 difference against simple_reference on identical folds",
+  "Site-held-out paired macro-F1 difference (image-plus-clinical minus floor_clinical) across the 19 collection sites",
+  "Per-fold trailing loss plateau convergence diagnostics"
+ ],
+ "allowed_conclusions": "Conclude 'improves' if the 95% patient-level bootstrap CI for paired macro-F1 difference lies strictly above 0, 'worse' if strictly below 0, and 'insufficient evidence' if it spans 0; inference is restricted to incremental patient-level PAM50 prediction over the six clinical covariates in this TCGA-BRCA cohort, contextualised by 19-site held-out sensitivity, without claiming standalone image utility, biological causality, or external generalisability.",
+ "budget": {
+  "needs_gpu": false,
+  "pilot_minutes": 5.0,
+  "full_minutes": 45.0,
+  "cpus": 16
+ },
+ "diversity": {
+  "data": "clinical + all-five foundation-model patient-mean embeddings with unlabelled-augmented fold-PCA",
+  "model": "clinical-FiLM modulated gated five-encoder network with hierarchical coarse-to-fine PAM50 head",
+  "method": "semi-supervised fold-PCA + end-to-end FiLM conditioning + hierarchical LumA/LumB decomposition under nested CV"
+ },
+ "rationale": "Unlabelled-augmented fold PCA compresses 7,424 dimensions safely (D3), while learned gating fuses visual and language-aligned encoders without selection multiplicity (D9). Clinical FiLM reweights morphology when HER2 is indefinite (D2), and hierarchical classification targets minority Her2 plus LumA versus LumB confusion (D1, D7).",
+ "difficulties_addressed": [
+  "D1",
+  "D2",
+  "D3",
+  "D4",
+  "D5",
+  "D6",
+  "D7",
+  "D8",
+  "D9"
+ ],
+ "new_components": []
+}
