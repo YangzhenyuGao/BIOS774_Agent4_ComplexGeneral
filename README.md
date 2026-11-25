@@ -1,476 +1,470 @@
-# Agent 4：让分析方案和结论与科学问题、证据相匹配
+# Agent 4: Matching Analysis Plans and Conclusions to the Scientific Question and the Evidence
 
 [GitHub repository](https://github.com/YangzhenyuGao/BIOS774_Agent4_ComplexGeneral) · [Project report](https://github.com/YangzhenyuGao/BIOS774_Agent4_ComplexGeneral/blob/main/reports/report.pdf) · [Study 1: PBMC Multiome](https://github.com/YangzhenyuGao/BIOS774_Agent4_ComplexGeneral/blob/main/reports/generated_report_1.pdf) · [Study 2: TCGA-BRCA](https://github.com/YangzhenyuGao/BIOS774_Agent4_ComplexGeneral/blob/main/reports/generated_report_2.pdf) · [Presentation](https://github.com/YangzhenyuGao/BIOS774_Agent4_ComplexGeneral/blob/main/reports/presentation.pdf)
 
-**GitHub 收录范围。** 仓库包含源码、配置与提示词、测试、文档、LLM 回复缓存、最终运行的目标与候选方案、试跑证据卡、锦标赛和复查记录、评估汇总、图表，以及 `reports/` 和 `submission/` 中的交付文件。收录范围沿用 `scripts/package_submission.py`，两份 ZIP 中的文件和 SHA256 见 `submission/manifest.json`。原始数据、模型权重、细胞/患者级输入、隐藏评测数据和大型预测数组保留在服务器上；凭据不进入仓库。报告可直接在线阅读，重新执行数据分析仍需准备 README 中说明的数据与环境。
+**Repository contents.** This repository includes source code, configuration and prompts, tests, documentation, cached LLM responses, final objectives and candidate plans, pilot evidence cards, tournament and audit records, evaluation summaries, figures, and the deliverables in `reports/` and `submission/`. Publication follows the inclusion rules in `scripts/package_submission.py`; `submission/manifest.json` lists the files and SHA256 checksums in the two submission archives. Raw data, model weights, cell- and patient-level inputs, hidden evaluation data, and large prediction arrays remain on the server. Credentials are excluded. Reports can be read directly online; rerunning the analyses requires the data and environment described below.
 
-**文档状态：设计文档，更新于 2026-11-25。系统已按本文档搭建，并于 2026-11-25 在 Sycamore 上对两个任务跑完 agent 流程和基准一。实际结果、与设计不一致的地方和各项输出的位置见 9.6 节；逐步的运行记录（作业号、自检、未解决的问题）见 `docs/PROGRESS.md`。其余各节仍是设计时的原文，其中的数字若与 9.6 节不同，以 9.6 节为准。**
+**Document status: design document, updated November 25, 2026. The system was built from this design, and both agent workflows and Benchmark 1 completed on Sycamore on November 25, 2026. Section 9.6 records the actual results, departures from the design, and output locations. Step-by-step execution records, job IDs, checks, and unresolved issues are in `docs/PROGRESS.md`. Other sections retain the original planning context; whenever their numbers conflict with Section 9.6, the actual run record takes precedence.**
 
-这份文档写给第一次接触本项目的读者和评审者。它说明我们要解决什么问题、两个任务是什么、怎么评估、系统怎么搭、手里已经有什么、接下来六天怎么做。每一节标注了状态：
+This document introduces the problem, tasks, evaluation, system design, available resources, and original six-day implementation plan for new readers and reviewers. Status labels distinguish:
 
-- **[已定]**：项目负责人已确认。
-- **[默认]**：提出者给出的默认取值或做法，开工后按此执行，可调整。
-- **[已有]**：已经存在、可以核查的东西。
-- **[待验证]**：开工后第一时间要确认的事实。
-- **[待办]**：不在作业主流程里，之后由项目负责人单独做。
+- **[Confirmed]**: approved by the project owner.
+- **[Default]**: a proposed setting or procedure to use initially, subject to adjustment.
+- **[Available]**: an existing resource or a verifiable observation.
+- **[To verify]**: a fact to check when implementation begins.
+- **[Deferred]**: work outside the main assignment workflow, to be undertaken separately by the project owner.
 
-**执行方式 [已定]**：系统一次性搭建完成，随后直接在两个数据集上运行到出齐全部结果和报告，中途不逐阶段等待确认。之后的对比实验（第 5.5 节和第 9.5 节）在这个结果固定下来之后另做。
-
----
-
-## 1. 两个层次的目标 [已定]
-
-**近期目标（课程作业）。** BIOS 774 的 Project 4，题目是 "Building an AI Agent for Complex Biomedical Data Analysis"，截止 2026-11-30 23:59 EST，之后有 8 分钟课堂汇报。作业要求 agent 自主完成：检查数据、理解目标、识别分析难点、制定计划、选择并执行方法、评估、可视化、写报告；不允许走预先写死的流程；至少两个多模态数据集。评分六项：自主程度、分析策略质量、方法选择与整合、可视化与解释、跨数据集的稳健性、软件设计与可复现性。
-
-**远期目标（论文）。** 作业交的是骨架。之后在同一套系统和同一套评估上扩大规模，目标是 NeurIPS 级别的会议。作业阶段的每一样东西都应能被论文直接复用。
+**Execution policy [Confirmed].** Build the system and then run both datasets through to complete results and reports without seeking confirmation at every stage. Subsequent comparison experiments (Sections 5.5 and 9.5) are separate work after these results have been frozen.
 
 ---
 
-## 2. 要解决的问题 [已定]
+## 1. Two levels of objectives [Confirmed]
 
-**一句话：自动做数据分析的 agent，能否根据科学问题选出有效的分析方案，并让最终结论与证据相匹配，而不是统一追求最高分。**
+**Near-term objective: the course assignment.** BIOS 774 Project 4, "Building an AI Agent for Complex Biomedical Data Analysis," is due November 30, 2026, at 23:59 EST, followed by an eight-minute class presentation. The agent must inspect data, interpret the objective, identify analytical difficulties, plan, choose and execute methods, evaluate, visualize, and report autonomously. The assignment requires at least two multimodal datasets and disallows a fixed, manually specified pipeline. Evaluation covers autonomy, strategy quality, method selection and integration, visualization and interpretation, robustness across datasets, and software design and reproducibility.
 
-这句话包含两个具体现象。
+**Long-term objective: a research paper.** The assignment establishes the system and evaluation framework. Later work will expand them toward a conference submission at the level of NeurIPS. Assignment artifacts should be reusable in that research.
 
-**现象一：同一份结果，在不同问题下支持的结论不同。** Project 3 用 TCGA 乳腺癌数据预测 PAM50 分子亚型，测试集（121 人）上的实际结果：
+---
 
-| 做法 | macro-F1 |
+## 2. The problem [Confirmed]
+
+**Can an automated analysis agent select an effective analysis plan for a scientific question and make conclusions that match the evidence, instead of always pursuing the highest score?**
+
+Two observations motivate this question.
+
+**First, the same result supports different conclusions under different questions.** Project 3 predicted PAM50 subtypes in TCGA breast cancer. Its test set contained 121 patients:
+
+| Approach | Macro-F1 |
 |---|---|
-| 只用临床变量（年龄、分期、组织学类型、ER、PR、HER2） | 0.620 |
-| 只用病理图像（注意力多实例学习） | 0.645 |
-| 图像 + 临床，晚期融合 | 0.723 |
-| 图像 + 临床，去掉受体 | 0.583 |
+| Clinical variables only: age, stage, histology, ER, PR, HER2 | 0.620 |
+| Pathology images only: attention-based multiple-instance learning | 0.645 |
+| Images + clinical variables, late fusion | 0.723 |
+| Images + clinical variables, excluding receptors | 0.583 |
 
-受体状态与 PAM50 强相关，但两者不等同（基于免疫组化的替代分型与 PAM50 存在明显不一致），所以受体不能仅因相关性强就被当作泄漏。问"仅凭图像能预测多少"时，受体不应作为输入；问"临床变量已知时图像还能增加多少"时，受体是必须包含的基线。哪种分析对，取决于问题。
+Receptor status is strongly associated with PAM50 but is not identical to it; immunohistochemistry-based surrogate subtyping and PAM50 can disagree. Correlation alone therefore does not make receptors leakage. Receptors are forbidden inputs when asking what images alone can predict, but belong in the baseline when asking what images add to known clinical information. The question determines the appropriate analysis.
 
-**现象二：方案自己报告的分数经常偏高。** 前三个课程项目反复出现这种情况（第 7 节有具体出处）：选择信号其实是随机种子的噪声、模型没训练到收敛、目标里写明的要求没被检查。更一般地，每个分析方案都自带验证方式，验证越宽松，自报分数越高。例如按切片而不是按病人划分数据；从很多配置里挑最好的一个去和单一基线比；用平滑后的数据当评估目标。只按自报分数选方案，会系统性地选中验证最宽松的那个。
+**Second, plans can overstate their own performance.** Earlier projects repeatedly encountered selection driven by seed noise, models that had not converged, and objective requirements that were never checked (Section 7). Each plan also brings its own validation design. Examples of permissive validation include splitting by slide rather than patient, selecting the best of many configurations against a single baseline, and evaluating against smoothed targets. Selecting solely by self-reported scores can favor plans with the weakest validation.
 
-**这套机制什么时候值得用 [已定]。** 如果问题只有一种标准做法（比如对 bulk RNA 做差异表达分析），就不需要多个方案、试跑和锦标赛。这套机制的价值在复杂问题上：可行的做法很多，彼此差别大，而且越复杂的方法越容易以分数看不出来的方式失败（没训练到收敛、在小样本上过拟合、验证方式有漏洞）。因此本项目的两个任务都要求候选方案以有野心的复杂方法为主，简单方法只作为基线和参照（见 6.2 和 6.5）。
-
----
-
-## 3. 现有工作和空缺 [已有，待重新核对]
-
-以下基于 2026-11-19 的十几组关键词检索。检索不穷尽，多数论文只读了摘要或二手综述，Biomni 正文当时无法访问。**下表对各工作的概括没有逐篇对照原文核实，不能作为确定的事实；论文阶段必须重新核对。**
-
-| 类别 | 代表工作 | 我们理解的做法 |
-|---|---|---|
-| 两两辩论 + Elo 排名 + 进化 | Co-Scientist（Nature 2026）；DEEVO | 候选之间辩论，裁判判胜负并排名 |
-| 按分数搜索 | AIDE、SELA、MLE-STAR；Google ERA | 生成许多方案，执行，保留分数高的 |
-| 用实验反馈排序 | MOOSE-Chem3（NeurIPS 2025） | 用已测假说的结果给其余假说排序 |
-| 生成多条分析路径 | Agentic Garden of Forking Paths；Branchpoint | 量化不同分析路径的结论差异 |
-| 生物医学通用 agent | Biomni（Science 2026） | 工具检索、把代码当作动作、经验库 |
-| 小规模试跑后淘汰 | successive halving、Hyperband | 低预算试跑，淘汰差的 |
-
-指向同一问题的诊断性工作：*Silent failures in agentic data science*（只看下游分数会掩盖泄漏和验证不当）；*BaitBench*（agent 会走能刷高分的捷径）。对我们不利的工作：有研究报告 LLM 判断研究型 agent 执行轨迹的准确率只有五成左右，也有审计发现两两比较是最弱的评判方式。
-
-**如实判断。** 锦标赛赛制不新，试跑后筛选也不新。我们没有找到把"试跑证据"和"对照问题做裁判"结合起来并检验其效果的工作，但这只是"没有找到"。可能站得住的贡献不是机制本身，而是一个可检验的论断加一套带标尺的评估：在真实的生物医学分析问题上，自报分数会虚高多少，以及哪种选择方式能选到在统一口径下真正好的方案。
+**When this mechanism is useful [Confirmed].** A question with one standard solution, such as conventional differential expression analysis of bulk RNA, does not need multiple plans, pilots, and a tournament. The intended setting has many substantially different feasible approaches, with failures that a score alone may conceal: incomplete training, small-sample overfitting, or invalid validation. Both candidate pools therefore emphasize ambitious methods, with simple methods serving as baselines and references (Sections 6.2 and 6.5).
 
 ---
 
-## 4. 两个任务 [已定]
+## 3. Related work and the possible gap [Available; requires rechecking]
 
-两个任务都是真实的科学问题，各带一把现成的标尺：任务一有上限，任务二有下限。输入都是"数据 + 一句自然语言问题"，怎么分析由 agent 决定。
+These notes came from more than a dozen keyword searches on November 19, 2026. The search was not exhaustive; most papers were assessed through abstracts or secondary summaries, and the Biomni full text was unavailable. **The descriptions below have not been checked against every original paper and are not established literature claims. They must be revisited before a research submission.**
 
-### 4.1 任务 M：PBMC Multiome
-
-> 利用配对的 RNA 和 ATAC 数据学习跨模态关系。对于同一供者中未参与训练、仅提供 ATAC 的细胞，哪些基因的 RNA 表达变化能够被可靠预测？
-
-**数据划分（由评测程序掌握）[默认]**
-
-- 质控后的细胞按 70% / 30% 随机分成开发集和隐藏集，固定随机种子。
-- 开发集：agent 能看到 RNA 和 ATAC，自己决定内部如何划分训练和验证。
-- 隐藏集：agent 只能看到 ATAC；RNA 只有评测程序能读。
-- 隐藏集每个细胞的 RNA 读数按二项分布随机拆成 A、B 两半。**所有方法都预测 B。**
-
-**标尺**
-
-| 标尺 | 定义 | 作用 |
+| Category | Examples | Our preliminary understanding |
 |---|---|---|
-| 上限 | 一个能看到隐藏细胞 A 半读数的 RNA 到 RNA 模型，预测 B 半 | 表示测量噪声允许的最好水平 |
-| 下限 1 | ATAC 聚类后，用各簇的平均表达预测 | 只靠细胞类型能预测多少 |
-| 下限 2 | 基因活性：把基因启动子和附近 peak 的读数相加 | 不经学习的经典做法 |
-| 下限 3 | 只用 ATAC 测序深度预测 | 排除深度造成的假相关 |
-| 下限 4 | 简单的学习方法：潜在空间上的岭回归、k 近邻回归、偏最小二乘 | 初级方法能做到多少。它们是基线，不作为候选方案参赛 |
+| Pairwise debate, Elo ranking, and evolution | Co-Scientist (Nature 2026); DEEVO | Candidates debate; a judge determines winners and rankings |
+| Score-based search | AIDE, SELA, MLE-STAR; Google ERA | Generate and execute candidates, then retain high-scoring ones |
+| Ranking with experimental feedback | MOOSE-Chem3 (NeurIPS 2025) | Use tested hypotheses to rank remaining hypotheses |
+| Multiple analysis paths | Agentic Garden of Forking Paths; Branchpoint | Quantify variation in conclusions across analytical choices |
+| General biomedical agents | Biomni (Science 2026) | Tool retrieval, code as actions, and a knowledge library |
+| Elimination after small pilots | Successive halving, Hyperband | Run low-budget trials and eliminate poor performers |
 
-上限不是淘汰线：ATAC 携带的信息可能本来就少于 RNA。淘汰线是下限 1 和下限 2，方案赢不了它们才需要重新考虑。上限用来报告"达到了可预测部分的多少"。
+Diagnostic work considered in the design includes *Silent failures in agentic data science*, on downstream scores concealing leakage and invalid validation, and *BaitBench*, on agents taking shortcuts that inflate scores. Preliminary notes also include unfavorable evidence: reported LLM-judge accuracy near chance for research-agent trajectories and an audit in which pairwise comparison was the weakest judging approach. These observations carry the same verification caveat as the table.
 
-**主指标**：对每个基因，预测值与 B 半实测值（对数归一化后）在隐藏细胞间的 Pearson 相关，记为 r。
-
-**"可靠预测"的定义 [已定：以是否超过细胞类型基线为主结论；阈值规则见 4.3]**
-
-为什么不用"r 显著高于零"当主结论：细胞有几千个，很弱的相关也会显著，几乎所有基因都会通过。Sycamore 上的前置检查（3,000 个细胞、500 个基因，只为确认代码能跑通，不是结果）里，岭回归有 475 个基因通过；同时簇均值基线的中位相关是 0.28，岭回归、k 近邻、偏最小二乘是 0.27 到 0.30，几乎一样。这提示 ATAC 能预测的 RNA 变化大部分只是"这个细胞是什么类型"。所以主结论回答的是：**对哪些基因，ATAC 能预测出细胞类型之外的表达变化。**
-
-- 零分布：把预测值与实测值的细胞对应关系随机打乱，重复多次，得到每个基因在"没有任何预测能力"时 r 的分布。
-- 每个基因归入三类之一：
-  - **无法判断**：上限的 r 没有显著高于零分布。说明这个基因本身测不准。
-  - **没有超过细胞类型基线**：方案的 r 没有显著高于簇均值基线。完全预测不了的基因也归在这里。
-  - **能预测细胞类型之外的变化**：方案的 r 显著高于簇均值基线（按基因做配对自助法，对全部基因做多重检验校正，错误发现率 5%）。这是主结论所指的基因。
-- 簇均值基线的分簇粒度：在开发集内部用交叉验证选，取让基线自身预测最好的粒度，选定后冻结。这样基线尽可能强，比较偏保守；粒度不得在看到隐藏集结果后调整。
-- 基因范围：上限在开发集内部（同样拆分读数）显著高于零分布的基因。只为数值稳定预先去掉检测到的细胞数极少的基因。
-- 描述性地另外报告：r 显著高于零的基因数；每个基因的 r、r 与上限之比；在同一个簇内部计算的 r；以及基因数随阈值变化的曲线。结论不依赖单一切点。
-
-最终答案可能是"能预测细胞类型之外变化的基因很少，甚至没有"。这是合格的发现。这种情况下 6 个候选方案的分数会很接近，选择主要取决于有效性和成本。
-
-**agent 要交付的结果**：隐藏细胞的预测矩阵；它认为"能预测细胞类型之外变化"的基因列表，以及它自己估计的相关性和置信区间。
-
-### 4.2 任务 T：TCGA-BRCA
-
-> 在已有临床信息（包括 ER、PR、HER2）的基础上，加入 H&E 病理图像能否改善 PAM50 四分类预测？增益有多大，证据有多确定？
-
-**队列**：802 个有四分类标签且有诊断切片的病人（LumA 410，LumB 190，Basal 137，Her2 65）。两个比较臂必须用同一批病人、同样的缺失处理。
-
-**标尺**
-
-| 标尺 | 定义 | 作用 |
-|---|---|---|
-| 下限 | 只用临床变量的模型，由评测程序固定并充分调参 | 增益的比较对象 |
-| 简单参照 | 临床变量加病人均值图像特征，逻辑回归 | 初级的融合做法能做到多少。它是基线，复杂方案要和它比 |
-| 参考线 | Project 3 的晚期融合结果（0.723） | 历史参照，不是真值 |
-
-阴性对照（把图像特征在病人之间打乱后重跑）不在作业主流程里，原因见本节末尾，已列入 9.5 的待办。
-
-**评估方式 [默认]**
-
-- 全部 802 人上做重复的嵌套交叉验证（外层 5 折，重复 3 次；模型和配置的选择只在内层进行）。
-- 主指标：macro-F1 的配对差值（图像 + 临床 减 仅临床），用病人级自助法给置信区间。
-- 次要指标：对数损失差值、一对多 AUROC 差值、各类别召回的变化（重点看 LumA 和 LumB）、按采集中心留出的敏感性分析。
-- 结论三选一，只依据增益的 95% 置信区间，不需要额外计算：
-  - **有改善**：置信区间下界大于 0；
-  - **证据不足**：置信区间跨过 0；
-  - **变差**：置信区间上界小于 0。
-- 报告中列出全部 6 个候选方案的增益和置信区间，不只列冠军。
-- 措辞限定为"增量预测价值"，不引申为独立的生物学机制。
-
-**冠军的估计可能偏高，作业阶段不做统计校正 [已定]**
-
-冠军是从 6 个候选里选出来的，而选择和评估用的是同一批 802 人。六个带随机波动的增益里最高的那个，一部分是运气。所以冠军的增益和"有改善"的判定都偏乐观。
-
-严格的校正办法是阴性对照：每次打乱图像后把 6 个方案全部重跑，取最大的增益，用它的分布作为判定标准。它的计算量是 6 个方案 × 15 个外层折 × 内层选择 × 多次打乱，其中用 tile 级特征的方案需要 GPU，而 GPU 需要排队几个小时。在作业期限内不可行，因此舍弃，留到论文阶段。
-
-作业阶段的处理是如实展示：列出全部 6 个方案的结果，并在报告中写明冠军的估计可能偏高。多数方案都显示正的增益时，结论比较可信；只有冠军一个为正时，应判为证据不足。
-
-**已知的背景**：Project 3 的单次划分给出 macro-F1 差值 +0.103（95% 置信区间 −0.020 到 +0.223），AUROC 差值 +0.087（+0.042 到 +0.139）。121 人的测试集不足以回答"有多确定"，这是采用重复交叉验证的原因。只用临床变量时 LumB 的召回只有 0.18，图像的增益可能集中在 LumA 与 LumB 的区分上。
-
-### 4.3 阈值由数据决定的规则 [已定]
-
-判定用的阈值不写死，按下面的规则从数据算出：
-
-| 阈值 | 怎么算 | 用到的数据 |
-|---|---|---|
-| 任务 M："无法判断"的界线 | 打乱细胞对应关系得到的零分布，加多重检验校正 | 与被评估的预测来自同一批细胞 |
-| 任务 M："超过细胞类型基线"的界线 | 方案与簇均值基线的 r 之差，按基因做配对自助法，加多重检验校正 | 与被评估的预测来自同一批细胞 |
-| 任务 M：簇均值基线的分簇粒度 | 开发集内部交叉验证，取基线自身预测最好的粒度 | 只用开发集 |
-| 任务 M：基因范围 | 上限在开发集内部是否高于零分布 | 只用开发集 |
-| 任务 T：结论 | 增益的 95% 置信区间与 0 的关系，没有另设的阈值 | 同一批病人、同一套划分 |
-
-三条约束：
-
-1. **规则在看结果之前定，数值由数据算，算完冻结。** 冻结的数值连同计算记录写入文件并带校验值。
-2. **不允许看了最终结果之后再调。** 需要调整时只能改规则，并且必须重跑、在报告中写明。
-3. **同时报告敏感性。** 给出结论随阈值变化的曲线。
-
-保留的惯例取值只有两个：错误发现率 5% 和 95% 置信水平。
-
-agent 自己在"编译目标"这一步也按同样的规则，从它能看到的数据里算出验收标准；评测程序在隐藏数据上独立再算一次。
-
-### 4.4 稳健性展示 [默认]
-
-每个数据集另配一个替代问题（TCGA："仅凭 H&E 能预测多少 PAM50 信息"；PBMC："能否从 RNA 找回同一细胞的 ATAC"），只运行到"生成方案"为止，不执行。用来展示问题变了之后，允许的输入、对照和指标随之改变。
+**Assessment.** Neither tournaments nor pilot-based selection are new. We did not find a study combining executed pilot evidence with question-conditioned judging and testing its benefit, but failure to find one does not establish novelty. A defensible contribution would be a testable claim and a calibrated evaluation: how much self-reported performance is inflated in real biomedical tasks, and which selection methods choose plans that perform well under a common protocol.
 
 ---
 
-## 5. 评估设计 [已定：框架；默认：具体取值]
+## 4. Two tasks [Confirmed]
 
-### 5.1 三个层次的评价
+Both tasks ask a scientific question and provide reference benchmarks: a ceiling for Task M and a clinical baseline for Task T. The input is data plus a natural-language question; the agent determines the analysis.
 
-| 层次 | 例子 | 能否核实 |
+### 4.1 Task M: PBMC Multiome
+
+> Learn cross-modal relationships from paired RNA and ATAC data. For previously unseen cells from the same donor, with only ATAC available, which genes' RNA expression variation can be predicted reliably?
+
+**Data split, owned by the evaluator [Default]**
+
+- Randomly split quality-controlled cells into 70% development and 30% hidden evaluation cells using a fixed seed.
+- For development cells, the agent sees RNA and ATAC and chooses its internal training and validation design.
+- For hidden cells, the agent sees only ATAC; hidden RNA belongs to the evaluator.
+- Binomially thin each hidden cell's RNA reads into halves A and B. **Every method predicts B.**
+
+**Reference benchmarks**
+
+| Reference | Definition | Purpose |
 |---|---|---|
-| 流程是否合规 | 是否用了问题不允许的输入；是否按病人划分；隐藏数据是否被读取 | 可以明确核实 |
-| 预测是否准确 | 对留出的真实标签、留出的真实 RNA 测量的预测表现 | 可以用观测评价 |
-| 科学结论是否成立 | 图像是否有独立的生物学贡献 | 仅凭这批数据通常不能 |
+| Ceiling | An RNA-to-RNA model observes hidden-cell half A and predicts half B | Approximate the predictability allowed by measurement noise |
+| Floor 1 | Mean expression within ATAC-derived clusters | Measure what cell-type structure alone can predict |
+| Floor 2 | Gene activity from promoter and nearby peak counts | Provide a conventional method without learned prediction |
+| Floor 3 | Prediction from ATAC sequencing depth alone | Separate depth effects from other predictive information |
+| Floor 4 | Latent-space ridge regression, k-nearest-neighbor regression, and partial least squares | Establish elementary learned baselines; these do not otherwise occupy candidate slots |
 
-我们只在前两个层次上下定量结论。
+The ceiling is not a rejection threshold: ATAC may contain less information than RNA. Floors 1 and 2 are the minimum comparators; failure to beat them calls for reconsideration. The ceiling describes the fraction of empirically predictable variation recovered.
 
-### 5.2 统一口径的真实分数
+**Primary metric.** For each gene, Pearson correlation across hidden cells between the prediction and measured half-B expression after log normalization, denoted by r.
 
-每个候选方案都是一个完整的可执行流程。评测程序在统一口径下重新执行每个方案，得到它的真实分数：
+**Definition of reliable prediction [Confirmed: the primary conclusion concerns improvement over the cell-type baseline; see Section 4.3 for threshold rules]**
 
-- 任务 M：在开发集上拟合，在隐藏集上对 B 半打分。
-- 任务 T：在评测程序自己的重复嵌套交叉验证里执行，对照固定的临床基线。
+Why not define reliability as r significantly above zero? With thousands of cells, weak correlations can become significant. In a Sycamore setup check using 3,000 cells and 500 genes—not a final experiment—ridge passed that criterion for 475 genes. Meanwhile, median correlation was 0.28 for cluster means and 0.27–0.30 for ridge, k-NN, and partial least squares. This suggested that much of the predictable RNA variation may simply reflect cell identity. The primary question is therefore: **for which genes can ATAC predict variation beyond the cell-type baseline?**
 
-方案自己报告的分数来自它自带的验证方式。两者之差就是虚高幅度。
+- Construct a per-gene null distribution of r by repeatedly permuting the correspondence between predicted and observed cells.
+- Assign each gene to one of three categories:
+  - **Unjudgeable:** ceiling r is not significantly above the null; the gene cannot be measured reliably enough for this comparison.
+  - **Not beyond the cell-type baseline:** the plan's r is not significantly greater than cluster-mean r. Genes with no predictive signal also belong here.
+  - **Beyond the cell-type baseline:** the plan's r significantly exceeds cluster-mean r under a paired bootstrap by gene and multiple-testing correction across genes at 5% false discovery rate. These genes support the primary conclusion.
+- Select cluster granularity by development-only cross-validation to maximize the cluster baseline's own performance, then freeze it. This makes the comparison conservative; granularity cannot be adjusted after seeing hidden results.
+- Define the gene scope using development-cell read thinning: retain genes whose empirical ceiling is above the null. Remove extremely rarely detected genes beforehand only for numerical stability.
+- Also report descriptively: the number of genes with r above zero, each gene's r and ceiling ratio, within-cluster r, and gene-count sensitivity curves across thresholds. Conclusions should not depend on one cutoff.
 
-### 5.3 指标
+Finding few or no genes beyond the baseline is a valid outcome. If all six candidates perform similarly, validity and cost may dominate selection.
 
-| 指标 | 定义 | 回答的问题 |
+**Agent deliverables:** predictions for hidden cells; a list of genes claimed to be predictable beyond the baseline; and the agent's own correlation estimates and confidence intervals.
+
+### 4.2 Task T: TCGA-BRCA
+
+> Given existing clinical information, including ER, PR, and HER2, does adding H&E pathology improve four-class PAM50 prediction? How large is the improvement, and how certain is the evidence?
+
+**Cohort.** There are 802 patients with four-class labels and diagnostic slides: LumA 410, LumB 190, Basal 137, and Her2 65. Both comparison arms must use the same patients and the same missing-data treatment.
+
+| Reference | Definition | Purpose |
 |---|---|---|
-| 相对标尺的位置 | 任务 M：达到上限的比例，是否超过各下限。任务 T：增益及其置信区间 | 候选方案本身好不好 |
-| 生成差距 | 任务 M：上限 减 候选里真实分数最高的方案 | 方案池的质量 |
-| 选择差距 | 候选里真实分数最高的方案 减 被选中的方案 | 选得对不对 |
-| 虚高幅度 | 自报分数 减 真实分数 | 结论是否如实 |
-| 基因列表的重复率 | 任务 M：agent 报告的"能预测细胞类型之外变化"的基因中，在隐藏集上得到确认的比例 | 发现是否可靠 |
-| 候选方案之间的一致性 | 任务 T：6 个候选中增益为正、置信区间下界大于 0 的各有几个 | 冠军的结论是否只是六选一的运气 |
-| 结论一致性 | agent 的三选一结论与评测程序的结论是否一致 | 结论是否与证据匹配 |
-| 成本 | GPU 时间、CPU 时间、LLM 调用次数和 token 数 | 代价 |
+| Clinical floor | A clinical-only model fixed and thoroughly tuned by the evaluator | Comparator for incremental gain |
+| Simple reference | Clinical variables plus patient-mean image features, with logistic regression | Establish what elementary fusion achieves |
+| Historical reference | Project 3 late fusion, macro-F1 0.723 | Context, not ground truth |
 
-"候选方案都很差"会直接表现为生成差距大或赢不了下限，无法被选择差距掩盖。
+A shuffled-image negative control is outside the main assignment workflow for the computational reasons below and is deferred to Section 9.5.
 
-### 5.4 基准一：全部候选方案全量运行 [已定，包含在一次性运行里]
+**Evaluation [Default]**
 
-agent 跑完之后，评测程序把方案池里的每一个候选方案都在统一口径下全量执行，得到全部真实分数。用它回答：agent 选中的方案是不是全量数据上最好的；如果不是，差多少。
+- Repeated nested cross-validation over all 802 patients: five outer folds and three repeats, with model and configuration selection restricted to inner folds.
+- Primary metric: paired macro-F1 difference, image-plus-clinical minus clinical-only, with patient-level bootstrap confidence intervals.
+- Secondary metrics: log-loss and one-vs-rest AUROC differences, changes in per-class recall with emphasis on LumA and LumB, and sensitivity to holding out collection sites.
+- Three possible conclusions, based on the 95% confidence interval for gain:
+  - **Improvement:** lower bound above zero.
+  - **Insufficient evidence:** interval includes zero.
+  - **Deterioration:** upper bound below zero.
+- Report gains and intervals for all six candidates, not just the champion.
+- Describe incremental predictive value; do not infer an independent biological mechanism.
 
-这一步在 agent 做完选择之后才运行，结果不回流给 agent，不影响 agent 的任何决定。它与 agent 共用同一个执行器，只多花计算时间。
+**The champion's estimate may be optimistic; the assignment does not statistically correct this [Confirmed].**
 
-### 5.5 基准二：与其他选择方法比较 [待办，作业主流程不做]
+Selection and evaluation use the same 802 patients. Selecting among six noisy estimates can favor a result partly due to chance, making the selected gain and improvement conclusion optimistic.
 
-候选方案池、任务约束和证据卡都是冻结并保存的，所以下面的比较之后可以单独做，只需要 LLM 调用，不需要重新计算。
+A rigorous negative-control approach would shuffle image features, rerun all six candidates, and use the distribution of maximum gains. That requires six candidates × 15 outer folds × inner selection × many permutations. The original plan anticipated GPU use for tile-based methods and hours of queueing, making this infeasible within the assignment deadline. It is deferred to the paper stage.
 
-**主流程必须为此保留的内容 [已定]**
+The assignment instead shows every candidate and explicitly acknowledges selection optimism. Broadly positive gains across candidates provide stronger support; an isolated positive champion should be treated as insufficient evidence.
 
-每个任务一个目录，内含一个索引文件，列出下面所有文件的路径和校验值。
+**Existing context.** Project 3's single split gave macro-F1 gain +0.103 (95% CI −0.020 to +0.223) and AUROC gain +0.087 (+0.042 to +0.139). A 121-patient test set cannot establish the gain precisely, motivating repeated cross-validation. Clinical-only LumB recall was 0.18, suggesting that image gains might concentrate on distinguishing LumA from LumB.
 
-| 内容 | 具体保存什么 |
+### 4.3 Rules for data-derived thresholds [Confirmed]
+
+| Threshold | Calculation | Data used |
+|---|---|---|
+| Task M: unjudgeable genes | Cell-permutation null and multiple-testing correction | The cells on which predictions are evaluated |
+| Task M: beyond the cell-type baseline | Paired bootstrap of the per-gene correlation difference, with multiple-testing correction | The cells on which predictions are evaluated |
+| Task M: cluster granularity | Development-only cross-validation maximizing baseline performance | Development data only |
+| Task M: gene scope | Whether the development-set ceiling exceeds the null | Development data only |
+| Task T: conclusion | Position of the 95% gain interval relative to zero | The same patients and splits in both arms |
+
+Three constraints apply:
+
+1. **Specify rules before seeing results, derive values from data, then freeze them.** Store frozen values, computation records, and checksums.
+2. **Do not tune thresholds after inspecting final results.** A change requires changing the rule, rerunning the analysis, and documenting it.
+3. **Report sensitivity.** Show how conclusions vary with thresholds.
+
+The only retained conventional levels are 5% FDR and 95% confidence. During objective compilation, the agent applies the same rules to the data it can see; the evaluator computes them independently on hidden data.
+
+### 4.4 Robustness demonstration [Default]
+
+Each dataset also receives an alternative question: image-only PAM50 prediction for TCGA, and RNA-to-ATAC retrieval of the same cell for PBMC. Run only through plan generation, without execution, to show how permitted inputs, comparators, and metrics change with the question.
+
+---
+
+## 5. Evaluation design [Confirmed framework; default settings]
+
+### 5.1 Three levels of evaluation
+
+| Level | Example | Verifiability |
+|---|---|---|
+| Procedural compliance | Forbidden inputs, patient-level splitting, access to hidden data | Directly checkable |
+| Predictive accuracy | Predictions of held-out labels or RNA measurements | Assessable against observations |
+| Scientific validity | Whether images make an independent biological contribution | Usually not identifiable from these data alone |
+
+Quantitative conclusions are restricted to the first two levels.
+
+### 5.2 Scores under a common protocol
+
+Each candidate is a complete executable workflow. The evaluator executes each under a common protocol to obtain its evaluation score, called the "true score" in the saved records:
+
+- Task M: fit on development cells and score against half B of hidden cells.
+- Task T: execute within the evaluator's repeated nested cross-validation, using the fixed clinical comparator.
+
+Self-reported scores come from each plan's own validation design. Their difference from the common-protocol scores measures inflation.
+
+### 5.3 Metrics
+
+| Metric | Definition | Question answered |
+|---|---|---|
+| Position relative to references | Task M: fraction of ceiling and improvement over floors. Task T: gain and confidence interval | How good is the candidate itself? |
+| Generation gap | Task M: ceiling minus the best candidate's evaluation score | How good is the candidate pool? |
+| Selection gap | Best candidate's evaluation score minus the selected candidate's score | How well did selection work? |
+| Inflation | Self-reported score minus evaluation score | Is reported performance calibrated? |
+| Gene-list replication | Fraction of Task M's claimed genes confirmed on hidden cells | Are the claimed findings reliable? |
+| Agreement across candidates | Task T: numbers with positive gains and with lower confidence bounds above zero | Is the champion's result isolated? |
+| Conclusion agreement | Agreement between the agent's three-way conclusion and the evaluator's | Does the conclusion match the evidence? |
+| Cost | GPU time, CPU time, LLM calls, and tokens | What does the workflow cost? |
+
+A poor candidate pool is visible through a large generation gap or failure to beat the floors; a small selection gap cannot hide it.
+
+### 5.4 Benchmark 1: full evaluation of every candidate [Confirmed; part of the main run]
+
+After the agent has finished, the evaluator runs every candidate at full scale under the common protocol. This determines whether the agent selected the best candidate and, if not, how far behind it was.
+
+Benchmark results are generated only after selection and are not fed back into the agent's decisions. The evaluator shares the executor with the agent; this benchmark adds computation rather than a different modeling implementation.
+
+### 5.5 Benchmark 2: comparison with other selection methods [Deferred]
+
+The candidate pools, task constraints, and evidence cards are frozen and saved. These comparisons can therefore be conducted later using additional LLM calls without rerunning the numerical analyses.
+
+**Records required from the main workflow [Confirmed]**
+
+Each task directory contains an index listing artifact paths and checksums.
+
+| Record | Contents |
 |---|---|
-| 给选择方法的共同输入 | 问题原文；编译后的目标说明；难点清单；任务约束。所有选择方法读同一份 |
-| 每个候选方案的说明 | 结构化字段的完整记录；一份只含文字、不含任何试跑结果的方案描述（供"只读方案文字"的方法使用）；它在三个多样性方向上的取值 |
-| 方案的来历 | 生成它的提示词、模型型号、原始回复；被去重淘汰的候选及淘汰原因 |
-| 可执行配置 | 重新运行该方案所需的全部配置和随机种子 |
-| 合规检查记录 | 每条规则的通过情况。被淘汰的方案也保留 |
-| 证据卡 | 每一条带编号的条目；背后的原始试跑输出（各折分数、训练曲线、耗时） |
-| 自报分数 | 方案在自带验证方式下的分数及波动 |
-| 真实分数（基准一） | 统一口径下的全量结果及置信区间；逐样本的预测（任务 T 的折外预测，任务 M 的预测矩阵），以便之后换指标重算 |
-| 锦标赛记录 | 每场对决两种顺序各自的完整输入、裁决、引用的证据编号、理由、模型型号、token 数、费用、耗时；最终排名 |
-| 成本 | 每个方案试跑和全量运行的 GPU、CPU 时间 |
+| Common selector inputs | Original question, compiled objective, difficulty list, and task constraints; identical for every selector |
+| Candidate descriptions | Complete structured fields, a text-only description without pilot results, and values along the three diversity dimensions |
+| Provenance | Generation prompts, model identifiers, raw responses, discarded duplicates, and reasons for removal |
+| Executable configuration | All settings and seeds needed to rerun the plan |
+| Compliance checks | Outcomes for each rule, including rejected plans |
+| Evidence cards | Numbered entries and underlying pilot outputs: fold scores, training curves, and timings |
+| Self-reported scores | Scores and variation under each plan's own validation design |
+| Benchmark 1 scores | Common-protocol full results and confidence intervals; per-sample predictions, including Task T out-of-fold predictions and Task M prediction matrices, for rescoring later |
+| Tournament records | Both presentation orders for every pair: complete inputs, verdicts, cited evidence IDs, reasoning, model identifier, tokens, cost, and time; final ranking |
+| Compute costs | GPU and CPU time for every candidate's pilot and full run |
 
-所有候选方案都保留，不只是冠军。真实分数与其余内容分开存放：选择方法运行时不得读取真实分数，只有"按真实得分选"这个上限参照例外。
+Keep all candidates, not only the champion. Store evaluation scores separately from selector inputs. Selection methods must not read these scores, except for the explicitly labeled oracle reference.
 
-| 选择方法 | 回答的问题 |
+| Selection method | Purpose |
 |---|---|
-| 随机选 | 下限 |
-| LLM 只读方案文字，直接选 | 不试跑行不行 |
-| 试跑后取分数最高 | 现有 AutoML 类做法 |
-| 固定规则检查 + 取分数最高 | 不用 LLM 裁判行不行 |
-| LLM 辩论，不给证据 | Co-Scientist 式做法 |
-| 把所有证据卡一次性交给 LLM 选 | 有证据就够了，还需要比赛吗 |
-| 证据裁判锦标赛（本项目） | |
-| 直接按真实得分选 | 上限 |
+| Random selection | Lower reference |
+| LLM selects directly from plan text | Is execution evidence necessary? |
+| Highest pilot score | Conventional score-based selection |
+| Fixed rule checks, then highest score | Is an LLM judge necessary? |
+| LLM debate without evidence | Co-Scientist-style comparison |
+| LLM selects after seeing all evidence cards at once | Does pairwise competition add anything beyond evidence? |
+| Evidence-judged tournament | Proposed mechanism |
+| Highest common-protocol evaluation score | Oracle upper reference |
 
-届时所有方法必须拿到相同的方案、相同的任务约束、相同的证据。裁判可靠性（交换顺序、换裁判模型后的一致率）也在这一部分做；其中交换顺序的记录在主流程里已经产生。
+Use the same frozen candidate pool and task constraints, with access to evidence determined by each comparison condition. This stage also assesses judge reliability under changed presentation order and changed judge model. Order-reversal records already exist from the main workflow.
 
-### 5.6 这套评估的局限
+### 5.6 Limitations of this evaluation
 
-1. **规模太小，不能证明锦标赛普遍更好。** 两个任务、每个任务 6 个候选方案，基准一只能逐任务说明选中的方案排第几、差多少。各种选择方法完全可能选出同一个方案，届时如实报告。
-2. **任务 T 的试跑和真实分数用的是同一批病人。** 没有另留隐藏集（样本太少，Her2 只有 65 人）。试跑分数的随机波动与真实分数相关，这会偏向按分数选的方法。论文阶段用外部队列解决。
-3. **任务 M 的上限是经验近似。** 它由一个 RNA 到 RNA 的模型给出，不是理论界。个别基因上 ATAC 方案可能超过它，届时把比例截断为 1 并标记。
-4. **任务 M 的细胞划分是同一供者内的随机划分。** 结论只适用于同一供者内未见过的细胞，不涉及跨供者推广。
-5. **阈值的规则仍是人定的。** 数值由数据算出，但"用打乱得到的零分布""以簇均值为比较对象""分簇粒度怎么选"这些规则本身是选择，在报告中写明并附敏感性曲线。任务 M 同时报告相关的大小和它与上限之比。
-6. **任务 T 冠军的增益偏乐观，且没有阴性对照。** 六选一的偏差在作业阶段不做校正，只通过列出全部候选来展示（见 4.2）。流程"不会无中生有"这一点在作业阶段也没有用打乱实验验证。
-7. **"超过细胞类型基线"依赖基线的强弱。** 分簇越细基线越强。我们取开发集上最强的粒度，结论因此偏保守，可能低估 ATAC 在细胞类型之外的预测能力。
-8. **方案由注册表里的工具组合而成。** 这保证可执行，但限制了方案的多样性。
+1. **The scale cannot establish general tournament superiority.** Two tasks with six candidates each can show the selected rank and gap, but different selectors may choose the same plan.
+2. **Task T pilots and evaluation scores use the same patients.** No extra hidden set is reserved because the cohort is small and contains only 65 Her2 patients. Correlated fluctuations may favor score-based selection. An external cohort is deferred to the paper stage.
+3. **Task M's ceiling is empirical.** It is produced by an RNA-to-RNA model, not a theoretical bound. If an ATAC model exceeds it for a gene, cap the reported fraction at one and flag that gene.
+4. **Task M splits cells within one donor.** Conclusions concern unseen cells from that donor, not cross-donor generalization.
+5. **Threshold rules remain human choices.** Values are data-derived, but permutation tests, cluster-mean comparisons, and granularity selection are methodological choices. State them and report sensitivity, correlation magnitudes, and ceiling ratios.
+6. **Task T's champion is optimistically selected, without a negative control.** Showing all candidates exposes but does not correct selection bias. Shuffling has not established that the full workflow avoids spurious discoveries.
+7. **Beyond-cell-type findings depend on baseline strength.** Finer clusters can yield stronger baselines. Selecting the strongest development-set granularity is conservative and may understate additional ATAC information.
+8. **Plans combine registered tools.** This supports execution but limits diversity.
 
 ---
 
-## 6. Agent 的设计
+## 6. Agent design
 
-同一套代码处理两个数据集，没有针对数据集名称的分支；差异来自数据画像和问题。
+The same overall workflow handles both datasets without branching on dataset names; differences are driven by the data profile and the question.
 
-### 6.1 流程 [已定]
+### 6.1 Workflow [Confirmed]
 
-| 步骤 | 做什么 | 谁来做 | 产物 |
+| Step | Action | Responsible component | Output |
 |---|---|---|---|
-| 1. 画像与诊断 | 读入数据，计算各模态的规模、稀疏度、缺失、配对情况；运行一组定量诊断，每个难点附证据和严重程度 | 确定性代码 | 数据画像，难点清单 |
-| 2. 编译目标 | 把问题转成结构化目标：分析单位、要估计的量、允许和禁止的输入、对照、主指标、验收标准、结论的适用范围 | LLM，经结构校验，带规则回退 | 目标说明 |
-| 3. 生成方案 | 先生成 8 到 10 个候选，去掉过于相似的，保留 6 个完整方案（见 6.2）；检索经验库中与难点相关的条目作为参考；方案池冻结 | LLM 生成，代码去重 | 方案池 |
-| 4. 合规检查 | 淘汰用了禁止输入、划分单位错误或超预算的方案 | 确定性代码 | 检查记录 |
-| 5. 试跑 | 每个方案小规模执行 | 确定性代码 | 证据卡 |
-| 6. 选择 | 两两比较的锦标赛；裁判必须引用证据卡的条目编号 | LLM（与生成方案的模型不同） | 排名和裁决记录 |
-| 7. 全量执行 | 执行冠军方案 | 确定性代码 | 结果 |
-| 8. 复查 | 对照验收标准和标尺检查；不过关时改用次名方案或重新生成一次，仍不过关则如实报告"现有方案都不能回答这个问题" | 确定性代码 + LLM | 复查记录 |
-| 9. 报告 | 按"结论、证据、限制、建议"组织；数字全部从保存的结果中填入并做校验 | LLM 写文字，代码填数字 | PDF 报告 |
+| 1. Profile and diagnose | Measure modality size, sparsity, missingness, and pairing; run quantitative diagnostics with evidence and severity | Deterministic code | Data profile and difficulty list |
+| 2. Compile objective | Specify analysis unit, estimand, allowed and forbidden inputs, comparators, primary metric, acceptance criteria, and scope | LLM with schema checks and rule fallback | Structured objective |
+| 3. Generate plans | Initially propose 8–10 candidates, deduplicate to six complete plans, retrieve relevant know-how, then freeze the pool | LLM generation and code-based deduplication | Candidate pool |
+| 4. Check compliance | Reject forbidden inputs, incorrect splitting units, and budget violations | Deterministic code | Compliance records |
+| 5. Run pilots | Execute every plan at reduced scale | Deterministic code | Evidence cards |
+| 6. Select | Pairwise tournament; every verdict must cite numbered evidence | An LLM different from the generator | Ranking and verdicts |
+| 7. Execute in full | Run the champion | Deterministic code | Results |
+| 8. Audit | Check criteria and reference benchmarks; fall back to the next plan or regenerate once; if still unsuccessful, report that available plans cannot answer the question | Deterministic code and LLM | Audit record |
+| 9. Report | Organize conclusions, evidence, limitations, and recommendations; populate and verify numbers from saved results | LLM prose and code-supplied numbers | PDF report |
 
-### 6.2 一个方案包含什么 [已定]
+### 6.2 What constitutes a plan [Confirmed]
 
-分析单位、可用输入、预处理、模型、验证设计、评价指标、允许得出的结论。方案之间的实质差异应体现在这些方面，而不只是换一个模型。
+A plan specifies the analysis unit, permitted inputs, preprocessing, model, validation design, metrics, and allowable conclusions. Differences should concern these analytical choices, rather than simply changing model names.
 
-**方案数量和多样性 [已定：默认 6 个]**
+**Pool size and diversity [Confirmed: default six candidates]**
 
-每个任务保留 6 个方案（可配置，上限 8）。多样性沿三个方向展开：
+Retain six plans per task, configurable up to eight. Diversity spans three dimensions:
 
-| 方向 | 含义 | 任务 M 的例子 | 任务 T 的例子 |
+| Dimension | Meaning | Task M examples | Task T examples |
 |---|---|---|---|
-| 数据层面 | 用哪些输入、哪种表征、怎么预处理 | 潜在语义索引、基因活性、基因附近的 peak 窗口 | 用哪个或哪几个编码器；tile 级还是病人级特征 |
-| 模型层面 | 模型的类型和容量 | 跨模态翻译网络、MultiVI、顺式调控模型、残差模型 | 注意力或 Transformer 式多实例学习、多编码器融合、层级分类 |
-| 方法层面 | 整体策略 | 按基因分别建模还是联合建模；是否集成 | 早期拼接、晚期融合、以临床输出为偏移量的增量模型；验证设计 |
+| Data | Inputs, representations, preprocessing | LSI, gene activity, peaks near a gene | Encoder choice or combinations; tile- versus patient-level features |
+| Model | Model class and capacity | Translation networks, MultiVI, cis-regulatory and residual models | Attention or Transformer MIL, multi-encoder fusion, hierarchical classification |
+| Strategy | Overall analytical approach | Separate versus joint gene models; ensembles | Early concatenation, late fusion, clinical-offset models, validation design |
 
-生成规则：
+Generation rules:
 
-- **以有野心的方案为主 [已定]。** 6 个方案中至少 4 个必须是复杂方法：深度模型、非线性模型、联合潜变量模型、多组件流程或它们的组合（可选的组件见 6.5）。给 Gemini 的提示词明确要求：按一篇方法学论文会采用的水平来设计，不要停在教科书上的入门做法。
-- **只保留一个简单参照。** 方案池必须包含一个"最简单的有效方案"。它的作用是回答"复杂方法到底多买到了什么"。岭回归、k 近邻、偏最小二乘这类初级方法除此之外不占候选名额，它们放在基线里（任务 M 的下限 4；任务 T 的"病人均值特征加逻辑回归"）。
-- 每个方向上至少出现两种不同的取值。
-- 两个方案在结构化字段上过于相似时只留一个（做法类似 Co-Scientist 的相似度检查）。
-- 去重后不足 6 个时再向 LLM 要一轮，仍不足则按实际数量继续，并记录在案。
+- **Emphasize ambitious plans [Confirmed].** At least four of six must use deep, nonlinear, joint-latent, multicomponent, or combined approaches. The generator is asked to design at the level of a methods paper, beyond introductory textbook methods.
+- **Keep exactly one simplest valid reference.** It establishes what complexity buys. Ridge, k-NN, and PLS otherwise remain baselines, as does patient-mean logistic fusion in Task T.
+- Include at least two distinct settings along each diversity dimension.
+- Keep only one of two plans whose structured fields are too similar, following the idea of a similarity check.
+- If fewer than six remain after deduplication, request another round; if still short, proceed with the available count and record it.
 
-对复杂方案的三条约束：
+Three constraints apply to ambitious plans:
 
-1. **复杂本身不加分。** 裁判的提示词写明：只依据证据卡判断，方法听起来先进不构成理由。
-2. **必须给出训练到位的证据。** 证据卡要有训练曲线和收敛判断，以及与简单参照的直接比较。前三个项目里失败的正是没训练到位的复杂方法（见 7.1）。
-3. **必须声明预算。** 每个方案写明试跑和全量运行需要的 GPU、CPU 时间。默认上限：单个方案的全量运行能在一个 2 小时的短队列作业内完成。
+1. **Complexity earns no credit by itself.** Judges must use evidence, not how advanced a method sounds.
+2. **Provide evidence of adequate training.** Include curves, convergence judgments, and direct comparison with the simple reference. Earlier projects failed on this point (Section 7.1).
+3. **Declare the budget.** State pilot and full-run GPU/CPU requirements. The default cap is a full run fitting within one two-hour short-queue job.
 
-需要如实预期的一点：TCGA 只有 802 个有标签的病人，复杂方法未必赢过简单参照。出现这种情况是一个结果，不是系统的失败，报告里照实写。
+With only 802 labeled TCGA patients, ambitious methods may not beat the simple reference. That is a valid result to report. Six candidates yield 15 pairs, judged in both orders for 30 judge calls.
 
-6 个方案对应全循环赛 15 场对决，每场交换顺序各判一次，共 30 次裁判调用。
+### 6.3 Evidence-card contents [Default]
 
-### 6.3 证据卡包含什么 [默认]
+- Score and variation under the plan's validation design.
+- Comparisons with all required reference benchmarks.
+- Convergence evidence, including whether the end of the learning curve is still improving.
+- Validation facts: splitting unit, fold count, matched sample sizes across arms, tuning effort per arm, and whether targets were smoothed.
+- Time and resource consumption.
 
-- 方案自带验证方式下的分数及其波动；
-- 与各标尺的比较；
-- 是否收敛（训练曲线末段是否仍在下降）；
-- 验证设计的事实：划分单位、折数、两个比较臂的样本量是否一致、各臂的调参次数、评估目标是否经过平滑；
-- 耗时和资源用量。
+Every entry has an ID that the judge must cite.
 
-每一条有编号，裁判引用时必须给出编号。
+### 6.4 Difficulties diagnosed [Default]
 
-### 6.4 诊断层检测的难点 [默认]
-
-| 难点 | 任务 M 中的表现 | 任务 T 中的表现 |
+| Difficulty | Task M | Task T |
 |---|---|---|
-| 测量噪声 | RNA 读数稀疏，决定了上限 | 不适用 |
-| 技术因素混杂 | ATAC 深度与 RNA 深度相关 | 图像特征能预测采集中心（39 个中心） |
-| 类别不平衡 | 最小的细胞类型只有 18 个细胞 | Her2 只占 8% |
-| 样本少、特征多 | 不突出 | 802 人对 768 到 2560 维 |
-| 缺失 | 无 | HER2 缺失约 16% |
-| 层级结构 | 无 | 66 个病人有多张切片 |
-| 强基线 | 细胞类型解释了大部分可预测变化 | 受体本身已很有预测力 |
-| 标签来源 | 细胞类型标注来自联合两个模态的聚类，不能用作评估依据 | PAM50 由 RNA 导出，不得使用任何 RNA 来源的输入 |
-| 多重比较 | 几千个基因 | 多个编码器乘多种融合方式 |
-| 统计功效 | 充足 | 不足，需要事先计算最小可检测差异 |
+| Measurement noise | Sparse RNA counts constrain predictability | Not applicable |
+| Technical confounding | Correlation between ATAC and RNA depth | Image features can predict collection site; 39 sites in the source cohort |
+| Class imbalance | Smallest annotated cell type has 18 cells | Her2 accounts for 8% |
+| Small sample, many features | Less prominent | 802 patients versus 768–2560 features |
+| Missingness | None | Approximately 16% missing HER2 |
+| Hierarchy | None | 66 patients have multiple slides |
+| Strong baseline | Cell type explains much of the predictable variation | Receptors are already highly predictive |
+| Label provenance | Cell-type annotations derive from joint clustering and cannot independently validate cross-modal prediction | PAM50 derives from RNA; RNA-derived predictors are forbidden |
+| Multiple comparisons | Thousands of genes | Encoders multiplied by fusion strategies |
+| Statistical power | Relatively ample | Limited; estimate the minimum detectable difference beforehand |
 
-### 6.5 工具注册表 [默认]
+### 6.5 Tool registry [Default]
 
-注册表分两层。候选方案主要由第二层的组件构成；第一层用于基线、简单参照和预处理。
+The registry has two tiers. Candidates primarily use the ambitious tier; basic tools support preprocessing, baselines, and the simple reference.
 
-**任务 M**
+**Task M**
 
-| 层 | 组件 |
+| Tier | Components |
 |---|---|
-| 基础 | TF-IDF 与潜在语义索引；基因活性打分；簇均值预测；岭回归、偏最小二乘、k 近邻回归 |
-| 有野心的 | 残差模型：先用簇均值预测，再让非线性模型学习细胞类型之外的偏差，直接对准主结论 |
-| | 顺式调控模型：每个基因用它附近窗口内的 peak，加上全局细胞状态，用梯度提升或小型神经网络建模 |
-| | 跨模态翻译网络：ATAC 编码、RNA 解码，对全部基因联合训练，用计数似然 |
-| | 联合潜变量模型：训练到收敛的 MultiVI，为只有 ATAC 的细胞补全表达；或 PeakVI 潜变量加预测头 |
-| | 对比预训练加预测头：先在开发集上对齐两个模态，再预测 |
-| | 去噪目标：训练时以邻近细胞合并后的 RNA 为目标来降低噪声（只用训练细胞；评估仍对未平滑的 B 半） |
-| | 多任务输出：带基因嵌入或低秩结构的联合预测 |
-| | 堆叠集成：用折外预测把不同类型的模型组合起来 |
+| Basic | TF-IDF and LSI; gene activity; cluster-mean prediction; ridge, PLS, and k-NN regression |
+| Ambitious | Residual models: predict cluster means, then learn deviations with a nonlinear model to target variation beyond cell type |
+| | Cis-regulatory models: nearby peaks plus global cell state, using boosting or small neural networks |
+| | Cross-modal translation: ATAC encoder and RNA decoder, jointly trained across genes with a count likelihood |
+| | Joint latent models: adequately trained MultiVI for ATAC-only expression imputation, or PeakVI latents with a prediction head |
+| | Contrastive pretraining on development cells followed by prediction |
+| | Denoising targets pooled from neighboring training cells; evaluation still uses unsmoothed half B |
+| | Multitask outputs with gene embeddings or low-rank structure |
+| | Stacking different model families using out-of-fold predictions |
 
-**任务 T**
+**Task T**
 
-| 层 | 组件 |
+| Tier | Components |
 |---|---|
-| 基础 | 五个编码器的 tile 级、切片级、病人级特征；病人均值聚合；主成分降维；多项逻辑回归；类别加权；折内缺失处理；按病人和按采集中心的划分 |
-| 有野心的 | 多实例学习：门控注意力、多头注意力、Transformer 式的 tile 聚合 |
-| | 多编码器融合：在 tile 级或病人级对五个基础模型做注意力或门控融合 |
-| | 形态原型特征：对 tile 聚类，用各类形态的占比描述一个病人 |
-| | 临床与图像的条件融合：交叉注意力，或用临床变量调制图像分支 |
-| | 增量模型：以临床模型的输出为偏移量，让图像分支只学临床解释不了的部分，直接对准"增量价值" |
-| | 层级分类：先分大类，再用图像专门区分 LumA 与 LumB（临床变量在这一对上最弱） |
-| | 利用无标签病人做聚合器的自监督预适应（必须在折内进行，或在方案中明确声明用到了哪些病人） |
-| | 特征层面的增强（tile 重采样、混合）；梯度提升；堆叠集成 |
+| Basic | Tile-, slide-, and patient-level features from five encoders; patient means; PCA; multinomial logistic regression; class weighting; fold-local imputation; patient and site splits |
+| Ambitious | Gated-attention, multi-head, and Transformer MIL over tiles |
+| | Attention or gated fusion of five foundation-model encoders at tile or patient level |
+| | Morphology prototypes: tile clusters and patient-level proportions |
+| | Clinical-conditioned image fusion through cross-attention or feature modulation |
+| | Incremental models with clinical predictions as an offset, learning residual information from images |
+| | Hierarchical classification with a specialized LumA-versus-LumB branch |
+| | Self-supervised aggregator pre-adaptation using unlabeled patients, within folds or with explicit disclosure of included patients |
+| | Feature-level augmentation, tile resampling, mixing, gradient boosting, and stacking |
 
-**注册表可以按方案扩充 [已定]。** 方案池冻结之前，Gemini 可以提出注册表里没有的组件。搭建者在预算内把它实现并加入注册表；实现不了或超预算的，记录提议内容和拒绝原因。方案池冻结之后不再增加组件。不允许的仍然是让 LLM 在运行时自由生成并执行代码。
+**Registry expansion [Confirmed].** Before pool freeze, Gemini may propose unregistered components. The implementer may add them within budget; otherwise record the proposal and rejection reason. No components are added after freeze. The LLM may not freely generate and execute code at runtime.
 
-### 6.6 三个亮点在作业阶段的范围 [默认，与此前"三个亮点都加进来"相比有收缩]
+### 6.6 Scope of the three principal components [Default]
 
-| 亮点 | 作业阶段 | 论文阶段 |
+This is narrower than the earlier proposal to include all three components in full.
+
+| Component | Assignment | Paper stage |
 |---|---|---|
-| 难点诊断 + 复查 | 完整实现 | 加消融 |
-| 证据裁判的锦标赛 | 完整实现：全循环赛，Bradley–Terry 排名，双向顺序 | 加多轮进化和方案合并 |
-| 经验库 | 静态只读文件，内容是前三个项目的失败记录，按难点标签检索 | 加自动写回，并评估它是否造成"开卷" |
+| Difficulty diagnosis and audit | Full implementation | Ablation studies |
+| Evidence-judged tournament | Round robin, Bradley–Terry ranking, both presentation orders | Multiple evolutionary rounds and plan merging |
+| Know-how library | Static read-only failures from prior projects, retrieved by difficulty tags | Automatic write-back and assessment of whether prior answers make evaluation effectively open-book |
 
-不做：自由生成代码的步骤；从文献自动挖掘工具。
+Free-form code generation and automatic literature-based tool discovery are outside this scope.
 
-### 6.7 LLM 的使用 [已定：分工；已有：可用性实测]
+### 6.7 LLM use [Confirmed roles; availability tested]
 
-生成和裁判用不同厂商的模型，避免模型偏袒自己写的内容。
+Use different vendors for generation and judging to reduce preference for a model's own writing.
 
-| 角色 | 模型 | 调用方式 | 备用 |
+| Role | Model | Interface | Fallback |
 |---|---|---|---|
-| 编译目标、生成方案、写报告 | Gemini 4 Carbon（`gemini-4-carbon`），Google 文档称其为最强的推理型号 | Gemini 接口 | 不设备用模型：单次上限 6 分钟，超时就重试，直到得到答复（规则见下） |
-| 裁判、复查中的审阅 | Claude Opus 5.5（`claude-opus-5-5`） | Claude Code 的非交互模式，使用本机已有的登录 | Hugging Face 路由上的 `Qwen/Qwen3.8-2.4T-A95B` 或 `deepseek-ai/DeepSeek-V4-Pro`（都是带推理的文本模型） |
+| Objective compilation, plan generation, report prose | Gemini 4 Carbon (`gemini-4-carbon`), described in the original planning notes as Google's strongest reasoning model | Gemini API | No alternate generator; retry after a six-minute timeout |
+| Tournament judging and audit review | Claude Opus 5.5 (`claude-opus-5-5`) | Noninteractive Claude Code using the existing local login | `Qwen/Qwen3.8-2.4T-A95B` or `deepseek-ai/DeepSeek-V4-Pro` through the Hugging Face router |
 
-2026-11-24 在 Longleaf 上实测：上表所有型号都正常返回，Gemini 4 Carbon 约 11 秒，Claude Opus 5.5 约 4 秒。此前提到的 `Qwen3-VL-8B` 是视觉模型，不使用。
+Longleaf checks on November 24, 2026 returned successfully for every listed model: approximately 11 seconds for Gemini and four seconds for Claude. The previously mentioned `Qwen3-VL-8B` is a vision model and is not used.
 
-2026-11-25 在 Sycamore 上实测：Claude Opus 5.5 和 Hugging Face 上的两个型号每次都正常返回（1 到 8 秒）。Gemini 4 Carbon 不稳定：15 次调用里 7 次在 4 到 48 秒内返回，8 次一直不返回，其中一次等了 400 秒。同一密钥下的其他 Gemini 型号每次都在几秒内返回，所以问题在这个型号的服务端，不在 Sycamore 的网络。
+Sycamore checks on November 25 returned successfully for Claude and both Hugging Face models in 1–8 seconds. Gemini 4 Carbon was intermittent: seven of 15 calls returned in 4–48 seconds; eight did not return, including one observed for 400 seconds. Other Gemini models using the same key returned within seconds, suggesting a model-service issue rather than Sycamore connectivity.
 
-**Gemini 4 Carbon 的调用规则 [已定]**
+**Gemini calling rules [Confirmed]**
 
-- 编译目标、生成方案、写报告只用 Gemini 4 Carbon，不自动切换到其他模型。方案的质量依赖它充分推理，宁可等，不降级。
-- 单次调用最多等 6 分钟。到上限就放弃这一次并重新发起，直到得到答复。每次超时和重试都记入日志。
-- 代价 [估计]：按上面的实测，约一半的调用会挂住，每次挂住要等满 6 分钟。两个任务合计约 30 次生成侧调用，等待时间要按小时计。
+- Use only Gemini 4 Carbon for compilation, planning, and report prose. Preserve the selected reasoning level rather than automatically switching models.
+- Wait at most six minutes per attempt, then retry until a response arrives. Log every timeout and retry.
+- Estimated planning cost: with roughly half the test calls hanging, about 30 generation calls across both tasks could entail hours of waiting.
 
-**关于 Claude 裁判的说明**
+**Claude judge setup**
 
-- 没有 Anthropic 的 API 密钥，环境里也没有对应的 SDK。裁判通过 Claude Code 自带的命令行以非交互方式调用。这种方式在 Longleaf 上验证可行；正式运行在 Sycamore 上，需要在那里重新找到命令行的位置并试调用一次。
-- 调用时使用自定义系统提示、关闭全部工具、不加载用户设置和项目记忆、不保存会话，并在一个空目录里运行。这样裁判只看到我们给它的方案和证据卡。
-- 这种调用只能在已登录 Claude Code 的机器上进行，所以 LLM 调用统一由登录节点上的控制进程发出，计算通过 Slurm 提交。
-- 如果之后有了 Anthropic 的 API 密钥，换成官方 SDK 只需改一处配置。
-- Claude Opus 5.5 不接受温度参数，裁判的稳定性靠每场对决交换顺序判两次来衡量。
+- No Anthropic API key or corresponding SDK was available. Use Claude Code's noninteractive CLI, tested on Longleaf and rechecked on Sycamore before the formal run.
+- Supply a custom system prompt, disable all tools, omit user settings and project memory, disable session persistence, and run from an empty directory. The judge should see only the supplied plans and evidence.
+- Calls require an existing Claude Code login. The login-node controller makes LLM calls while submitting numerical computation through Slurm.
+- An official SDK can replace the CLI interface when an Anthropic key becomes available.
+- The selected Claude model does not accept a temperature parameter; assess stability by reversing presentation order for each pair.
 
-**通用规则**
+**Common rules**
 
-- 所有调用经过统一的客户端：重试与退避、按提示词哈希缓存。备用模型链只用于裁判一侧。
-- 缓存的回复随代码一起提交。**没有密钥、没有登录时，一条命令可以用缓存完整重现。**
-- 提示词在正式运行前冻结。
-- 发给外部服务的只有汇总统计、方案文本和证据卡，不发送病人级或细胞级记录。
-- 每个任务约 45 次调用（其中裁判 30 次），两个任务合计约一百次。
+- Route all calls through one client with retries, backoff, and prompt-hash caching. Fallback models apply only to judging.
+- Submit cached answers with the code so LLM responses can be replayed without keys or login. Numerical execution still requires the stated data and environment.
+- Freeze prompts before the formal run.
+- Send only aggregate statistics, plan text, and evidence cards to external services, never patient- or cell-level records.
+- The original estimate was about 45 calls per task, including 30 tournament judgments, or approximately 100 calls overall.
 
 ---
 
-## 7. 已有的资源 [已有]
+## 7. Existing resources [Available]
 
-### 7.1 前三个项目
+### 7.1 Previous projects
 
-| 项目 | 任务 | 数据 | 最终结果 |
+| Project | Task | Data | Final outcome |
 |---|---|---|---|
-| Agent 1 | 降维，10 种方法 | PBMC3k，PathMNIST | PBMC3k 入选 PCA、MDS、t-SNE；PathMNIST 入选 PCA、MDS、t-SNE、UMAP |
-| Agent 2 | 生成模型，5 种 | PathMNIST，PBMC3k | PathMNIST：不建议使用合成数据；PBMC3k：谨慎使用 scVI |
-| Agent 3 | 多模态表征学习 | PBMC Multiome，TCGA-BRCA | PBMC 选中 CLIP 双塔，macro-F1 0.925；TCGA 选中晚期融合，macro-F1 0.723 |
+| Agent 1 | Dimensionality reduction, ten methods | PBMC3k, PathMNIST | Selected PCA, MDS, and t-SNE for PBMC3k; PCA, MDS, t-SNE, and UMAP for PathMNIST |
+| Agent 2 | Five generative models | PathMNIST, PBMC3k | Synthetic data not recommended for PathMNIST; cautious use of scVI for PBMC3k |
+| Agent 3 | Multimodal representation learning | PBMC Multiome, TCGA-BRCA | Selected dual-tower CLIP for PBMC, macro-F1 0.925; late fusion for TCGA, macro-F1 0.723 |
 
-**继承的优点**：类型化的数据画像和目标描述；方法注册表；试跑；测试前冻结方案；测试数据只在一处读取；报告数字对应到保存的证据；一条命令运行；允许给出否定结论。
+**Inherited strengths:** typed profiles and objectives, method registries, pilot runs, frozen plans before testing, one controlled test-data entry point, report numbers tied to saved evidence, single-command execution, and acceptance of negative conclusions.
 
-**反复出现、Agent 4 要解决的问题**
+**Recurring problems Agent 4 seeks to address**
 
-| 问题 | 出处 | 表现 |
+| Problem | Source | Observation |
 |---|---|---|
-| 选择由噪声决定 | Agent 1 第一版 | 输入相同的两次运行选出不同方法，原因是不到一秒的运行时间差 |
-| | Agent 2 第一版 | 判定阈值 0.01，而换随机种子的波动约 0.25 |
-| 模型没训练到位 | Agent 2 第一版 | 四个生成模型合计训练约 1 分钟，样本是噪声 |
-| | Agent 3 | MultiVI 只训练 50 个 epoch，无早停 |
-| 目标的要求没被检查 | Agent 3 | 目标要求联合表征的结构不差于单模态；选中的 CLIP 聚类 ARI 0.528，低于 RNA 单模态的 0.613 |
-| 标注或实现有误 | Agent 3 | 名为"ATAC 解码"的基线实际返回 RNA 主成分；WNN 实现与 Seurat 结果重合度仅 0.195 |
-| 不平衡未处理 | Agent 3 | 融合头用未加权交叉熵，Her2 召回 0/10 |
-| 规划只是过滤 | 三个项目 | 基于规则的适用性过滤，没有 LLM，不比较不同的分析思路 |
-| 报告是证据堆砌 | 三个项目 | 数字齐全，缺少解释和结论 |
-| 过度工程 | Agent 3 | 运行时替换第三方库函数；流程脚本写死两个数据集 |
+| Noise-driven selection | Agent 1, first version | Identical inputs produced different selections because runtime differed by less than a second |
+| | Agent 2, first version | A 0.01 decision threshold was used despite variation of about 0.25 across seeds |
+| Inadequate training | Agent 2, first version | Four generative models trained for about one minute in total and produced noise |
+| | Agent 3 | MultiVI trained for only 50 epochs without early stopping |
+| Unchecked objective requirements | Agent 3 | Joint structure was required to match the better unimodal representation, but selected CLIP had clustering ARI 0.528 versus RNA's 0.613 |
+| Labeling or implementation errors | Agent 3 | The purported ATAC-decoder baseline returned RNA principal components; WNN graph overlap with Seurat was only 0.195 |
+| Unhandled imbalance | Agent 3 | The fusion head used unweighted cross-entropy and achieved Her2 recall 0/10 |
+| Planning reduced to filtering | All three projects | Rule-based applicability checks, no LLM, and no comparison of different analytical strategies |
+| Reports assembled evidence without interpretation | All three projects | Numbers were present but explanations and conclusions were weak |
+| Excessive engineering | Agent 3 | Runtime replacement of third-party functions and dataset-specific workflow scripts |
 
-### 7.2 数据
+### 7.2 Data
 
-| | PBMC Multiome | TCGA-BRCA |
+| Property | PBMC Multiome | TCGA-BRCA |
 |---|---|---|
-| 分析单位 | 细胞 | 病人 |
-| 规模 | 11,909 个细胞，单一供者 | 1,061 个有切片的病人，1,132 张切片，39 个采集中心 |
-| 模态 | RNA（36,601 个基因）、ATAC（108,377 个 peak），逐细胞配对 | H&E 全切片图像；6 个临床变量 |
-| 标签 | 19 种细胞类型（来自联合聚类的人工标注） | PAM50 四分类，802 人 |
-| 附带文件 | peak 注释（启动子或远端、对应基因、距离） | 生存数据 |
+| Analysis unit | Cell | Patient |
+| Source-cohort size | 11,909 cells from one donor | 1,061 patients, 1,132 slides, 39 collection sites |
+| Modalities | Paired RNA: 36,601 genes; ATAC: 108,377 peaks | H&E whole-slide images and six clinical variables |
+| Labels | 19 cell types, manually annotated from joint clustering | Four PAM50 classes for 802 patients |
+| Additional files | Peak annotation: promoter/distal status, gene, distance | Survival information |
 
-Agent 3 已生成的病人级临床表和切片清单可以只读复用。
+Agent 3's patient-level clinical table and slide manifest can be reused read-only.
 
-### 7.3 病理图像表征库
+### 7.3 Pathology feature bank
 
-位置：`../Agent3_RepresentationLearning/outputs/tcga_brca_hw4_feature_bank/`，2026-11-22 完成并通过校验。
+Location: `../Agent3_RepresentationLearning/outputs/tcga_brca_hw4_feature_bank/`. Extraction and validation completed November 22, 2026.
 
-| 编码器 | 维度 |
+| Encoder | Dimensions |
 |---|---|
 | UNI2-h | 1536 |
 | CONCH-Z | 768 |
@@ -478,245 +472,247 @@ Agent 3 已生成的病人级临床表和切片清单可以只读复用。
 | MUSK | 1024 |
 | H-Optimus-1 | 1536 |
 
-五个编码器使用相同的 tile 坐标和顺序：135,911 个 tile，每张切片最多 128 个（中位数 123，最少 6）。有 tile 级、切片级均值、病人级均值三个粒度。新增的三个编码器尚未跑过任何下游模型。
+All five encoders use identical tile coordinates and ordering: 135,911 tiles, at most 128 per slide, median 123, minimum six. Tile features, slide means, and patient means are available. At the time of the original design, the three newly added encoders had not yet been used in downstream models.
 
-### 7.4 环境和计算
+### 7.4 Environment and computation
 
-- 软件：沿用 Project 3 的 conda 环境（Python 3.11，scanpy、muon、scvi-tools、PyTorch、scikit-learn、WeasyPrint 等）。环境中没有 LLM 的客户端库，用已有的 HTTP 库直接调用接口。目前不需要新增依赖；确需新包时直接装进这个环境（见 9.0）。
-- 计算在 Sycamore 的 H100 上进行，预计不到 10 GPU 小时。任务 T 基于缓存特征，主要是 CPU；任务 M 的神经网络模型需要一块 GPU。
-- LLM：Gemini 密钥和 Hugging Face 推理令牌都已验证可用；服务不稳定（测试时较大的模型返回 503 或超时）。
+- Reuse Project 3's conda environment: Python 3.11, scanpy, muon, scvi-tools, PyTorch, scikit-learn, WeasyPrint, and related packages. No LLM client libraries are installed; use existing HTTP libraries. No new dependencies were initially needed. If necessary, install new packages into that environment under the rules in Section 9.0.
+- The original plan anticipated fewer than ten GPU-hours on Sycamore H100s. Task T mostly uses CPU with cached features; Task M neural models were expected to need one GPU. Actual compute use is recorded in Section 9.6.
+- Gemini and Hugging Face credentials were tested successfully. Service availability was intermittent, with large models sometimes returning HTTP 503 or timing out.
 
 ---
 
-## 8. 作业与论文的关系 [已定]
+## 8. Relationship between the assignment and the paper [Confirmed]
 
-| | 作业（2026-11-30 前） | 论文（之后） |
+| Aspect | Assignment, by November 30, 2026 | Later paper |
 |---|---|---|
-| 系统 | 第 6 节的流程完整跑通 | 同一套系统 |
-| 任务 | 两个真实任务，各带标尺 | 更多数据集、新供者、外部队列、新的任务类型 |
-| 要展示的事 | 系统能根据问题改变方案并完成有解释价值的分析；自报分数与真实分数的差距 | 证据选择机制在什么条件下比强基线更可靠 |
-| 验证选择是否正确 | 基准一：全部候选全量运行，看选中的方案排第几 | 同上，规模更大 |
-| 选择方法的比较 | 不在主流程里，列入待办（基准二） | 多个 LLM、多次重复、统计检验、人工盲评 |
+| System | Complete Section 6 workflow | Same system |
+| Tasks | Two real tasks with reference benchmarks | Additional datasets, donors, external cohorts, and task families |
+| Main demonstration | Question-dependent planning and interpretable analyses; self-reported versus evaluation scores | Conditions under which evidence-based selection is more reliable than strong baselines |
+| Selection evaluation | Benchmark 1: run all candidates and locate the selected plan in the ranking | Same design at larger scale |
+| Selector comparison | Deferred Benchmark 2 | Multiple LLMs, repeated runs, statistical tests, and blinded human assessment |
 
-**论文阶段的扩展**
+**Paper-stage extensions**
 
-| 扩展 | 要检验的问题 |
+| Extension | Question tested |
 |---|---|
-| 相同证据下，一次性选择对两两比较 | 锦标赛形式是否有额外价值 |
-| 相同候选，有无执行证据 | 收益是否来自真实执行反馈 |
-| 有无目标诊断、有无经验库 | 每个模块是否有独立贡献 |
-| 候选质量不同：全有效、混合、全无效 | 能否选好方案，同时避免一律拒绝 |
-| 受控的陷阱任务及其干净版本 | 针对特定错误的检出能力；陷阱必须有可观测的线索或在目标中说明 |
-| 模拟数据 | 信号强度、冗余、互补和混杂程度对选择的影响 |
-| 不同裁判、顺序和预算 | 收益是否稳定，成本是否值得 |
+| Direct selection versus pairwise comparison with identical evidence | Does the tournament format add value? |
+| Identical candidates with and without executed evidence | Does the benefit come from execution feedback? |
+| With and without objective diagnosis or know-how retrieval | Does each component contribute independently? |
+| Pools of valid, mixed, and entirely invalid candidates | Can the system choose well without rejecting everything? |
+| Controlled traps and matched clean tasks | Can it detect specific errors? Traps must have observable clues or be specified in the objective |
+| Simulated data | How do signal strength, redundancy, complementarity, and confounding affect selection? |
+| Different judges, orders, and budgets | Are gains stable and worth the cost? |
 
-**决定是否投入论文的两个结果**，作业做完即可看到：规则检查后取最高分是否与锦标赛选得一样好；裁判换个顺序是否就改判。
+Two useful indicators for deciding whether to pursue a paper are whether rule checks followed by highest-score selection perform as well as the tournament, and whether reversing presentation order changes judgments. The latter is measured in the main run; the full selector comparison remains deferred.
 
 ---
 
-## 9. 构建计划 [默认]
+## 9. Implementation plan [Default]
 
-### 9.0 给接手者的说明 [已定：在 Sycamore 上运行]
+### 9.0 Handoff notes [Confirmed: run on Sycamore]
 
-本文档写于 Longleaf。正式的搭建和运行由 Sycamore 上的 Claude 会话读完本文档后进行，因为那里有 H100 GPU。两个集群共用 `/vast` 下的同一套路径。
+The original design was written on Longleaf for implementation by a Claude session on Sycamore, where H100 GPUs are available. Both clusters share the same `/vast` paths.
 
-| 事项 | 内容 |
+| Item | Setting |
 |---|---|
-| 工作目录 | `/vast/som/yunligrp/users/ygao/BIOS774Agent/Agent4_ComplexGeneral` |
-| 集群用法 | 与 Project 3 相同，见 `../Agent3_RepresentationLearning` 的 README 和 `docs/`：Slurm 账户 `h100_harlin`，分区 `h100_short`（不超过 2 小时）、`h100_priority`、`h100_preempt` |
-| GPU 用量 | 沿用 Project 3 的约定：设总量上限并记账，同时最多 2 块 |
-| Python 环境 | `/vast/som/yunligrp/users/ygao/conda/envs/agent3`，运行时设 `PYTHONNOUSERSITE=1`。需要新的 Python 包时直接装进这个环境，不另建环境，也不装到用户目录。Project 3 的结果依赖这个环境，所以安装前先确认不会改动已有包的版本，并记录新增了什么 |
-| R 环境 | `module load r/4.6.0`。需要新的 R 包时装到 `~/R/x86_64-pc-linux-gnu-library/4.6`。目前的方案不使用 R |
-| LLM 密钥 | Sycamore 上在 `~/api.env`，含 `GEMINI_API_KEY` 和 `HF_TOKEN`。只读取，任何时候不得打印 |
-| PBMC 数据 | `../data/pbmc_granulocyte_sorted_10k/` |
-| TCGA 临床表和切片清单 | `../Agent3_RepresentationLearning/outputs/tcga_brca/preprocess/`（只读） |
-| 病理表征库 | `../Agent3_RepresentationLearning/outputs/tcga_brca_hw4_feature_bank/`（只读） |
+| Working directory | `/vast/som/yunligrp/users/ygao/BIOS774Agent/Agent4_ComplexGeneral` |
+| Cluster conventions | Follow Project 3's README and `docs/`: Slurm account `h100_harlin`; partitions `h100_short` (up to two hours), `h100_priority`, and `h100_preempt` |
+| GPU limits | Follow Project 3's accounting convention: set a total budget, log usage, and use at most two GPUs simultaneously |
+| Python environment | `/vast/som/yunligrp/users/ygao/conda/envs/agent3`; set `PYTHONNOUSERSITE=1`. Install necessary additions here, not in a new environment or user site. Check that additions do not change existing package versions, because Project 3 depends on them, and record additions |
+| R environment | `module load r/4.6.0`; install additional R packages into `~/R/x86_64-pc-linux-gnu-library/4.6`. Current plans do not use R |
+| LLM credentials | `~/api.env` on Sycamore, containing `GEMINI_API_KEY` and `HF_TOKEN`. Read only; never print values |
+| PBMC data | `../data/pbmc_granulocyte_sorted_10k/` |
+| TCGA clinical table and slide manifest | `../Agent3_RepresentationLearning/outputs/tcga_brca/preprocess/`, read-only |
+| Pathology features | `../Agent3_RepresentationLearning/outputs/tcga_brca_hw4_feature_bank/`, read-only |
 
-开工后先做四件事：
+Initial setup checks:
 
-1. 找到 Sycamore 上 Claude Code 命令行的位置，按 6.7 的方式试调用一次 `claude-opus-5-5`，记录耗时和费用。
-2. 用 `~/api.env` 试调用一次 `gemini-4-carbon`。
-3. 确认计算节点能否访问外网。
-4. 确认上表各路径在 Sycamore 上可读。
+1. Locate Claude Code on Sycamore, test `claude-opus-5-5` as described in Section 6.7, and record time and cost.
+2. Test `gemini-4-carbon` using the local credentials.
+3. Verify outbound network access from compute nodes.
+4. Verify that the listed data paths are readable.
 
-任何一项不通，先按 6.7 的备用方案处理并记录在案，不要停下来。
+If a check fails, use the applicable fallback in Section 6.7 and document the issue while continuing other work.
 
-### 9.1 目录结构
+### 9.1 Directory structure
 
-```
+The original design separates responsibilities as follows; Section 9.6 lists the actual output locations.
+
+```text
 Agent4_ComplexGeneral/
   README.md  pyproject.toml  Makefile
-  config/        数据集说明、问题文本、LLM 与预算配置
-  knowhow/       经验库条目（静态）
+  config/        Dataset descriptions, questions, LLM and budget configuration
+  knowhow/       Static experience entries
   src/agent4/
-    schemas      数据画像、目标说明、方案、证据卡、裁决的类型定义
-    profile/     画像
-    diagnose/    诊断
-    objective/   目标编译
-    planning/    方案生成与合规检查
-    tools/       工具注册表（预处理、模型、融合、验证）
-    pilot/       试跑与证据卡
-    select/      锦标赛与排名（其他选择方法留接口，见待办）
-    execute/     全量执行
-    audit/       复查
-    report/      报告
-    llm/         客户端、缓存、重放
-  bench/         评测程序：数据划分、读数拆分、标尺、统一口径打分、选择方法对比
-  scripts/       一条命令的入口和 Slurm 脚本
+    schemas      Types for profiles, objectives, plans, evidence, and verdicts
+    profile/     Data profiling
+    diagnose/    Difficulty diagnosis
+    objective/   Objective compilation
+    planning/    Plan generation and compliance
+    tools/       Registry: preprocessing, models, fusion, validation
+    pilot/       Pilot execution and evidence cards
+    select/      Tournament and ranking; interfaces for later selectors
+    execute/     Full execution
+    audit/       Final checks and review
+    report/      Report generation
+    llm/         Client, caching, and replay
+  bench/         Splits, read thinning, references, common scoring, comparisons
+  scripts/       Single-command entry points and Slurm scripts
   templates/  tests/  outputs/  reports/  submission/
 ```
 
-评测程序与 agent 分属两个包。agent 的代码无法取得隐藏数据的路径，并有测试保证这一点。
+The evaluator and agent are separate packages. Tests check that agent code does not import the evaluator or name hidden-data locations.
 
-### 9.2 执行顺序
+### 9.2 Execution order
 
-一次性连续执行，不逐阶段等待确认。每个阶段有自检，自检不过就先修再往下走。
+Run continuously rather than requesting stage-by-stage approval. Each phase has checks; resolve failures before proceeding to dependent work.
 
-| 阶段 | 内容 | 自检 |
+| Phase | Work | Check |
 |---|---|---|
-| 1 | 骨架和类型定义；评测程序：两个任务的数据划分、读数拆分、全部标尺、阈值规则 | 任务 M 的上限和三个下限有数值，簇均值基线的分簇粒度已冻结；任务 T 的临床基线有数值；agent 的代码读不到隐藏数据 |
-| 2 | 两个任务的工具注册表；方案执行器；试跑；证据卡 | 手写的若干方案能在两个任务上跑通并产生证据卡 |
-| 3 | LLM 客户端和缓存；目标编译；方案生成与去重；经验库；锦标赛；复查 | 两个任务各自端到端跑通一次 |
-| 4 | 正式运行：两个任务的完整 agent 流程 | 冠军方案的全量结果和复查记录齐备 |
-| 5 | 基准一：全部候选方案在统一口径下全量运行 | 每个方案都有真实分数和虚高幅度 |
-| 6 | 两份数据集报告和图；4 页项目报告；幻灯片；打包 | 交付物齐备，用缓存能一条命令重现 |
+| 1 | Skeleton and schemas; evaluator splits, read thinning, reference models, and threshold rules | Task M ceiling and floors available, cluster granularity frozen, Task T clinical floor available, hidden-data separation checked |
+| 2 | Registries, executor, pilots, and evidence cards | Handwritten plans run on both tasks and produce cards |
+| 3 | LLM client and cache, objective compilation, generation and deduplication, know-how, tournament, audit | Both tasks run end to end |
+| 4 | Formal agent runs | Champion results and audits complete |
+| 5 | Benchmark 1: all candidates under the common protocol | Every candidate has evaluation scores and inflation estimates |
+| 6 | Two study reports and figures, project report of at most four pages, slides, packaging | Deliverables complete and cached responses replayable |
 
-目标是在 11-28 前完成阶段 1 到 5，留两天给报告、幻灯片和意外情况。
+The original target was to finish phases 1–5 before November 28, reserving two days for reports, slides, and contingencies.
 
-**落后时的删减顺序**：替代问题展示；按采集中心留出的敏感性分析；注册表里尚未被任何方案用到的组件。两个任务的标尺、以复杂方法为主的 6 个方案、锦标赛和基准一不删。GPU 排队成为瓶颈时，先缩小复杂方案的试跑规模，不把它们换成简单方法。
+**Scope reductions if behind schedule:** first the alternative-question demonstrations, then site-held-out sensitivity, then unused registry components. Retain both tasks' reference benchmarks, six mostly ambitious candidates, the tournament, and Benchmark 1. If GPU queues become the bottleneck, reduce ambitious pilots rather than replacing the methods with simple ones.
 
-### 9.3 交付物
+### 9.3 Deliverables
 
-- 一条命令可运行的源代码；
-- 每个数据集的分析计划、定量评估、可视化、所选方法说明、最终报告（`generated_report_1` 为 PBMC，`generated_report_2` 为 TCGA）；
-- 不超过 4 页的 `report`：系统结构、如何识别难点、如何选择策略、用到的工具和模型、两个数据集的结果、优点和局限；
-- 8 分钟汇报用的 `presentation`。
+- Source code with single-command execution.
+- For each dataset: analysis plans, quantitative evaluation, visualizations, selected-method descriptions, and a final report. `generated_report_1` is PBMC; `generated_report_2` is TCGA.
+- `report`, at most four pages: architecture, difficulty identification, strategy selection, tools and models, both datasets' results, strengths, and limitations.
+- `presentation` for an eight-minute talk.
 
-### 9.4 汇报的主线
+### 9.4 Presentation narrative
 
-1. **目标**：要解决的问题；两个任务和各自的标尺。
-2. **系统结构和新意**：诊断、多方案、试跑证据、裁判、复查；与已有工作的区别。
-3. **表现**：
-   - 任务 M：对哪些基因，ATAC 能预测细胞类型之外的表达变化；达到上限的多少；
-   - 任务 T：增益多大，置信区间，全部 6 个候选的结果，按类别拆分。
-4. **基准一**：全部候选方案全量运行后，agent 选中的方案排第几；自报分数与真实分数的差距；一段真实的裁决记录。
-5. **基准二**：与其他选择方法的比较（待办，做完后补入）。
-6. 局限和后续。
+1. **Objective:** the problem, tasks, and reference benchmarks.
+2. **Architecture and intended contribution:** diagnosis, multiple plans, pilot evidence, judging, audit, and relationship to prior work.
+3. **Performance:** Task M's genes beyond the baseline and fraction of ceiling; Task T's gain, uncertainty, all six candidates, and class-specific changes.
+4. **Benchmark 1:** the selected plan's rank, self-reported versus evaluation scores, and an actual verdict excerpt.
+5. **Benchmark 2:** selector comparison, to be added when completed.
+6. Limitations and next steps.
 
-### 9.5 待办清单（作业主流程之外，由项目负责人之后做）
+### 9.5 Deferred work outside the main assignment
 
-| 事项 | 需要什么 | 主流程已为它保存了什么 |
+| Item | Requirements | Already saved |
 |---|---|---|
-| 基准二：8 种选择方法的比较（表见 5.5） | 只需 LLM 调用 | 冻结的方案池、证据卡、每个方案的真实分数 |
-| 不给证据的 LLM 辩论（Co-Scientist 式） | 只需 LLM 调用 | 方案文本 |
-| 换裁判模型后的一致率 | 只需 LLM 调用 | 全部对决的输入和 Claude 的裁决 |
-| 多轮进化和方案合并 | 新代码和计算 | 排名和裁决理由 |
-| 经验库自动写回，并评估是否造成"开卷" | 新代码 | 复查记录 |
-| 任务 T 的阴性对照：每次打乱图像后重跑全部 6 个方案并取最大增益，用来校正六选一的偏差，并验证流程不会无中生有 | 大量计算，tile 级方案需要 GPU；可先只对病人级特征的方案在 CPU 上做 | 每个方案的可执行配置、随机种子和数据划分 |
-| 受控的陷阱任务和模拟数据 | 新任务 | 评测程序的框架 |
-| 外部队列、新供者、新的任务类型 | 新数据 | 同一套代码 |
-| 逐篇核对相关工作的原文 | 阅读 | 第 3 节的列表 |
+| Benchmark 2: eight selectors from Section 5.5 | Additional LLM calls | Frozen pool, evidence cards, evaluation scores |
+| Debate without evidence | Additional LLM calls | Plan text |
+| Agreement after changing the judge | Additional LLM calls | Every matchup input and Claude verdict |
+| Multiple evolutionary rounds and plan merging | New code and computation | Rankings and reasoning |
+| Automatic know-how write-back and assessment of answer leakage | New code | Audit records |
+| Task T negative controls: shuffle images, rerun six plans, retain maximum gains to calibrate selection bias and spurious discovery | Substantial computation; tile methods may need GPU, while patient-level methods can be assessed first on CPU | Executable configurations, seeds, and splits |
+| Controlled traps and simulated data | New tasks | Evaluator framework |
+| External cohorts, donors, and task families | New data | Reusable code |
+| Full-text verification of related work | Reading | Section 3's reference list |
 
-### 9.6 实际运行记录（2026-11-25，Sycamore）
+### 9.6 Actual run record: November 25, 2026, Sycamore
 
-阶段 1 到 6 全部完成。基准二按安排没有做，它需要的内容都已保存（见 5.5 节和 `docs/PROGRESS.md` 里的逐项核对表）。逐步的记录、作业号和自检结果在 `docs/PROGRESS.md`。
+Phases 1–6 are complete. Benchmark 2 was not run, as planned; its required inputs were retained (Section 5.5 and the checklist in `docs/PROGRESS.md`). That progress log contains the detailed chronology, job IDs, and checks.
 
-**结果**
+**Results**
 
-| | 任务 M（PBMC Multiome） | 任务 T（TCGA-BRCA） |
+| Item | Task M: PBMC Multiome | Task T: TCGA-BRCA |
 |---|---|---|
-| 方案池 | 6 个（5 个复杂，1 个简单参照），全部合规 | 6 个（5 个复杂，1 个简单参照），全部合规 |
-| 锦标赛排名 | P1 > P6 > P5 > P3 > P4 > P2；两种顺序的裁决 100% 一致 | P1 > P3 > P6 > P2 > P5 > P4；两种顺序的裁决 100% 一致 |
-| agent 选中 | P1，隐空间岭回归（简单参照）；复查通过 | P1，病人均值特征加逻辑回归（简单参照）；复查通过 |
-| 统一口径下的结果 | 隐藏集平均每基因相关 0.147；上限 0.193（达到 76%），簇均值基线 0.134（高出 0.013）；10,741 个可判断基因里 2,570 个超出细胞类型（24%） | 临床基线 macro-F1 0.601；增益 +0.097，95% 区间 +0.063 到 +0.132；结论"有改善"，与 agent 自己的结论一致；按采集中心留出时增益 +0.094 |
-| 在 6 个候选里的名次 | 第 2；第 1 是 P6（堆叠集成），高 0.003 | 第 2；第 1 是 P3（五编码器门控融合），高 0.0005，两者分不出高下 |
-| 自报减真实（选中方案） | 0.145 对 0.147，差 −0.002 | +0.090 对 +0.097，差 −0.007 |
-| 自报减真实（全部候选） | −0.002 到 −0.004，没有虚高 | −0.007 到 +0.018 |
-| 锦标赛名次与真实名次的秩相关 | 0.71（只按试跑分数排也是 0.71） | 0.83（只按试跑增益排是 0.94） |
-| 其他 | P1 按开发集声称 4,536 个基因超出细胞类型，隐藏集上确认 1,787 个（39%） | 6 个候选里 5 个增益为正且区间在零以上；没有复杂方案在统计上超过简单参照 |
+| Pool | Six compliant candidates: five ambitious, one simple reference | Six compliant candidates: five ambitious, one simple reference |
+| Tournament ranking | P1 > P6 > P5 > P3 > P4 > P2; 100% agreement across presentation orders | P1 > P3 > P6 > P2 > P5 > P4; 100% agreement across presentation orders |
+| Selected plan | P1, latent-space ridge regression; audit passed | P1, patient-mean features with logistic regression; audit passed |
+| Common-protocol result | Hidden-set mean per-gene r 0.147; ceiling 0.193, recovering 76%; cluster mean 0.134, a gain of 0.013. Of 10,741 judgeable genes, 2,570 exceeded the cell-type baseline, or 24% | Clinical-only macro-F1 0.601; gain +0.097, 95% CI +0.063 to +0.132. Conclusion: improvement, agreeing with the agent. Site-held-out gain +0.094 |
+| Rank among six | Second; P6 stacking was first, ahead by 0.003 | Second; P3 five-encoder gated fusion was first, ahead by approximately 0.0005; no meaningful separation established |
+| Selected plan: self-report versus evaluation | 0.145 versus 0.147; difference −0.002 | Gain +0.090 versus +0.097; difference −0.007 |
+| Self-report minus evaluation, all candidates | Differences between −0.004 and −0.002; no inflation | −0.007 to +0.018 |
+| Rank correlation with evaluation ranking | Tournament 0.71; pilot-score ordering also 0.71 | Tournament 0.83; pilot-gain ordering 0.94 |
+| Other findings | Of P1's 4,536 development-set gene claims, 1,787 replicated on hidden cells, or 39% | Five of six candidates had positive gains with intervals above zero; no complex plan statistically surpassed the simple reference |
 
-**与设计不一致的地方**
+**Departures from the design and execution qualifications**
 
-- **方案生成**：每次调用生成一个方案（每个任务 8 次调用，后面的调用能看到前面的方案），而不是一次生成 9 个。原因是 Gemini 4 Carbon 在最高思考强度下一次生成多个方案会超过 6 分钟上限。模型和思考强度没有降低。
-- **计算**：全部在 CPU 节点上完成。16 块 H100 一直占满，排队约四小时，而所有模型在 CPU 上都能在预算内跑完。GPU 只在前置检查里用过。
-- **复查不过关时**（6.1 第 8 步）：只实现了"改用次名方案"，没有实现"重新生成一次"。正式结果里两个任务的冠军都一次通过，这条分支没有被触发。
-- **任务 M 跑了两轮**：第一轮的复查拒绝了冠军，理由是全量运行里缺上限、置换零分布和两个下限，这是执行器没有实现完整，不是方案的问题。执行器补全后整轮重跑，正式结果是第二轮。第一轮保留在 `outputs/_superseded/`。
-- **任务 T 的锦标赛判了两次**：第一次的证据卡里有一句话让裁判误以为某个方案的预训练没有执行。证据卡修正后重判，排名不变。
-- **时间预算**：试跑和全量运行都设了时间上限（任务 M 试跑 25 分钟、全量验证 60 分钟、最终拟合 50 分钟；任务 T 试跑 30 分钟、全量 75 分钟、按采集中心留出 35 分钟）。被截断的有：任务 M 的 P2（声明的 10 份验证跑了 8 份）和 P6（9 份跑了 2 份，最终拟合没有收敛）；任务 T 的 P4（15 折跑了 13 折）。任务 T 的统一口径运行由评测程序重新执行，不受这些上限影响，每个方案的 15 折都跑完；任务 M 的统一分数是对各方案最终拟合给出的预测打分，所以 P6 的真实分数对应的是一个没有收敛的拟合。
-- **方案池里没有验证方式宽松的方案**：12 个方案全都声明了严格的验证（嵌套选择、不平滑的打分目标）。所以"自报分数虚高"在这次运行里没有机会出现，基准一在这一点上没有检验到系统。
-- **替代问题**（4.4 节，只生成不执行）：任务 M 的 6 个方案里有 3 个、任务 T 有 1 个提出了注册表里没有的组件，只记录为提议，没有实现。
-- **LLM 用量**：生成一侧 37 次成功调用，另有 50 次在 6 分钟上限超时后重发，累计等待约 8 小时；裁判一侧 123 次调用（含被取代的两轮），输入 152 万 token，按标价折算 13.82 美元，全部走订阅额度，没有用到备用裁判。
+- **Generation:** one plan per call, with eight calls per task and later calls seeing earlier plans, instead of generating nine at once. Generating several plans at the highest reasoning level exceeded Gemini's six-minute limit. The model and reasoning level were retained.
+- **Computation:** formal analyses ran on CPU nodes. All 16 H100s were occupied, queues lasted about four hours, and CPU execution was feasible under the allocated limits. GPU execution was exercised only in preflight checks.
+- **Audit fallback:** only next-ranked-plan fallback was implemented, not regeneration. Both champions in the final runs passed their audits immediately, so this fallback was not invoked there.
+- **Task M ran twice:** the first audit rejected the champion because the full-run executor omitted the ceiling, permutation null, and two required floors. This was an executor defect rather than a plan defect. The executor was completed and the workflow rerun. Superseded records remain locally in `outputs/_superseded/`.
+- **Task T's tournament was judged twice:** an evidence-card sentence initially suggested that a candidate's pretraining had not occurred. Correcting the card and rejudging left the ranking unchanged.
+- **Time limits:** Task M allowed 25 minutes per pilot, 60 minutes for full validation, and 50 minutes for final fitting. Task T allowed 30 minutes per pilot, 75 minutes for a full run, and 35 minutes for site-held-out analysis. Task M P2 completed eight of ten declared validation splits; P6 completed two of nine and its final fit did not converge. Task T P4's agent-side full run completed 13 of 15 folds. The evaluator independently reran Task T without those limits and completed all 15 folds for every candidate. Task M evaluation scored each candidate's saved final predictions, so P6's evaluation score reflects its unconverged fit.
+- **No permissively validated candidates:** all 12 plans declared strict validation, including nested selection and unsmoothed targets. Consequently, Benchmark 1 did not test the mechanism against candidates designed with weak validation that could inflate self-reported scores.
+- **Alternative questions:** these stopped at planning. Three of six Task M plans and one Task T plan proposed unregistered components; these remain proposals, not implementations.
+- **LLM usage:** 37 successful generator calls plus 50 attempts that reached the six-minute timeout and were retried, totaling about eight hours of waiting. The judge made 123 calls, including superseded rounds, consuming about 1.52 million input tokens. List-price-equivalent cost was $13.82; calls used subscription access, with no fallback judge invoked.
 
-**输出的位置**
+**Output locations**
 
-| 内容 | 位置 |
+| Content | Location |
 |---|---|
-| 两份数据集报告 | `reports/generated_report_1.pdf`（PBMC）、`reports/generated_report_2.pdf`（TCGA） |
-| 项目报告和幻灯片 | `reports/report.pdf`（3 页）、`reports/presentation.pdf`（11 页） |
-| 每个任务的全部中间结果 | `outputs/task_m/`、`outputs/task_t/`：`shared_inputs`、`plans`、`pilot`、`tournament`、`full`、`audit`、`benchmark1`、`alt_question`、`report`、`costs.json`、`index.json` |
-| 评测侧的数据和真实分数 | `bench_private/task_m/`、`bench_private/task_t/`（agent 的代码读不到） |
-| LLM 的全部回复和调用日志 | `llm_cache/`、`logs/llm_calls.jsonl` |
-| 提交用的压缩包 | `submission/source_code.zip`、`submission/generated_outputs.zip`、`submission/manifest.json` |
-| 运行记录 | `docs/PROGRESS.md` |
+| Dataset reports | `reports/generated_report_1.pdf` for PBMC; `reports/generated_report_2.pdf` for TCGA |
+| Project report and slides | `reports/report.pdf`, three pages; `reports/presentation.pdf`, 11 pages |
+| Per-task records | `outputs/task_m/` and `outputs/task_t/`: `shared_inputs`, `plans`, `pilot`, `tournament`, `full`, `audit`, `benchmark1`, `alt_question`, `report`, `costs.json`, and `index.json` |
+| Evaluator data and scores | Local `bench_private/task_m/` and `bench_private/task_t/`, separate from agent inputs and excluded from GitHub |
+| LLM answers and call log | `llm_cache/` and `logs/llm_calls.jsonl` |
+| Submission archives | `submission/source_code.zip`, `submission/generated_outputs.zip`, and `submission/manifest.json` |
+| Execution history | `docs/PROGRESS.md` |
 
-**重现**
+**Reproduction**
 
-- `make test`：81 项测试（隐藏数据隔离、判定规则、方案生成与合规、模型接口）。
-- `python scripts/replay_check.py`：只用缓存重跑全部 LLM 阶段并与保存的结果比较；2026-11-25 的结果是 14 个阶段全部一致，没有实时调用（`outputs/replay_check.json`）。
-- `make replay`：用缓存跑总控，已完成的阶段会跳过。
-- `make reports`、`make package`：重建项目报告、幻灯片和压缩包。
+- `make test`: 81 tests covering hidden-data separation, decision rules, generation and compliance, and model interfaces.
+- `python scripts/replay_check.py`: rerun LLM stages from cache and compare with saved outputs. On November 25, all 14 stages matched without live calls; see `outputs/replay_check.json`.
+- `make replay`: run the controller with cached LLM responses, skipping completed stages.
+- `make reports` and `make package`: rebuild the project report, slides, and archives.
 
 ---
 
-## 10. 风险与待验证事项
+## 10. Risks and setup checks
 
-**风险**
+**Risks considered in the design**
 
-| 风险 | 应对 |
+| Risk | Planned response |
 |---|---|
-| agent 选中的方案在基准一里不是最好的 | 如实报告它排第几、差多少，并分析裁决记录里的原因 |
-| LLM 服务中断 | 回复全部缓存。生成一侧（Gemini 4 Carbon）：单次上限 6 分钟，超时就重试，直到得到答复，不换模型。裁判一侧：重试，仍不通再用备用模型 |
-| Claude 裁判依赖本机的 Claude Code 登录 | 回复全部缓存；备用裁判走 Hugging Face 路由；有 API 密钥后可切换到官方 SDK |
-| 6 个方案之间差异不够大 | 三个方向的覆盖要求和去重规则；方案池的多样性在报告中量化 |
-| 复杂方案没训练到位，结果不可信 | 证据卡必须有训练曲线和收敛判断；没收敛的方案在复查中不予通过 |
-| 复杂方案占用大量 GPU，而 GPU 需要排队 | 每个方案声明预算并设上限；排队紧张时缩小试跑规模；试跑和全量作业尽早提交 |
-| 复杂方案都没有赢过简单参照 | 如实报告，这本身回答了"复杂方法多买到了什么" |
-| 任务 T 的结论是"证据不足" | 这是合格的答案；同时报告更灵敏的次要指标和最小可检测差异 |
-| 任务 M 的方案都赢不了簇均值基线 | 如实报告"ATAC 的预测能力主要在细胞类型层面"，并给出按基因的三分类结果和簇内相关 |
-| 任务 T 只有冠军一个方案显示增益 | 判为证据不足，并在报告中说明六选一的偏差 |
-| 时间不够 | 按 9.2 的顺序删减 |
+| The selected plan is not best in Benchmark 1 | Report its rank and gap and inspect the verdict reasoning |
+| LLM service interruption | Cache all responses. Retry Gemini after the six-minute limit without changing models; retry the judge and then use its fallback if necessary |
+| Claude judging depends on local login | Cache responses; retain Hugging Face fallback; support an official SDK when a key is available |
+| Insufficient candidate diversity | Enforce coverage and deduplication across three dimensions; quantify diversity |
+| Complex models are undertrained | Require learning curves and convergence judgments; do not approve unconverged candidates at final audit |
+| Complex models require scarce GPU time | Declare and cap budgets, reduce pilot size during congestion, and submit early |
+| Complex models do not beat the simple reference | Report this as the answer to what additional complexity buys |
+| Task T yields insufficient evidence | Accept that outcome; also report more sensitive secondary metrics and minimum detectable differences |
+| Task M cannot beat cluster means | State that predictability is primarily at the cell-type level; report gene categories and within-cluster correlations |
+| Only Task T's champion shows gain | Treat evidence as insufficient and explain selection bias |
+| Deadline pressure | Reduce scope in the order given in Section 9.2 |
 
-**待验证（2026-11-25 均已确认）**
+**Setup checks resolved by November 25, 2026**
 
-- Sycamore 上 Claude Code 命令行的位置，以及非交互调用是否可用。**结果**：可用。命令行在 VS Code 扩展目录里，目录名随扩展版本变化，`scripts/claude_cli.sh` 在调用时解析。
-- Sycamore 的计算节点能否访问外网。**结果**：CPU 和 GPU 计算节点都能访问。LLM 调用仍由登录节点上的总控进程发出，因为裁判依赖本机登录。
-- 任务 M 的基因范围实际有多少个基因，零分布需要重复多少次才稳定。**结果**：范围内 11,282 个基因，隐藏集上 10,741 个可判断。零分布用置换得到标准差后按正态近似计算，没有做重复次数的稳定性实验。
-- Claude 裁判每次调用的实际费用。**结果**：换成自定义系统提示并关闭工具后，每场对决按标价折算约 0.11 美元（输入约 1.2 万 token）；两个任务合计见 9.6 节。调用走订阅额度，不另外计费。
-- 幻灯片的格式。**结果**：PDF（WeasyPrint 生成）。
-
----
-
-## 11. 约束 [已定]
-
-- 另一个项目的 TCGA 原始数据目录只读，不修改、不移动、不采用它的队列划分。
-- 共享数据、模型权重库和前三个项目的目录都按只读对待。
-- 五个病理编码器的权重为 CC-BY-NC-ND 许可，权重及其衍生物不得再分发；提交包不含权重和原始数据。
-- API 密钥只存在本地文件，不进入代码库、日志和报告。
-- 不向外部服务发送病人级或细胞级记录。
-- 重计算通过 Slurm 提交，不在登录节点上运行。
-- 未经要求不推送到 GitHub，不提交到 Canvas。
+- **Claude CLI location and noninteractive access:** available. The binary is inside the VS Code extension directory; `scripts/claude_cli.sh` resolves the version-dependent path dynamically.
+- **Compute-node internet access:** available on both CPU and GPU nodes. LLM calls still originate from the login-node controller because the judge depends on local login.
+- **Task M gene scope and null stability:** 11,282 in-scope genes, of which 10,741 were judgeable on hidden cells. The implementation estimates a permutation-derived standard deviation and uses a normal approximation. It did not conduct a permutation-count stability study.
+- **Judge cost:** approximately $0.11 list-price equivalent per pairwise verdict after using a custom system prompt with tools disabled, with roughly 12,000 input tokens per call. Section 9.6 gives total usage. Calls used subscription access rather than additional per-call billing.
+- **Slide format:** PDF generated with WeasyPrint.
 
 ---
 
-## 12. 参考
+## 11. Constraints [Confirmed]
 
-- [Accelerating scientific discovery with Co-Scientist（Nature 2026）](https://www.nature.com/articles/s41586-026-10644-y)
-- Biomni（Science 2026，doi 10.1126/science.adz4351）
+- Treat the other project's raw TCGA directory as read-only: do not modify or move it, and do not adopt that project's cohort splits.
+- Treat shared data, model-weight stores, and the first three project directories as read-only.
+- The original project constraints specify CC-BY-NC-ND restrictions for the five pathology encoders and prohibit redistribution of weights and their derivatives. Submission archives exclude weights and raw data.
+- Keep API keys in local credential files, never in code, logs, or reports.
+- Do not send patient- or cell-level records to external services.
+- Submit heavy computation through Slurm rather than running it on login nodes.
+- Publish to GitHub only when requested; Canvas submission is separate. GitHub publication was explicitly requested and completed for this repository.
+
+---
+
+## 12. References
+
+These are the original design's reading list, subject to the verification limitations in Section 3.
+
+- [Accelerating scientific discovery with Co-Scientist (Nature 2026)](https://www.nature.com/articles/s41586-026-10644-y)
+- Biomni (Science 2026, DOI 10.1126/science.adz4351)
 - [Tournament of Prompts / DEEVO](https://arxiv.org/pdf/2506.00178)
 - [MOOSE-Chem3](https://arxiv.org/pdf/2505.17873)
 - [MLE-STAR](https://arxiv.org/pdf/2506.15692)
-- [KompeteAI（含 AIDE、SELA、MLE-STAR 的对比）](https://arxiv.org/pdf/2508.10177)
-- [Google ERA：AI-powered empirical software](https://www.research.google/blog/accelerating-scientific-discovery-with-ai-powered-empirical-software)
+- [KompeteAI, including comparisons of AIDE, SELA, and MLE-STAR](https://arxiv.org/pdf/2508.10177)
+- [Google ERA: AI-powered empirical software](https://www.research.google/blog/accelerating-scientific-discovery-with-ai-powered-empirical-software)
 - [The Agentic Garden of Forking Paths](https://arxiv.org/abs/2607.01507)
 - [Branchpoint: Structured agentic multiverse analysis](https://neurips.cc/virtual/2026/156553)
 - [Silent failures in agentic data science](https://papers.cool/arxiv/2610.14115)
@@ -726,20 +722,20 @@ Agent4_ComplexGeneral/
 - [Cross-paradigm audit of LLM judges for clinical text](https://www.nature.com/articles/s41746-026-03443-2)
 - [Evaluating Agentic Bioinformatics through Function, Evidence, and Validation](https://arxiv.org/abs/2607.27556)
 
-前三个项目的代码和报告：`../Agent1_DR`、`../Agent2_Generative`、`../Agent3_RepresentationLearning`。
+Code and reports from the previous projects are in `../Agent1_DR`, `../Agent2_Generative`, and `../Agent3_RepresentationLearning`.
 
 ---
 
-## 附录：讨论中放弃的评估设计
+## Appendix: evaluation designs set aside during planning
 
-**12 个自造标签任务。** 最初的提议是保留真实特征、按自己写的公式生成标签，从而得到已知的正确结论和理论上限。放弃的原因：
+**Twelve tasks with synthetic labels.** An initial proposal retained real features but generated labels from hand-written formulas to create known answers and theoretical ceilings. It was rejected because:
 
-- 标签由某个模态生成，不等于信息只属于那个模态，因为两个模态本身相关；
-- 把"某种模型必胜"写进了标准答案，这没有保证；
-- 任务全是"预测一个二分类标签"，评估的是预测器，而不是分析方案的选择；
-- 自造标签没有生物学含义，领域知识用不上；
-- 在没有陷阱的干净任务上，一个固定的嵌套比较就能回答问题，多方案比较没有发挥空间。
+- Generating labels from one modality does not make the information exclusive to it when modalities are correlated.
+- It implicitly assumed that a particular model should win, without guaranteeing that outcome.
+- Every task reduced to binary-label prediction, assessing predictors rather than analytical plan selection.
+- Synthetic labels lacked biological meaning and did not engage domain knowledge.
+- On clean tasks without analytical traps, a fixed nested comparison could answer the question without creating a meaningful role for competing plans.
 
-模拟数据和受控的陷阱任务保留为论文阶段的第二、第三层证据。
+Simulated data and controlled traps remain possible second and third layers of evidence for a paper.
 
-**人为埋陷阱加隐藏测试集。** 作业阶段不做。保留的教训是：陷阱必须有可观测的线索或在目标中说明，并且必须配干净的对照版本。
+**Deliberately inserted traps with a hidden test set.** Not included in the assignment. The retained lesson is that a trap must have observable clues or be stated in the objective, and must have a matched clean version.
